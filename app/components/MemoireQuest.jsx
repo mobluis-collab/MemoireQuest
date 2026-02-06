@@ -1,5 +1,3 @@
-"use client";
-
 import { useState, useEffect, useRef } from "react";
 
 const DOMAINS = [
@@ -8,458 +6,403 @@ const DOMAINS = [
   { id: "rh", label: "Ressources Humaines", icon: "◉", desc: "Management, Formation, GPEC" },
   { id: "finance", label: "Finance", icon: "◆", desc: "Audit, Contrôle, Marchés" },
   { id: "droit", label: "Droit", icon: "§", desc: "Juridique, Compliance, Contrats" },
-  { id: "other", label: "Autre", icon: "✦", desc: "Tout autre champ d'études" },
+  { id: "other", label: "Autre domaine", icon: "✦", desc: "Tout autre champ d'études" },
 ];
 
 const PHASES = [
-  { id: 1, title: "Cadrage", desc: "Définir la problématique et les objectifs", tasks: 4, emoji: "🎯" },
-  { id: 2, title: "Recherche", desc: "Revue de littérature et état de l'art", tasks: 5, emoji: "📚" },
-  { id: 3, title: "Méthodologie", desc: "Choix et justification de l'approche", tasks: 3, emoji: "🔬" },
-  { id: 4, title: "Terrain", desc: "Collecte et analyse des données", tasks: 4, emoji: "📊" },
-  { id: 5, title: "Rédaction", desc: "Structure et écriture du mémoire", tasks: 6, emoji: "✍️" },
-  { id: 6, title: "Finalisation", desc: "Relecture, soutenance, livrables", tasks: 3, emoji: "🎓" },
+  { id: 1, title: "Cadrage", desc: "Définir la problématique et les objectifs", tasks: 4, color: "#6366f1" },
+  { id: 2, title: "Recherche", desc: "Revue de littérature et état de l'art", tasks: 5, color: "#8b5cf6" },
+  { id: 3, title: "Méthodologie", desc: "Choix et justification de l'approche", tasks: 3, color: "#a78bfa" },
+  { id: 4, title: "Terrain", desc: "Collecte et analyse des données", tasks: 4, color: "#c4b5fd" },
+  { id: 5, title: "Rédaction", desc: "Structure et écriture du mémoire", tasks: 6, color: "#7c3aed" },
+  { id: 6, title: "Finalisation", desc: "Relecture, soutenance, livrables", tasks: 3, color: "#5b21b6" },
 ];
 
-const phaseTasks = {
-  1: [
-    { title: "Analyser le sujet", desc: "Décortiquer le cahier des charges et identifier les mots-clés essentiels." },
-    { title: "Formuler la problématique", desc: "Transformer le sujet en une question de recherche précise." },
-    { title: "Définir les objectifs", desc: "Lister les objectifs principaux et secondaires du mémoire." },
-    { title: "Poser les hypothèses", desc: "Formuler 2-3 hypothèses de travail vérifiables." },
-  ],
-  2: [
-    { title: "Identifier les sources clés", desc: "Constituer une bibliographie de 15-20 sources académiques." },
-    { title: "Cartographier les concepts", desc: "Mind-map des concepts théoriques liés au sujet." },
-    { title: "Analyser l'état de l'art", desc: "Synthétiser les travaux existants et identifier les lacunes." },
-    { title: "Cadre théorique", desc: "Choisir et justifier les théories structurantes." },
-    { title: "Revue critique", desc: "Rédiger une analyse critique de la littérature." },
-  ],
-  3: [
-    { title: "Choisir l'approche", desc: "Qualitative, quantitative ou mixte — justifier le choix." },
-    { title: "Définir l'échantillon", desc: "Population étudiée et critères de sélection." },
-    { title: "Concevoir les outils", desc: "Questionnaires, guides d'entretien ou grilles d'analyse." },
-  ],
-  4: [
-    { title: "Collecter les données", desc: "Mener les entretiens ou enquêtes selon le protocole." },
-    { title: "Organiser les données", desc: "Trier, coder et structurer les données collectées." },
-    { title: "Analyser les résultats", desc: "Appliquer la méthode d'analyse et interpréter." },
-    { title: "Confronter aux hypothèses", desc: "Vérifier confirmation ou infirmation des hypothèses." },
-  ],
-  5: [
-    { title: "Construire le plan détaillé", desc: "Parties, chapitres, sous-parties et transitions." },
-    { title: "Rédiger l'introduction", desc: "Contexte, problématique, annonce du plan." },
-    { title: "Rédiger le corps", desc: "Développer chaque partie selon la logique argumentaire." },
-    { title: "Rédiger la conclusion", desc: "Synthèse, réponse à la problématique, ouverture." },
-    { title: "Soigner les transitions", desc: "Fluidité entre chaque partie du mémoire." },
-    { title: "Bibliographie aux normes", desc: "Formater les références selon les normes requises." },
-  ],
-  6: [
-    { title: "Relecture complète", desc: "Orthographe, grammaire, syntaxe et cohérence." },
-    { title: "Mise en page finale", desc: "Template, marges, polices, pagination, sommaire." },
-    { title: "Préparer la soutenance", desc: "Support de présentation et réponses au jury." },
-  ],
+// ─── Theme Context ───
+const themes = {
+  dark: {
+    bg: "#09090b",
+    bgSub: "#0f0f12",
+    bgCard: "rgba(255,255,255,0.03)",
+    bgCardHover: "rgba(255,255,255,0.06)",
+    border: "rgba(255,255,255,0.06)",
+    borderHover: "rgba(255,255,255,0.12)",
+    text: "#fafafa",
+    textSub: "rgba(255,255,255,0.5)",
+    textMuted: "rgba(255,255,255,0.3)",
+    accent: "#7c3aed",
+    accentSoft: "rgba(124,58,237,0.12)",
+    accentGlow: "rgba(124,58,237,0.3)",
+    gradient: "linear-gradient(135deg, #7c3aed 0%, #6366f1 50%, #818cf8 100%)",
+    glassBg: "rgba(15,15,18,0.8)",
+  },
+  light: {
+    bg: "#fafafa",
+    bgSub: "#f4f4f5",
+    bgCard: "rgba(0,0,0,0.02)",
+    bgCardHover: "rgba(0,0,0,0.04)",
+    border: "rgba(0,0,0,0.06)",
+    borderHover: "rgba(0,0,0,0.12)",
+    text: "#09090b",
+    textSub: "rgba(0,0,0,0.5)",
+    textMuted: "rgba(0,0,0,0.25)",
+    accent: "#7c3aed",
+    accentSoft: "rgba(124,58,237,0.08)",
+    accentGlow: "rgba(124,58,237,0.15)",
+    gradient: "linear-gradient(135deg, #7c3aed 0%, #6366f1 50%, #818cf8 100%)",
+    glassBg: "rgba(250,250,250,0.8)",
+  },
 };
 
-const tips = {
-  "1-0": "Surlignez les **verbes d'action** dans votre sujet : analyser, comparer, évaluer… Ils définissent les attentes.",
-  "1-1": "Commencez par **\"En quoi...\"** ou **\"Dans quelle mesure...\"** — créez un espace de débat.",
-  "1-2": "Méthode **SMART** : Spécifique, Mesurable, Atteignable, Réaliste, Temporel.",
-  "1-3": "Formulez avec **\"Si… alors…\"** pour tester la cohérence de chaque hypothèse.",
-  "2-0": "**Google Scholar** + **CAIRN** pour les sources francophones. Mix articles, ouvrages, thèses.",
-  "2-1": "Utilisez **Miro** ou une feuille A3 pour visualiser les connexions entre concepts.",
-  "2-2": "L'état de l'art = une **conversation entre auteurs** que vous orchestrez, pas un résumé.",
-  "2-3": "Le cadre théorique = vos **lunettes**. Il détermine comment regarder votre objet d'étude.",
-  "2-4": "Structure en **entonnoir** : du général au spécifique, terminez par le gap que votre mémoire comble.",
-  "3-0": "**Explorer** → qualitatif · **Mesurer** → quantitatif · **Les deux** → mixte.",
-  "3-1": "Un petit échantillon **bien choisi** vaut mieux qu'un grand échantillon aléatoire.",
-  "3-2": "Testez vos outils sur **2-3 personnes** avant le terrain réel.",
-  "4-0": "Tenez un **journal de bord** pendant la collecte — précieux pour justifier vos choix.",
-  "4-1": "**Code couleur** ou NVivo pour les données qualitatives.",
-  "4-2": "Résultats **bruts** d'abord, puis interprétation. Séparez faits et analyse.",
-  "4-3": "Une hypothèse infirmée est aussi intéressante. **Expliquez pourquoi.**",
-  "5-0": "Votre plan doit raconter une **histoire logique** — chaque partie découle de la précédente.",
-  "5-1": "Rédigez l'intro **en dernier** quand vous maîtrisez l'ensemble.",
-  "5-2": "Commencez par la partie où vous êtes le plus **à l'aise** — l'élan facilite le reste.",
-  "5-3": "La conclusion ne doit **jamais** introduire de nouvelles idées.",
-  "5-4": "Chaque transition = **bilan** de ce qui précède + **annonce** de ce qui suit.",
-  "5-5": "**APA, Chicago ou Harvard** — choisissez et restez cohérent.",
-  "6-0": "Lisez **à voix haute**. Votre oreille repérera ce que vos yeux ont raté.",
-  "6-1": "Vérifiez le **sommaire automatique** et la pagination.",
-  "6-2": "Préparez les réponses aux **3 questions les plus difficiles** du jury.",
-};
-
-function AnimNum({ value, dur = 1200 }) {
-  const [d, setD] = useState(0);
+// ─── Animated Number ───
+function AnimNum({ value, duration = 1200 }) {
+  const [display, setDisplay] = useState(0);
   useEffect(() => {
-    let s = 0;
+    let start = 0;
     const step = (ts) => {
-      if (!s) s = ts;
-      const p = Math.min((ts - s) / dur, 1);
-      const ease = 1 - Math.pow(1 - p, 4);
-      setD(Math.floor(ease * value));
+      if (!start) start = ts;
+      const p = Math.min((ts - start) / duration, 1);
+      setDisplay(Math.floor(p * value));
       if (p < 1) requestAnimationFrame(step);
     };
     requestAnimationFrame(step);
-  }, [value, dur]);
-  return d;
+  }, [value, duration]);
+  return display;
 }
 
+// ─── Main App ───
 export default function MemoireQuest() {
-  const [mode, setMode] = useState("dark");
-  const [page, setPage] = useState("landing");
+  const [theme, setTheme] = useState("dark");
+  const [page, setPage] = useState("landing"); // landing | onboard | dashboard
   const [domain, setDomain] = useState(null);
   const [file, setFile] = useState(null);
   const [analyzing, setAnalyzing] = useState(false);
   const [progress, setProgress] = useState(0);
   const [activePhase, setActivePhase] = useState(1);
-  const [completed, setCompleted] = useState({});
+  const [completedTasks, setCompletedTasks] = useState({});
   const [showTip, setShowTip] = useState(null);
   const [mounted, setMounted] = useState(false);
   const fileRef = useRef();
 
+  const t = themes[theme];
+  const isDark = theme === "dark";
+
   useEffect(() => { setMounted(true); }, []);
 
-  const dk = mode === "dark";
-
-  // Apple-inspired palette
-  const c = {
-    // Backgrounds
-    bg: dk ? "#000000" : "#f5f5f7",
-    bgElevated: dk ? "rgba(28,28,30,0.72)" : "rgba(255,255,255,0.72)",
-    bgCard: dk ? "rgba(255,255,255,0.04)" : "rgba(255,255,255,0.6)",
-    bgCardHover: dk ? "rgba(255,255,255,0.08)" : "rgba(255,255,255,0.8)",
-    bgGlass: dk ? "rgba(44,44,46,0.55)" : "rgba(255,255,255,0.65)",
-    bgGlassStrong: dk ? "rgba(44,44,46,0.8)" : "rgba(255,255,255,0.85)",
-    // Borders
-    border: dk ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.06)",
-    borderLight: dk ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.03)",
-    borderHover: dk ? "rgba(255,255,255,0.15)" : "rgba(0,0,0,0.12)",
-    // Text
-    text: dk ? "#f5f5f7" : "#1d1d1f",
-    textSecondary: dk ? "rgba(255,255,255,0.55)" : "rgba(0,0,0,0.5)",
-    textTertiary: dk ? "rgba(255,255,255,0.3)" : "rgba(0,0,0,0.25)",
-    // Accent — Apple blue
-    accent: "#0071e3",
-    accentHover: "#0077ED",
-    accentSoft: dk ? "rgba(0,113,227,0.15)" : "rgba(0,113,227,0.08)",
-    accentGlow: dk ? "rgba(0,113,227,0.25)" : "rgba(0,113,227,0.12)",
-    // Success
-    green: "#30d158",
-    greenSoft: dk ? "rgba(48,209,88,0.15)" : "rgba(48,209,88,0.1)",
-  };
-
+  // Simulate analysis
   const startAnalysis = () => {
     if (!file || !domain) return;
     setAnalyzing(true);
     setProgress(0);
     const iv = setInterval(() => {
       setProgress((p) => {
-        if (p >= 100) { clearInterval(iv); setTimeout(() => { setAnalyzing(false); setPage("dashboard"); }, 500); return 100; }
-        return p + Math.random() * 6 + 2;
+        if (p >= 100) { clearInterval(iv); setTimeout(() => { setAnalyzing(false); setPage("dashboard"); }, 400); return 100; }
+        return p + Math.random() * 8 + 2;
       });
-    }, 120);
+    }, 150);
   };
 
-  const toggle = (pid, idx) => {
-    const k = `${pid}-${idx}`;
-    setCompleted((prev) => ({ ...prev, [k]: !prev[k] }));
+  const toggleTask = (phaseId, taskIdx) => {
+    const key = `${phaseId}-${taskIdx}`;
+    setCompletedTasks((prev) => ({ ...prev, [key]: !prev[key] }));
   };
 
   const totalTasks = PHASES.reduce((s, p) => s + p.tasks, 0);
-  const doneCount = Object.values(completed).filter(Boolean).length;
-  const overallPct = Math.round((doneCount / totalTasks) * 100);
+  const doneCount = Object.values(completedTasks).filter(Boolean).length;
+  const overallProgress = Math.round((doneCount / totalTasks) * 100);
+
   const phase = PHASES.find((p) => p.id === activePhase);
 
+  // ─── Styles ───
   const css = `
-    @import url('https://fonts.googleapis.com/css2?family=SF+Pro+Display:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,300&family=JetBrains+Mono:wght@400;500&display=swap');
 
     * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    :root {
+      --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+      --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
+    }
 
-    .root {
+    body, html { font-family: 'DM Sans', sans-serif; }
+
+    .mq-root {
       min-height: 100vh;
-      background: ${c.bg};
-      color: ${c.text};
-      font-family: -apple-system, 'SF Pro Display', 'SF Pro Text', 'Inter', 'Helvetica Neue', sans-serif;
-      -webkit-font-smoothing: antialiased;
-      transition: background 0.6s cubic-bezier(0.4, 0, 0.2, 1), color 0.4s;
+      background: ${t.bg};
+      color: ${t.text};
+      transition: background 0.5s var(--ease-out-expo), color 0.4s;
       overflow-x: hidden;
       position: relative;
     }
 
-    /* ── Ambient Orbs (Apple style mesh gradient) ── */
-    .orb {
+    /* Subtle grid background */
+    .mq-root::before {
+      content: '';
       position: fixed;
-      border-radius: 50%;
-      filter: blur(100px);
+      inset: 0;
+      background-image: 
+        linear-gradient(${isDark ? 'rgba(255,255,255,0.015)' : 'rgba(0,0,0,0.015)'} 1px, transparent 1px),
+        linear-gradient(90deg, ${isDark ? 'rgba(255,255,255,0.015)' : 'rgba(0,0,0,0.015)'} 1px, transparent 1px);
+      background-size: 64px 64px;
       pointer-events: none;
       z-index: 0;
-      opacity: ${dk ? 0.35 : 0.25};
-      transition: opacity 0.6s;
-    }
-    .orb-1 {
-      width: 600px; height: 600px;
-      background: radial-gradient(circle, #0071e3 0%, transparent 70%);
-      top: -200px; right: -150px;
-    }
-    .orb-2 {
-      width: 500px; height: 500px;
-      background: radial-gradient(circle, #bf5af2 0%, transparent 70%);
-      bottom: -150px; left: -100px;
-    }
-    .orb-3 {
-      width: 400px; height: 400px;
-      background: radial-gradient(circle, #30d158 0%, transparent 70%);
-      top: 40%; left: 50%;
-      transform: translate(-50%, -50%);
-      opacity: ${dk ? 0.12 : 0.08};
     }
 
-    /* ── Frosted Nav ── */
+    /* Ambient glow */
+    .ambient-glow {
+      position: fixed;
+      width: 600px;
+      height: 600px;
+      border-radius: 50%;
+      background: ${t.accentGlow};
+      filter: blur(180px);
+      opacity: 0.4;
+      pointer-events: none;
+      z-index: 0;
+      top: -200px;
+      right: -200px;
+      transition: opacity 0.5s;
+    }
+
+    .ambient-glow-2 {
+      position: fixed;
+      width: 400px;
+      height: 400px;
+      border-radius: 50%;
+      background: rgba(99, 102, 241, 0.15);
+      filter: blur(150px);
+      opacity: 0.3;
+      pointer-events: none;
+      z-index: 0;
+      bottom: -100px;
+      left: -100px;
+    }
+
+    /* ─── NAV ─── */
     .nav {
       position: fixed;
-      top: 0; left: 0; right: 0;
+      top: 0;
+      left: 0;
+      right: 0;
       z-index: 100;
-      height: 52px;
+      padding: 16px 32px;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 0 24px;
-      background: ${c.bgGlassStrong};
-      backdrop-filter: blur(40px) saturate(1.8);
-      -webkit-backdrop-filter: blur(40px) saturate(1.8);
-      border-bottom: 0.5px solid ${c.border};
-      transition: all 0.4s;
+      background: ${t.glassBg};
+      backdrop-filter: blur(20px) saturate(1.2);
+      border-bottom: 1px solid ${t.border};
+      transition: all 0.4s var(--ease-out-expo);
     }
 
     .nav-brand {
       display: flex;
       align-items: center;
       gap: 10px;
-      font-size: 14px;
       font-weight: 600;
+      font-size: 15px;
       letter-spacing: -0.02em;
       cursor: pointer;
-      user-select: none;
     }
 
     .nav-logo {
-      width: 26px; height: 26px;
-      border-radius: 7px;
-      background: ${c.accent};
+      width: 28px;
+      height: 28px;
+      border-radius: 8px;
+      background: ${t.gradient};
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 13px;
+      font-size: 14px;
       color: white;
       font-weight: 700;
     }
 
-    .nav-right {
+    .nav-actions {
       display: flex;
       align-items: center;
-      gap: 6px;
+      gap: 8px;
     }
 
-    .nav-pill {
-      font-size: 11px;
-      padding: 4px 10px;
-      border-radius: 100px;
-      background: ${c.bgCard};
-      border: 0.5px solid ${c.border};
-      color: ${c.textSecondary};
-      font-weight: 500;
-      letter-spacing: -0.01em;
-    }
-
-    .icon-btn {
-      width: 32px; height: 32px;
-      border-radius: 8px;
-      border: 0.5px solid ${c.border};
-      background: ${c.bgCard};
-      color: ${c.textSecondary};
+    .theme-toggle {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      border: 1px solid ${t.border};
+      background: ${t.bgCard};
+      color: ${t.textSub};
+      cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 15px;
-      cursor: pointer;
-      transition: all 0.2s;
+      font-size: 16px;
+      transition: all 0.3s;
     }
-    .icon-btn:hover {
-      background: ${c.bgCardHover};
-      color: ${c.text};
-      border-color: ${c.borderHover};
+    .theme-toggle:hover {
+      border-color: ${t.borderHover};
+      background: ${t.bgCardHover};
+      color: ${t.text};
     }
 
-    .btn-blue {
-      padding: 7px 18px;
-      border-radius: 980px;
+    .btn-primary {
+      padding: 8px 20px;
+      border-radius: 10px;
       border: none;
-      background: ${c.accent};
+      background: ${t.gradient};
       color: white;
-      font-family: inherit;
+      font-family: 'DM Sans', sans-serif;
       font-size: 13px;
-      font-weight: 500;
+      font-weight: 600;
       cursor: pointer;
       letter-spacing: -0.01em;
-      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+      transition: all 0.3s var(--ease-out-expo);
+      position: relative;
+      overflow: hidden;
     }
-    .btn-blue:hover {
-      background: ${c.accentHover};
-      transform: scale(1.02);
-      box-shadow: 0 4px 20px ${c.accentGlow};
+    .btn-primary:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 8px 32px ${t.accentGlow};
     }
-    .btn-blue:active { transform: scale(0.98); }
+    .btn-primary:active { transform: translateY(0); }
 
-    .btn-secondary {
-      padding: 7px 18px;
-      border-radius: 980px;
-      border: 0.5px solid ${c.border};
-      background: ${c.bgGlass};
-      backdrop-filter: blur(20px);
-      color: ${c.text};
-      font-family: inherit;
+    .btn-ghost {
+      padding: 8px 16px;
+      border-radius: 10px;
+      border: 1px solid ${t.border};
+      background: transparent;
+      color: ${t.textSub};
+      font-family: 'DM Sans', sans-serif;
       font-size: 13px;
       font-weight: 500;
       cursor: pointer;
-      transition: all 0.25s;
+      transition: all 0.3s;
     }
-    .btn-secondary:hover {
-      background: ${c.bgGlassStrong};
-      border-color: ${c.borderHover};
+    .btn-ghost:hover {
+      border-color: ${t.borderHover};
+      color: ${t.text};
+      background: ${t.bgCard};
     }
 
-    /* ── LANDING ── */
+    /* ─── LANDING ─── */
     .landing {
       position: relative;
       z-index: 1;
-      padding-top: 52px;
+      padding-top: 120px;
     }
 
     .hero {
-      max-width: 680px;
+      max-width: 720px;
       margin: 0 auto;
       text-align: center;
-      padding: 100px 24px 60px;
+      padding: 60px 24px 40px;
     }
 
-    .hero-chip {
+    .hero-badge {
       display: inline-flex;
       align-items: center;
-      gap: 6px;
-      padding: 5px 14px;
-      border-radius: 980px;
-      background: ${c.bgGlass};
-      backdrop-filter: blur(20px);
-      border: 0.5px solid ${c.border};
+      gap: 8px;
+      padding: 6px 14px;
+      border-radius: 100px;
+      border: 1px solid ${t.border};
+      background: ${t.bgCard};
       font-size: 12px;
-      color: ${c.textSecondary};
+      color: ${t.textSub};
       font-weight: 500;
-      margin-bottom: 28px;
-      animation: rise 0.8s cubic-bezier(0.16, 1, 0.3, 1) both;
+      margin-bottom: 32px;
+      letter-spacing: 0.02em;
+      animation: fadeUp 0.8s var(--ease-out-expo) both;
     }
-
-    .pulse-dot {
-      width: 6px; height: 6px;
+    .hero-badge span {
+      width: 6px;
+      height: 6px;
       border-radius: 50%;
-      background: ${c.green};
-      animation: pulse 2.5s ease infinite;
+      background: #22c55e;
+      animation: pulse-dot 2s infinite;
     }
 
-    @keyframes pulse {
-      0%, 100% { opacity: 1; transform: scale(1); }
-      50% { opacity: 0.5; transform: scale(0.8); }
-    }
-
-    @keyframes rise {
-      from { opacity: 0; transform: translateY(24px); }
-      to { opacity: 1; transform: translateY(0); }
+    @keyframes pulse-dot {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
     }
 
     .hero h1 {
-      font-size: clamp(42px, 6.5vw, 60px);
+      font-size: clamp(40px, 6vw, 64px);
       font-weight: 700;
       letter-spacing: -0.04em;
       line-height: 1.05;
-      margin-bottom: 18px;
-      animation: rise 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.08s both;
+      margin-bottom: 20px;
+      animation: fadeUp 0.8s var(--ease-out-expo) 0.1s both;
     }
 
-    .hero h1 .gradient-text {
-      background: linear-gradient(135deg, #0071e3 0%, #bf5af2 50%, #ff375f 100%);
+    .hero h1 em {
+      font-style: normal;
+      background: ${t.gradient};
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;
     }
 
-    .hero-sub {
-      font-size: 18px;
-      line-height: 1.55;
-      color: ${c.textSecondary};
-      font-weight: 400;
-      max-width: 440px;
-      margin: 0 auto 36px;
-      letter-spacing: -0.01em;
-      animation: rise 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.16s both;
+    .hero p {
+      font-size: 17px;
+      line-height: 1.6;
+      color: ${t.textSub};
+      max-width: 480px;
+      margin: 0 auto 40px;
+      animation: fadeUp 0.8s var(--ease-out-expo) 0.2s both;
     }
 
-    .hero-actions {
+    .hero-cta {
       display: flex;
       align-items: center;
       justify-content: center;
       gap: 12px;
-      animation: rise 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.24s both;
+      animation: fadeUp 0.8s var(--ease-out-expo) 0.3s both;
     }
-    .hero-actions .btn-blue {
-      padding: 10px 28px;
+    .hero-cta .btn-primary {
+      padding: 12px 28px;
       font-size: 14px;
+      border-radius: 12px;
     }
-    .hero-actions .btn-secondary {
-      padding: 10px 24px;
+    .hero-cta .btn-ghost {
+      padding: 12px 24px;
       font-size: 14px;
+      border-radius: 12px;
     }
 
-    /* Glass feature cards */
-    .features-section {
-      max-width: 880px;
-      margin: 40px auto 0;
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Features */
+    .features {
+      max-width: 960px;
+      margin: 80px auto;
       padding: 0 24px;
-      animation: rise 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.32s both;
-    }
-
-    .features-grid {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
-      gap: 12px;
-    }
-
-    .glass-card {
-      padding: 28px 24px;
+      gap: 1px;
+      background: ${t.border};
       border-radius: 20px;
-      background: ${c.bgGlass};
-      backdrop-filter: blur(40px) saturate(1.5);
-      -webkit-backdrop-filter: blur(40px) saturate(1.5);
-      border: 0.5px solid ${c.border};
-      transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
-      position: relative;
       overflow: hidden;
-    }
-    .glass-card::before {
-      content: '';
-      position: absolute;
-      top: 0; left: 0; right: 0;
-      height: 1px;
-      background: linear-gradient(90deg, transparent, ${dk ? 'rgba(255,255,255,0.12)' : 'rgba(255,255,255,0.8)'}, transparent);
-    }
-    .glass-card:hover {
-      transform: translateY(-4px);
-      box-shadow: 0 20px 60px ${dk ? 'rgba(0,0,0,0.4)' : 'rgba(0,0,0,0.08)'};
-      border-color: ${c.borderHover};
+      border: 1px solid ${t.border};
+      animation: fadeUp 0.8s var(--ease-out-expo) 0.4s both;
     }
 
-    .glass-card-icon {
-      width: 40px; height: 40px;
+    .feature-card {
+      padding: 36px 28px;
+      background: ${t.bgSub};
+      transition: background 0.3s;
+    }
+    .feature-card:hover {
+      background: ${isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.01)'};
+    }
+
+    .feature-icon {
+      width: 40px;
+      height: 40px;
       border-radius: 12px;
-      background: ${c.accentSoft};
+      background: ${t.accentSoft};
       display: flex;
       align-items: center;
       justify-content: center;
@@ -467,100 +410,97 @@ export default function MemoireQuest() {
       margin-bottom: 16px;
     }
 
-    .glass-card h3 {
-      font-size: 15px;
+    .feature-card h3 {
+      font-size: 14px;
       font-weight: 600;
+      margin-bottom: 8px;
       letter-spacing: -0.02em;
-      margin-bottom: 6px;
-    }
-    .glass-card p {
-      font-size: 13px;
-      line-height: 1.5;
-      color: ${c.textSecondary};
     }
 
-    /* Stats row */
-    .stats-row {
-      max-width: 880px;
-      margin: 64px auto;
+    .feature-card p {
+      font-size: 13px;
+      line-height: 1.5;
+      color: ${t.textSub};
+    }
+
+    /* Stats */
+    .stats {
+      max-width: 960px;
+      margin: 0 auto 80px;
       padding: 0 24px;
       display: flex;
       justify-content: center;
-      gap: 1px;
-      animation: rise 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.4s both;
+      gap: 80px;
+      animation: fadeUp 0.8s var(--ease-out-expo) 0.5s both;
     }
 
-    .stat-glass {
-      flex: 1;
+    .stat {
       text-align: center;
-      padding: 28px 20px;
-      background: ${c.bgGlass};
-      backdrop-filter: blur(30px);
-      border: 0.5px solid ${c.border};
     }
-    .stat-glass:first-child { border-radius: 16px 0 0 16px; }
-    .stat-glass:last-child { border-radius: 0 16px 16px 0; }
-
     .stat-num {
-      font-size: 32px;
+      font-size: 36px;
       font-weight: 700;
       letter-spacing: -0.04em;
-      font-feature-settings: 'tnum';
-      background: linear-gradient(135deg, ${c.accent}, #bf5af2);
+      font-family: 'JetBrains Mono', monospace;
+      background: ${t.gradient};
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
     }
     .stat-label {
-      font-size: 12px;
-      color: ${c.textTertiary};
+      font-size: 13px;
+      color: ${t.textMuted};
       margin-top: 4px;
-      font-weight: 500;
     }
 
+    /* Footer */
     .footer {
       text-align: center;
-      padding: 32px 24px;
+      padding: 40px 24px;
+      border-top: 1px solid ${t.border};
       font-size: 12px;
-      color: ${c.textTertiary};
-      border-top: 0.5px solid ${c.borderLight};
+      color: ${t.textMuted};
     }
 
-    /* ── ONBOARDING ── */
+    /* ─── ONBOARDING ─── */
     .onboard {
       position: relative;
       z-index: 1;
-      padding: 100px 24px 60px;
-      max-width: 560px;
+      padding-top: 100px;
+      max-width: 640px;
       margin: 0 auto;
+      padding-left: 24px;
+      padding-right: 24px;
     }
 
     .onboard-step {
-      animation: rise 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+      padding: 40px 0;
+      animation: fadeUp 0.6s var(--ease-out-expo) both;
     }
 
-    .step-num {
+    .step-label {
       font-size: 11px;
       font-weight: 600;
-      font-family: 'JetBrains Mono', monospace;
-      color: ${c.accent};
       text-transform: uppercase;
-      letter-spacing: 0.06em;
-      margin-bottom: 6px;
+      letter-spacing: 0.08em;
+      color: ${t.accent};
+      margin-bottom: 8px;
+      font-family: 'JetBrains Mono', monospace;
     }
 
     .step-title {
       font-size: 28px;
       font-weight: 700;
-      letter-spacing: -0.035em;
-      margin-bottom: 6px;
+      letter-spacing: -0.03em;
+      margin-bottom: 8px;
     }
 
     .step-desc {
       font-size: 15px;
-      color: ${c.textSecondary};
-      margin-bottom: 28px;
+      color: ${t.textSub};
+      margin-bottom: 32px;
     }
 
+    /* Domain Grid */
     .domain-grid {
       display: grid;
       grid-template-columns: repeat(2, 1fr);
@@ -568,574 +508,637 @@ export default function MemoireQuest() {
     }
 
     .domain-card {
-      padding: 18px;
-      border-radius: 16px;
-      background: ${c.bgGlass};
-      backdrop-filter: blur(30px);
-      border: 0.5px solid ${c.border};
+      padding: 20px;
+      border-radius: 14px;
+      border: 1px solid ${t.border};
+      background: ${t.bgCard};
       cursor: pointer;
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      transition: all 0.3s var(--ease-out-expo);
       display: flex;
-      align-items: center;
-      gap: 12px;
+      align-items: flex-start;
+      gap: 14px;
     }
     .domain-card:hover {
-      background: ${c.bgCardHover};
-      border-color: ${c.borderHover};
+      border-color: ${t.borderHover};
+      background: ${t.bgCardHover};
       transform: translateY(-2px);
-      box-shadow: 0 8px 30px ${dk ? 'rgba(0,0,0,0.3)' : 'rgba(0,0,0,0.06)'};
     }
-    .domain-card.active {
-      border-color: ${c.accent};
-      background: ${c.accentSoft};
-      box-shadow: 0 0 0 1px ${c.accent}, 0 8px 30px ${c.accentGlow};
+    .domain-card.selected {
+      border-color: ${t.accent};
+      background: ${t.accentSoft};
+      box-shadow: 0 0 0 1px ${t.accent};
     }
 
     .domain-icon {
-      width: 36px; height: 36px;
+      width: 36px;
+      height: 36px;
       border-radius: 10px;
-      background: ${c.accentSoft};
+      background: ${t.accentSoft};
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 15px;
+      font-size: 16px;
       flex-shrink: 0;
     }
 
-    .domain-info h4 {
+    .domain-label {
       font-size: 14px;
       font-weight: 600;
       letter-spacing: -0.01em;
     }
-    .domain-info span {
+    .domain-desc {
       font-size: 12px;
-      color: ${c.textSecondary};
+      color: ${t.textSub};
+      margin-top: 2px;
     }
 
     /* Upload */
-    .upload-area {
-      border: 1.5px dashed ${c.border};
-      border-radius: 20px;
-      padding: 52px 24px;
+    .upload-zone {
+      border: 1.5px dashed ${t.border};
+      border-radius: 16px;
+      padding: 48px 24px;
       text-align: center;
       cursor: pointer;
-      transition: all 0.3s;
-      background: ${c.bgCard};
-      backdrop-filter: blur(20px);
+      transition: all 0.3s var(--ease-out-expo);
+      background: ${t.bgCard};
     }
-    .upload-area:hover {
-      border-color: ${c.accent};
-      background: ${c.accentSoft};
+    .upload-zone:hover {
+      border-color: ${t.accent};
+      background: ${t.accentSoft};
     }
-    .upload-area.filled {
+    .upload-zone.has-file {
+      border-color: ${t.accent};
       border-style: solid;
-      border-color: ${c.accent};
-      background: ${c.accentSoft};
+      background: ${t.accentSoft};
     }
 
-    .upload-icon-wrap {
-      width: 52px; height: 52px;
-      border-radius: 16px;
-      background: ${c.bgGlass};
-      backdrop-filter: blur(20px);
-      border: 0.5px solid ${c.border};
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 22px;
-      margin: 0 auto 16px;
+    .upload-icon {
+      font-size: 32px;
+      margin-bottom: 12px;
+      opacity: 0.5;
     }
-
-    .upload-label {
+    .upload-text {
       font-size: 14px;
-      font-weight: 500;
+      color: ${t.textSub};
       margin-bottom: 4px;
     }
     .upload-hint {
       font-size: 12px;
-      color: ${c.textTertiary};
+      color: ${t.textMuted};
     }
-    .upload-fname {
+    .upload-file-name {
       font-size: 14px;
       font-weight: 600;
-      color: ${c.accent};
+      color: ${t.accent};
     }
 
-    .step-actions {
+    .onboard-actions {
       display: flex;
       justify-content: flex-end;
-      gap: 10px;
-      margin-top: 32px;
+      gap: 12px;
+      margin-top: 40px;
     }
 
-    /* ── ANALYZING OVERLAY ── */
-    .analyze-overlay {
+    /* Analyzing */
+    .analyzing-overlay {
       position: fixed;
       inset: 0;
       z-index: 200;
-      background: ${dk ? 'rgba(0,0,0,0.85)' : 'rgba(245,245,247,0.9)'};
-      backdrop-filter: blur(60px) saturate(1.4);
+      background: ${t.glassBg};
+      backdrop-filter: blur(40px);
       display: flex;
       align-items: center;
       justify-content: center;
-      animation: fadeIn 0.5s;
+      animation: fadeIn 0.4s var(--ease-out-expo);
     }
-    @keyframes fadeIn { from { opacity: 0; } }
 
-    .analyze-glass {
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    .analyzing-card {
       text-align: center;
-      padding: 48px;
-      border-radius: 28px;
-      background: ${c.bgGlass};
-      backdrop-filter: blur(40px);
-      border: 0.5px solid ${c.border};
-      min-width: 320px;
-      box-shadow: 0 24px 80px ${dk ? 'rgba(0,0,0,0.5)' : 'rgba(0,0,0,0.08)'};
+      max-width: 360px;
     }
 
-    .spinner-ring {
-      width: 44px; height: 44px;
+    .analyzing-spinner {
+      width: 48px;
+      height: 48px;
       border-radius: 50%;
-      border: 2.5px solid ${c.border};
-      border-top-color: ${c.accent};
-      animation: spin 0.7s linear infinite;
-      margin: 0 auto 20px;
+      border: 2px solid ${t.border};
+      border-top-color: ${t.accent};
+      animation: spin 0.8s linear infinite;
+      margin: 0 auto 24px;
     }
-    @keyframes spin { to { transform: rotate(360deg); } }
 
-    .progress-track {
-      width: 200px;
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .progress-bar-bg {
+      width: 240px;
       height: 3px;
       border-radius: 4px;
-      background: ${c.border};
-      margin: 14px auto 0;
+      background: ${t.border};
+      margin: 16px auto 0;
       overflow: hidden;
     }
-    .progress-fill {
+    .progress-bar-fill {
       height: 100%;
       border-radius: 4px;
-      background: linear-gradient(90deg, ${c.accent}, #bf5af2);
-      transition: width 0.12s linear;
+      background: ${t.gradient};
+      transition: width 0.15s linear;
     }
 
-    /* ── DASHBOARD ── */
-    .dash {
+    /* ─── DASHBOARD ─── */
+    .dashboard {
       position: relative;
       z-index: 1;
-      padding-top: 52px;
+      padding-top: 80px;
       display: grid;
-      grid-template-columns: 240px 1fr;
+      grid-template-columns: 260px 1fr;
       min-height: 100vh;
     }
 
-    .side {
-      border-right: 0.5px solid ${c.border};
-      padding: 24px 16px;
+    /* Sidebar */
+    .sidebar {
+      border-right: 1px solid ${t.border};
+      padding: 32px 20px;
       position: sticky;
-      top: 52px;
-      height: calc(100vh - 52px);
+      top: 64px;
+      height: calc(100vh - 64px);
       overflow-y: auto;
-      background: ${dk ? 'rgba(0,0,0,0.3)' : 'rgba(245,245,247,0.5)'};
-      backdrop-filter: blur(20px);
     }
 
-    /* Progress ring */
-    .progress-ring-wrap {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding: 20px 0 24px;
-      margin-bottom: 20px;
+    .sidebar-section {
+      margin-bottom: 28px;
     }
 
-    .ring-container {
-      position: relative;
-      width: 80px; height: 80px;
-      margin-bottom: 10px;
-    }
-    .ring-container svg {
-      transform: rotate(-90deg);
-    }
-    .ring-bg {
-      fill: none;
-      stroke: ${c.border};
-      stroke-width: 4;
-    }
-    .ring-fill {
-      fill: none;
-      stroke: url(#ringGrad);
-      stroke-width: 4;
-      stroke-linecap: round;
-      transition: stroke-dashoffset 0.6s cubic-bezier(0.16, 1, 0.3, 1);
-    }
-    .ring-pct {
-      position: absolute;
-      inset: 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 18px;
-      font-weight: 700;
-      letter-spacing: -0.03em;
-      font-feature-settings: 'tnum';
-    }
-    .ring-label {
-      font-size: 11px;
-      color: ${c.textTertiary};
-      font-weight: 500;
-    }
-
-    .side-label {
+    .sidebar-label {
       font-size: 10px;
       font-weight: 600;
       text-transform: uppercase;
-      letter-spacing: 0.08em;
-      color: ${c.textTertiary};
+      letter-spacing: 0.1em;
+      color: ${t.textMuted};
+      margin-bottom: 12px;
       padding: 0 8px;
-      margin-bottom: 8px;
       font-family: 'JetBrains Mono', monospace;
     }
 
-    .phase-item {
+    .overall-progress {
+      padding: 16px;
+      border-radius: 12px;
+      background: ${t.bgCard};
+      border: 1px solid ${t.border};
+      margin-bottom: 24px;
+    }
+
+    .overall-progress-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 10px;
+    }
+    .overall-progress-label {
+      font-size: 12px;
+      font-weight: 600;
+    }
+    .overall-progress-pct {
+      font-size: 20px;
+      font-weight: 700;
+      font-family: 'JetBrains Mono', monospace;
+      letter-spacing: -0.03em;
+      background: ${t.gradient};
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .overall-bar-bg {
+      width: 100%;
+      height: 4px;
+      border-radius: 4px;
+      background: ${t.border};
+      overflow: hidden;
+    }
+    .overall-bar-fill {
+      height: 100%;
+      border-radius: 4px;
+      background: ${t.gradient};
+      transition: width 0.5s var(--ease-out-expo);
+    }
+
+    .phase-nav-item {
       display: flex;
       align-items: center;
       gap: 10px;
-      padding: 9px 10px;
+      padding: 10px 12px;
       border-radius: 10px;
       cursor: pointer;
       transition: all 0.2s;
-      margin-bottom: 1px;
+      margin-bottom: 2px;
       font-size: 13px;
       font-weight: 500;
-      color: ${c.textSecondary};
+      color: ${t.textSub};
     }
-    .phase-item:hover {
-      background: ${c.bgCardHover};
-      color: ${c.text};
+    .phase-nav-item:hover {
+      background: ${t.bgCardHover};
+      color: ${t.text};
     }
-    .phase-item.active {
-      background: ${c.accentSoft};
-      color: ${c.text};
+    .phase-nav-item.active {
+      background: ${t.accentSoft};
+      color: ${t.text};
     }
 
-    .phase-emoji {
-      font-size: 16px;
-      width: 24px;
-      text-align: center;
+    .phase-nav-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
       flex-shrink: 0;
+      transition: all 0.3s;
     }
 
-    .phase-count {
-      margin-left: auto;
-      font-size: 11px;
+    .phase-nav-num {
       font-family: 'JetBrains Mono', monospace;
-      color: ${c.textTertiary};
+      font-size: 11px;
+      color: ${t.textMuted};
+      min-width: 20px;
     }
 
-    /* Main */
-    .main {
-      padding: 36px 48px 80px;
-      max-width: 680px;
+    /* Main Content */
+    .main-content {
+      padding: 32px 40px 80px;
+      max-width: 720px;
     }
 
     .phase-header {
-      margin-bottom: 28px;
-      animation: rise 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+      margin-bottom: 32px;
+      animation: fadeUp 0.5s var(--ease-out-expo) both;
     }
 
-    .phase-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
+    .phase-tag {
       font-size: 11px;
       font-weight: 600;
       text-transform: uppercase;
-      letter-spacing: 0.06em;
+      letter-spacing: 0.08em;
       font-family: 'JetBrains Mono', monospace;
-      padding: 4px 12px;
-      border-radius: 8px;
-      background: ${c.accentSoft};
-      color: ${c.accent};
-      margin-bottom: 10px;
+      margin-bottom: 8px;
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 6px;
+      background: ${t.accentSoft};
+      color: ${t.accent};
     }
 
     .phase-title {
-      font-size: 24px;
+      font-size: 26px;
       font-weight: 700;
-      letter-spacing: -0.035em;
-      margin-bottom: 4px;
+      letter-spacing: -0.03em;
+      margin-bottom: 6px;
     }
 
     .phase-desc {
       font-size: 14px;
-      color: ${c.textSecondary};
+      color: ${t.textSub};
     }
 
-    /* Task cards — glass */
-    .tasks {
+    /* Task Cards */
+    .task-list {
       display: flex;
       flex-direction: column;
       gap: 8px;
     }
 
-    .task {
+    .task-card {
       display: flex;
       align-items: flex-start;
       gap: 14px;
       padding: 18px 20px;
-      border-radius: 16px;
-      background: ${c.bgGlass};
-      backdrop-filter: blur(30px) saturate(1.3);
-      border: 0.5px solid ${c.border};
+      border-radius: 14px;
+      border: 1px solid ${t.border};
+      background: ${t.bgCard};
+      transition: all 0.3s var(--ease-out-expo);
       cursor: pointer;
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      animation: rise 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
-      position: relative;
-      overflow: hidden;
+      animation: fadeUp 0.5s var(--ease-out-expo) both;
     }
-    .task::before {
-      content: '';
-      position: absolute;
-      top: 0; left: 0; right: 0;
-      height: 0.5px;
-      background: linear-gradient(90deg, transparent, ${dk ? 'rgba(255,255,255,0.06)' : 'rgba(255,255,255,0.5)'}, transparent);
+    .task-card:hover {
+      border-color: ${t.borderHover};
+      background: ${t.bgCardHover};
+      transform: translateX(4px);
     }
-    .task:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 12px 40px ${dk ? 'rgba(0,0,0,0.3)' : 'rgba(0,0,0,0.06)'};
-      border-color: ${c.borderHover};
+    .task-card.done {
+      opacity: 0.5;
     }
-    .task.done { opacity: 0.45; }
 
-    .check {
-      width: 22px; height: 22px;
-      border-radius: 7px;
-      border: 1.5px solid ${c.border};
+    .task-check {
+      width: 20px;
+      height: 20px;
+      border-radius: 6px;
+      border: 1.5px solid ${t.border};
       flex-shrink: 0;
       margin-top: 1px;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 11px;
-      transition: all 0.25s;
-      color: transparent;
+      font-size: 12px;
+      transition: all 0.3s;
     }
-    .check:hover { border-color: ${c.accent}; }
-    .check.on {
-      background: ${c.accent};
-      border-color: ${c.accent};
+    .task-check.checked {
+      background: ${t.gradient};
+      border-color: transparent;
       color: white;
     }
 
-    .task-body { flex: 1; }
-    .task-name {
+    .task-info {
+      flex: 1;
+    }
+    .task-title {
       font-size: 14px;
       font-weight: 600;
-      letter-spacing: -0.015em;
-      margin-bottom: 3px;
+      letter-spacing: -0.01em;
+      margin-bottom: 4px;
     }
     .task-desc {
       font-size: 12.5px;
-      color: ${c.textSecondary};
-      line-height: 1.45;
+      color: ${t.textSub};
+      line-height: 1.5;
     }
 
-    .tip-btn {
+    .task-tip-btn {
       padding: 4px 10px;
       border-radius: 8px;
-      border: 0.5px solid ${c.border};
-      background: ${c.bgCard};
-      color: ${c.textTertiary};
+      border: 1px solid ${t.border};
+      background: transparent;
+      color: ${t.textMuted};
       font-size: 11px;
-      font-family: inherit;
-      font-weight: 500;
+      font-family: 'DM Sans', sans-serif;
       cursor: pointer;
       transition: all 0.2s;
       flex-shrink: 0;
       margin-top: 2px;
-      backdrop-filter: blur(10px);
     }
-    .tip-btn:hover {
-      border-color: ${c.accent};
-      color: ${c.accent};
-      background: ${c.accentSoft};
+    .task-tip-btn:hover {
+      border-color: ${t.accent};
+      color: ${t.accent};
+      background: ${t.accentSoft};
     }
 
-    .tip-glass {
-      margin-top: 8px;
+    /* Tip Panel */
+    .tip-panel {
+      margin-top: 12px;
       padding: 16px 20px;
-      border-radius: 14px;
-      background: ${c.bgGlass};
-      backdrop-filter: blur(30px);
-      border: 0.5px solid ${dk ? 'rgba(0,113,227,0.2)' : 'rgba(0,113,227,0.15)'};
+      border-radius: 12px;
+      background: ${t.accentSoft};
+      border: 1px solid ${isDark ? 'rgba(124,58,237,0.2)' : 'rgba(124,58,237,0.15)'};
       font-size: 13px;
       line-height: 1.6;
-      color: ${c.textSecondary};
-      animation: rise 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
-      box-shadow: 0 8px 24px ${dk ? 'rgba(0,0,0,0.2)' : 'rgba(0,0,0,0.04)'};
+      color: ${t.textSub};
+      animation: fadeUp 0.4s var(--ease-out-expo) both;
     }
-    .tip-glass strong {
-      color: ${c.accent};
+    .tip-panel strong {
+      color: ${t.accent};
       font-weight: 600;
     }
 
+    /* Responsive */
     @media (max-width: 768px) {
-      .features-grid { grid-template-columns: 1fr; }
-      .stats-row { flex-direction: column; }
-      .stat-glass { border-radius: 0 !important; }
-      .stat-glass:first-child { border-radius: 16px 16px 0 0 !important; }
-      .stat-glass:last-child { border-radius: 0 0 16px 16px !important; }
-      .dash { grid-template-columns: 1fr; }
-      .side { display: none; }
-      .main { padding: 24px 20px 60px; }
+      .features { grid-template-columns: 1fr; }
+      .stats { flex-direction: column; gap: 24px; }
+      .dashboard { grid-template-columns: 1fr; }
+      .sidebar { display: none; }
       .domain-grid { grid-template-columns: 1fr; }
     }
   `;
 
-  const circumference = 2 * Math.PI * 35;
-  const dashOffset = circumference - (overallPct / 100) * circumference;
+  // ─── Task Definitions ───
+  const phaseTasks = {
+    1: [
+      { title: "Analyser le sujet", desc: "Décortiquer le cahier des charges et identifier les mots-clés essentiels du sujet." },
+      { title: "Formuler la problématique", desc: "Transformer le sujet en une question de recherche précise et pertinente." },
+      { title: "Définir les objectifs", desc: "Lister les objectifs principaux et secondaires de votre mémoire." },
+      { title: "Poser les hypothèses", desc: "Formuler 2-3 hypothèses de travail vérifiables." },
+    ],
+    2: [
+      { title: "Identifier les sources clés", desc: "Constituer une bibliographie de 15-20 sources académiques de référence." },
+      { title: "Cartographier les concepts", desc: "Créer une mind-map des concepts théoriques liés à votre sujet." },
+      { title: "Analyser l'état de l'art", desc: "Synthétiser les travaux existants et identifier les lacunes." },
+      { title: "Cadre théorique", desc: "Choisir et justifier les théories qui structureront votre analyse." },
+      { title: "Revue critique", desc: "Rédiger une analyse critique de la littérature existante." },
+    ],
+    3: [
+      { title: "Choisir l'approche", desc: "Qualitative, quantitative ou mixte — justifier votre choix méthodologique." },
+      { title: "Définir l'échantillon", desc: "Préciser la population étudiée et les critères de sélection." },
+      { title: "Concevoir les outils", desc: "Créer les questionnaires, guides d'entretien ou grilles d'analyse." },
+    ],
+    4: [
+      { title: "Collecter les données", desc: "Mener les entretiens, enquêtes ou observations selon le protocole défini." },
+      { title: "Organiser les données", desc: "Trier, coder et structurer les données collectées." },
+      { title: "Analyser les résultats", desc: "Appliquer la méthode d'analyse choisie et interpréter les résultats." },
+      { title: "Confronter aux hypothèses", desc: "Vérifier si les résultats confirment ou infirment vos hypothèses." },
+    ],
+    5: [
+      { title: "Construire le plan détaillé", desc: "Structurer les parties, chapitres et sous-parties avec transitions." },
+      { title: "Rédiger l'introduction", desc: "Contexte, problématique, annonce du plan — une introduction percutante." },
+      { title: "Rédiger le corps", desc: "Développer chaque partie en respectant la logique argumentaire." },
+      { title: "Rédiger la conclusion", desc: "Synthèse, réponse à la problématique, ouverture." },
+      { title: "Soigner les transitions", desc: "Assurer la fluidité entre chaque partie du mémoire." },
+      { title: "Bibliographie aux normes", desc: "Formater toutes les références selon les normes académiques requises." },
+    ],
+    6: [
+      { title: "Relecture complète", desc: "Vérifier l'orthographe, la grammaire, la syntaxe et la cohérence." },
+      { title: "Mise en page finale", desc: "Appliquer le template requis : marges, polices, pagination, sommaire." },
+      { title: "Préparer la soutenance", desc: "Créer le support de présentation et préparer les réponses au jury." },
+    ],
+  };
 
+  const tips = {
+    "1-0": "Commencez par surligner les **verbes d'action** dans votre sujet. Ils définissent ce qu'on attend de vous : analyser, comparer, évaluer…",
+    "1-1": "Une bonne problématique commence souvent par **\"En quoi...\"** ou **\"Dans quelle mesure...\"** — elle doit créer un espace de débat.",
+    "1-2": "Utilisez la méthode **SMART** : Spécifique, Mesurable, Atteignable, Réaliste, Temporel.",
+    "1-3": "Chaque hypothèse doit être **testable**. Formulez-les avec \"Si... alors...\" pour vérifier leur cohérence.",
+    "2-0": "Privilégiez **Google Scholar** et **CAIRN** pour les sources francophones. Visez un mix : articles, ouvrages, thèses.",
+    "2-1": "Utilisez un outil comme **Miro** ou une simple feuille A3 pour visualiser les connexions entre concepts.",
+    "2-2": "L'état de l'art n'est pas un résumé. C'est une **conversation entre auteurs** que vous orchestrez.",
+    "2-3": "Le cadre théorique est votre **paire de lunettes**. Il détermine comment vous allez regarder votre objet d'étude.",
+    "2-4": "Structurez votre revue en **entonnoir** : du plus général au plus spécifique, en terminant par le gap que votre mémoire comble.",
+    "3-0": "Le choix dépend de votre question : **explorer** → qualitatif, **mesurer** → quantitatif, **les deux** → mixte.",
+    "3-1": "Justifiez la **taille** et les **critères** de votre échantillon. Un petit échantillon bien choisi > un grand échantillon aléatoire.",
+    "3-2": "Testez vos outils sur **2-3 personnes** avant le terrain réel. Vous repérerez les questions ambiguës.",
+    "4-0": "Gardez un **journal de bord** pendant la collecte. Ces notes seront précieuses pour justifier vos choix dans le mémoire.",
+    "4-1": "Utilisez un **code couleur** ou un logiciel comme NVivo pour les données qualitatives.",
+    "4-2": "Présentez d'abord les résultats **bruts**, puis votre interprétation. Séparez les faits de l'analyse.",
+    "4-3": "Une hypothèse infirmée est tout aussi intéressante qu'une hypothèse confirmée. **Expliquez pourquoi.**",
+    "5-0": "Votre plan doit raconter une **histoire logique**. Chaque partie doit découler naturellement de la précédente.",
+    "5-1": "L'intro se rédige **en dernier**, quand vous maîtrisez l'ensemble. Elle doit donner envie de lire la suite.",
+    "5-2": "Une astuce : commencez par la partie où vous êtes le plus **à l'aise**. L'élan créé facilitera le reste.",
+    "5-3": "La conclusion ne doit **jamais** introduire de nouvelles idées. C'est une synthèse, pas un nouveau chapitre.",
+    "5-4": "Chaque transition doit faire le **bilan** de ce qui précède et **annoncer** ce qui suit.",
+    "5-5": "Choisissez entre **APA, Chicago ou Harvard** selon votre école et restez cohérent du début à la fin.",
+    "6-0": "Lisez votre mémoire **à voix haute**. Votre oreille repérera ce que vos yeux ont raté.",
+    "6-1": "Vérifiez que votre **sommaire automatique** est bien à jour et que la pagination est correcte.",
+    "6-2": "Préparez des réponses aux **3 questions les plus difficiles** que le jury pourrait poser.",
+  };
+
+  // ─── RENDER ───
   return (
-    <div className="root">
+    <div className="mq-root">
       <style>{css}</style>
-      <div className="orb orb-1" />
-      <div className="orb orb-2" />
-      <div className="orb orb-3" />
+      <div className="ambient-glow" />
+      <div className="ambient-glow-2" />
 
-      {/* SVG gradient def */}
-      <svg width="0" height="0"><defs>
-        <linearGradient id="ringGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="#0071e3" />
-          <stop offset="100%" stopColor="#bf5af2" />
-        </linearGradient>
-      </defs></svg>
-
-      {/* ── NAV ── */}
+      {/* Nav */}
       <nav className="nav">
         <div className="nav-brand" onClick={() => { setPage("landing"); setDomain(null); setFile(null); }}>
           <div className="nav-logo">M</div>
           MémoireQuest
         </div>
-        <div className="nav-right">
-          {page === "dashboard" && domain && (
-            <span className="nav-pill">{DOMAINS.find(d => d.id === domain)?.label}</span>
+        <div className="nav-actions">
+          {page === "dashboard" && (
+            <span style={{ fontSize: 12, color: t.textMuted, marginRight: 8, fontFamily: "'JetBrains Mono', monospace" }}>
+              {domain && DOMAINS.find(d => d.id === domain)?.label}
+            </span>
           )}
-          <button className="icon-btn" onClick={() => setMode(dk ? "light" : "dark")}>
-            {dk ? "☀︎" : "☾"}
+          <button className="theme-toggle" onClick={() => setTheme(isDark ? "light" : "dark")}>
+            {isDark ? "☀" : "☾"}
           </button>
           {page === "landing" && (
-            <button className="btn-blue" onClick={() => setPage("onboard")}>Commencer</button>
+            <button className="btn-primary" onClick={() => setPage("onboard")}>
+              Commencer
+            </button>
           )}
         </div>
       </nav>
 
-      {/* ── LANDING ── */}
+      {/* ─── LANDING ─── */}
       {page === "landing" && mounted && (
         <div className="landing">
           <section className="hero">
-            <div className="hero-chip">
-              <span className="pulse-dot" />
-              Open Source · Gratuit
+            <div className="hero-badge">
+              <span />&nbsp;Open Source · Gratuit
             </div>
             <h1>
-              Structurez votre<br />
-              mémoire, <span className="gradient-text">simplement.</span>
+              Structurez votre mémoire,<br />
+              <em>étape par étape.</em>
             </h1>
-            <p className="hero-sub">
-              L'assistant IA qui analyse votre sujet et vous guide étape par étape jusqu'à la soutenance.
+            <p>
+              L'assistant IA qui analyse votre sujet et vous guide avec un plan d'action détaillé, des conseils personnalisés et un suivi de progression.
             </p>
-            <div className="hero-actions">
-              <button className="btn-blue" onClick={() => setPage("onboard")}>Démarrer →</button>
-              <button className="btn-secondary">Voir sur GitHub ↗</button>
+            <div className="hero-cta">
+              <button className="btn-primary" onClick={() => setPage("onboard")}>
+                Démarrer gratuitement →
+              </button>
+              <button className="btn-ghost" onClick={() => window.open("#", "_blank")}>
+                GitHub ↗
+              </button>
             </div>
           </section>
 
-          <section className="features-section">
-            <div className="features-grid">
-              <div className="glass-card">
-                <div className="glass-card-icon">⚡</div>
-                <h3>Analyse IA</h3>
-                <p>Uploadez votre cahier des charges, l'IA génère un plan structuré en quelques secondes.</p>
-              </div>
-              <div className="glass-card">
-                <div className="glass-card-icon">◎</div>
-                <h3>Suivi visuel</h3>
-                <p>Dashboard intuitif avec progression par phase pour rester motivé et organisé.</p>
-              </div>
-              <div className="glass-card">
-                <div className="glass-card-icon">✧</div>
-                <h3>Conseils ciblés</h3>
-                <p>Recommandations personnalisées pour chaque étape de votre rédaction.</p>
-              </div>
+          <section className="features">
+            <div className="feature-card">
+              <div className="feature-icon">⚡</div>
+              <h3>Analyse IA</h3>
+              <p>Uploadez votre cahier des charges. L'IA décompose votre sujet et génère un plan structuré.</p>
+            </div>
+            <div className="feature-card">
+              <div className="feature-icon">◎</div>
+              <h3>Suivi visuel</h3>
+              <p>Suivez votre avancement phase par phase avec un dashboard intuitif et motivant.</p>
+            </div>
+            <div className="feature-card">
+              <div className="feature-icon">✧</div>
+              <h3>Conseils ciblés</h3>
+              <p>Des recommandations IA personnalisées pour chaque étape de votre rédaction.</p>
             </div>
           </section>
 
-          <section className="stats-row">
-            <div className="stat-glass">
-              <div className="stat-num"><AnimNum value={6} dur={900} /></div>
+          <section className="stats">
+            <div className="stat">
+              <div className="stat-num"><AnimNum value={6} duration={800} /></div>
               <div className="stat-label">Phases structurées</div>
             </div>
-            <div className="stat-glass">
-              <div className="stat-num"><AnimNum value={25} dur={1100} /></div>
+            <div className="stat">
+              <div className="stat-num"><AnimNum value={25} duration={1000} /></div>
               <div className="stat-label">Tâches guidées</div>
             </div>
-            <div className="stat-glass">
-              <div className="stat-num"><AnimNum value={6} dur={900} /></div>
+            <div className="stat">
+              <div className="stat-num"><AnimNum value={6} duration={800} /></div>
               <div className="stat-label">Domaines couverts</div>
             </div>
           </section>
 
-          <footer className="footer">MémoireQuest · Open Source · Fait avec soin pour les étudiants</footer>
+          <footer className="footer">
+            MémoireQuest · Open Source · Fait avec ♥ pour les étudiants
+          </footer>
         </div>
       )}
 
-      {/* ── ONBOARDING ── */}
+      {/* ─── ONBOARDING ─── */}
       {page === "onboard" && (
         <div className="onboard">
+          {/* Step 1: Domain */}
           <div className="onboard-step">
-            <div className="step-num">Étape 01</div>
-            <h2 className="step-title">Votre domaine</h2>
-            <p className="step-desc">Pour adapter les conseils à votre cursus.</p>
+            <div className="step-label">Étape 01</div>
+            <h2 className="step-title">Quel est votre domaine ?</h2>
+            <p className="step-desc">Cela nous permet d'adapter les conseils à votre cursus.</p>
             <div className="domain-grid">
               {DOMAINS.map((d) => (
-                <div key={d.id} className={`domain-card ${domain === d.id ? "active" : ""}`} onClick={() => setDomain(d.id)}>
+                <div
+                  key={d.id}
+                  className={`domain-card ${domain === d.id ? "selected" : ""}`}
+                  onClick={() => setDomain(d.id)}
+                >
                   <div className="domain-icon">{d.icon}</div>
-                  <div className="domain-info">
-                    <h4>{d.label}</h4>
-                    <span>{d.desc}</span>
+                  <div>
+                    <div className="domain-label">{d.label}</div>
+                    <div className="domain-desc">{d.desc}</div>
                   </div>
                 </div>
               ))}
             </div>
           </div>
 
+          {/* Step 2: Upload */}
           {domain && (
-            <div className="onboard-step" style={{ marginTop: 40, animationDelay: "0.08s" }}>
-              <div className="step-num">Étape 02</div>
-              <h2 className="step-title">Votre sujet</h2>
-              <p className="step-desc">Cahier des charges, brief ou consignes.</p>
-              <input ref={fileRef} type="file" accept=".pdf,.doc,.docx,.txt" style={{ display: "none" }}
-                onChange={(e) => setFile(e.target.files?.[0] || null)} />
-              <div className={`upload-area ${file ? "filled" : ""}`} onClick={() => fileRef.current?.click()}>
+            <div className="onboard-step" style={{ animationDelay: "0.1s" }}>
+              <div className="step-label">Étape 02</div>
+              <h2 className="step-title">Uploadez votre sujet</h2>
+              <p className="step-desc">Cahier des charges, brief ou consignes — l'IA fera le reste.</p>
+              <input
+                ref={fileRef}
+                type="file"
+                accept=".pdf,.doc,.docx,.txt"
+                style={{ display: "none" }}
+                onChange={(e) => setFile(e.target.files?.[0] || null)}
+              />
+              <div
+                className={`upload-zone ${file ? "has-file" : ""}`}
+                onClick={() => fileRef.current?.click()}
+              >
                 {file ? (
                   <>
-                    <div className="upload-icon-wrap">✓</div>
-                    <div className="upload-fname">{file.name}</div>
-                    <div className="upload-hint" style={{ marginTop: 6 }}>Cliquez pour changer</div>
+                    <div style={{ fontSize: 28, marginBottom: 8 }}>✓</div>
+                    <div className="upload-file-name">{file.name}</div>
+                    <div className="upload-hint" style={{ marginTop: 8 }}>Cliquez pour changer de fichier</div>
                   </>
                 ) : (
                   <>
-                    <div className="upload-icon-wrap">↑</div>
-                    <div className="upload-label">Glissez ou cliquez pour uploader</div>
+                    <div className="upload-icon">↑</div>
+                    <div className="upload-text">Glissez votre fichier ici ou cliquez</div>
                     <div className="upload-hint">PDF, DOC, DOCX ou TXT · 10 Mo max</div>
                   </>
                 )}
               </div>
-              <div className="step-actions">
-                <button className="btn-secondary" onClick={() => setDomain(null)}>Retour</button>
-                <button className="btn-blue" style={{ opacity: file ? 1 : 0.4, pointerEvents: file ? "auto" : "none" }}
-                  onClick={startAnalysis}>
-                  Analyser →
+
+              <div className="onboard-actions">
+                <button className="btn-ghost" onClick={() => setDomain(null)}>
+                  Retour
+                </button>
+                <button
+                  className="btn-primary"
+                  style={{ opacity: file ? 1 : 0.4, pointerEvents: file ? "auto" : "none" }}
+                  onClick={startAnalysis}
+                >
+                  Analyser mon sujet →
                 </button>
               </div>
             </div>
@@ -1143,85 +1146,96 @@ export default function MemoireQuest() {
         </div>
       )}
 
-      {/* ── ANALYZING ── */}
+      {/* ─── ANALYZING ─── */}
       {analyzing && (
-        <div className="analyze-overlay">
-          <div className="analyze-glass">
-            <div className="spinner-ring" />
-            <div style={{ fontSize: 16, fontWeight: 600, marginBottom: 4 }}>Analyse en cours</div>
-            <div style={{ fontSize: 13, color: c.textSecondary }}>Structuration de votre plan personnalisé…</div>
-            <div className="progress-track">
-              <div className="progress-fill" style={{ width: `${Math.min(progress, 100)}%` }} />
+        <div className="analyzing-overlay">
+          <div className="analyzing-card">
+            <div className="analyzing-spinner" />
+            <div style={{ fontSize: 16, fontWeight: 600, marginBottom: 6 }}>Analyse en cours…</div>
+            <div style={{ fontSize: 13, color: t.textSub }}>L'IA structure votre plan personnalisé</div>
+            <div className="progress-bar-bg">
+              <div className="progress-bar-fill" style={{ width: `${Math.min(progress, 100)}%` }} />
             </div>
-            <div style={{ fontSize: 12, color: c.textTertiary, marginTop: 8, fontFamily: "'JetBrains Mono', monospace" }}>
+            <div style={{ fontSize: 12, color: t.textMuted, marginTop: 8, fontFamily: "'JetBrains Mono', monospace" }}>
               {Math.min(Math.round(progress), 100)}%
             </div>
           </div>
         </div>
       )}
 
-      {/* ── DASHBOARD ── */}
+      {/* ─── DASHBOARD ─── */}
       {page === "dashboard" && (
-        <div className="dash">
-          <aside className="side">
-            <div className="progress-ring-wrap">
-              <div className="ring-container">
-                <svg width="80" height="80" viewBox="0 0 80 80">
-                  <circle className="ring-bg" cx="40" cy="40" r="35" />
-                  <circle className="ring-fill" cx="40" cy="40" r="35"
-                    strokeDasharray={circumference}
-                    strokeDashoffset={dashOffset} />
-                </svg>
-                <div className="ring-pct">{overallPct}%</div>
+        <div className="dashboard">
+          <aside className="sidebar">
+            <div className="overall-progress">
+              <div className="overall-progress-header">
+                <span className="overall-progress-label">Progression</span>
+                <span className="overall-progress-pct">{overallProgress}%</span>
               </div>
-              <span className="ring-label">Progression globale</span>
+              <div className="overall-bar-bg">
+                <div className="overall-bar-fill" style={{ width: `${overallProgress}%` }} />
+              </div>
             </div>
 
-            <div className="side-label">Phases</div>
-            {PHASES.map((p) => {
-              const pd = Array.from({ length: p.tasks }, (_, i) => completed[`${p.id}-${i}`]).filter(Boolean).length;
-              return (
-                <div key={p.id} className={`phase-item ${activePhase === p.id ? "active" : ""}`}
-                  onClick={() => setActivePhase(p.id)}>
-                  <span className="phase-emoji">{p.emoji}</span>
-                  <span style={{ flex: 1 }}>{p.title}</span>
-                  <span className="phase-count">{pd}/{p.tasks}</span>
-                </div>
-              );
-            })}
+            <div className="sidebar-section">
+              <div className="sidebar-label">Phases</div>
+              {PHASES.map((p) => {
+                const pDone = Array.from({ length: p.tasks }, (_, i) => completedTasks[`${p.id}-${i}`]).filter(Boolean).length;
+                return (
+                  <div
+                    key={p.id}
+                    className={`phase-nav-item ${activePhase === p.id ? "active" : ""}`}
+                    onClick={() => setActivePhase(p.id)}
+                  >
+                    <div className="phase-nav-dot" style={{ background: p.color }} />
+                    <span style={{ flex: 1 }}>{p.title}</span>
+                    <span className="phase-nav-num">{pDone}/{p.tasks}</span>
+                  </div>
+                );
+              })}
+            </div>
           </aside>
 
-          <main className="main">
+          <main className="main-content">
             {phase && (
               <>
                 <div className="phase-header" key={phase.id}>
-                  <div className="phase-badge">{phase.emoji} Phase {phase.id}</div>
+                  <div className="phase-tag">Phase {phase.id}</div>
                   <h2 className="phase-title">{phase.title}</h2>
                   <p className="phase-desc">{phase.desc}</p>
                 </div>
 
-                <div className="tasks">
+                <div className="task-list">
                   {phaseTasks[phase.id]?.map((task, idx) => {
-                    const k = `${phase.id}-${idx}`;
-                    const isDone = !!completed[k];
+                    const key = `${phase.id}-${idx}`;
+                    const isDone = !!completedTasks[key];
+                    const tipKey = `${phase.id}-${idx}`;
                     return (
-                      <div key={k}>
-                        <div className={`task ${isDone ? "done" : ""}`} style={{ animationDelay: `${idx * 0.05}s` }}>
-                          <div className={`check ${isDone ? "on" : ""}`} onClick={() => toggle(phase.id, idx)}>
+                      <div key={key}>
+                        <div
+                          className={`task-card ${isDone ? "done" : ""}`}
+                          style={{ animationDelay: `${idx * 0.06}s` }}
+                        >
+                          <div
+                            className={`task-check ${isDone ? "checked" : ""}`}
+                            onClick={() => toggleTask(phase.id, idx)}
+                          >
                             {isDone && "✓"}
                           </div>
-                          <div className="task-body">
-                            <div className="task-name">{task.title}</div>
+                          <div className="task-info">
+                            <div className="task-title">{task.title}</div>
                             <div className="task-desc">{task.desc}</div>
                           </div>
-                          <button className="tip-btn"
-                            onClick={() => setShowTip(showTip === k ? null : k)}>
-                            {showTip === k ? "Masquer" : "Conseil IA"}
+                          <button
+                            className="task-tip-btn"
+                            onClick={() => setShowTip(showTip === tipKey ? null : tipKey)}
+                          >
+                            {showTip === tipKey ? "Masquer" : "Conseil IA"}
                           </button>
                         </div>
-                        {showTip === k && tips[k] && (
-                          <div className="tip-glass" dangerouslySetInnerHTML={{
-                            __html: `💡 ${tips[k].replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")}`
+                        {showTip === tipKey && tips[tipKey] && (
+                          <div className="tip-panel" dangerouslySetInnerHTML={{
+                            __html: `💡 ${tips[tipKey].replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")}`
                           }} />
                         )}
                       </div>
