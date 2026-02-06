@@ -1,7 +1,6 @@
-"use client";
-
-import MemoireQuest from "./components/MemoireQuest";
+import "./globals.css";
+import Maimoirkuest from "./components/Maimoirkuest";
 
 export default function Home() {
-  return <MemoireQuest />;
+  return <Maimoirkuest />;
 }
