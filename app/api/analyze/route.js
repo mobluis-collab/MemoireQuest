@@ -23,7 +23,42 @@ export async function POST(request) {
     const domainLabels = { info: "Informatique", marketing: "Marketing", rh: "Ressources Humaines", finance: "Finance", droit: "Droit", other: "Autre domaine" };
     const domainLabel = domainLabels[domain] || domain;
 
-    const systemPrompt = `Tu es un expert en méthodologie de mémoire universitaire, spécialisé dans le domaine "${domainLabel}". Tu dois analyser le sujet d'un étudiant et générer un plan structuré en quêtes. Retourne UNIQUEMENT un JSON valide (pas de markdown, pas de backticks) avec cette structure : { "analysis": { "subject": "résumé", "keywords": ["k1","k2","k3","k4","k5"], "domain_specific": "spécificité", "difficulty": "moyen", "estimated_weeks": 12 }, "quests": [{ "id": 1, "phase": "Phase 1", "title": "titre", "emoji": "🎯", "desc": "description", "tasks": [{ "id": "1-1", "title": "mission", "steps": [{"label": "action"}], "tip": "conseil" }] }] }. 6 quêtes : Cadrage → Recherche → Méthodologie → Terrain → Rédaction → Finalisation. 3-5 missions par quête, 3-5 sous-étapes par mission. Tout doit être spécifique au sujet.`;
+    const systemPrompt = `Tu es un expert en méthodologie de mémoire universitaire, spécialisé dans le domaine "${domainLabel}". Tu dois analyser le cahier des charges/sujet d'un étudiant et générer un plan structuré.
+
+IMPORTANT: Commence par analyser ce que le cahier des charges ATTEND concrètement de l'étudiant.
+
+Retourne UNIQUEMENT un JSON valide (pas de markdown, pas de backticks) avec cette structure :
+{
+  "requirements_summary": {
+    "title": "Ce que le cahier des charges attend de vous",
+    "main_objective": "L'objectif principal du mémoire en 1-2 phrases",
+    "deliverables": ["Livrable attendu 1", "Livrable attendu 2", "Livrable attendu 3"],
+    "constraints": ["Contrainte ou exigence 1", "Contrainte ou exigence 2"],
+    "evaluation_criteria": ["Critère d'évaluation 1", "Critère d'évaluation 2"]
+  },
+  "analysis": {
+    "subject": "résumé du sujet",
+    "keywords": ["k1","k2","k3","k4","k5"],
+    "domain_specific": "spécificité du domaine",
+    "difficulty": "moyen",
+    "estimated_weeks": 12
+  },
+  "quests": [{
+    "id": 1,
+    "phase": "Phase 1",
+    "title": "titre",
+    "emoji": "🎯",
+    "desc": "description",
+    "tasks": [{
+      "id": "1-1",
+      "title": "mission",
+      "steps": [{"label": "action"}],
+      "tip": "conseil"
+    }]
+  }]
+}
+
+6 quêtes : Cadrage → Recherche → Méthodologie → Terrain → Rédaction → Finalisation. 3-5 missions par quête, 3-5 sous-étapes par mission. Tout doit être spécifique au sujet.`;
 
     let userContent = [];
 
@@ -41,7 +76,7 @@ export async function POST(request) {
     const response = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
       headers: { "Content-Type": "application/json", "x-api-key": apiKey, "anthropic-version": "2023-06-01" },
-      body: JSON.stringify({ model: "claude-sonnet-4-20250514", max_tokens: 4096, system: systemPrompt, messages: [{ role: "user", content: userContent }] }),
+      body: JSON.stringify({ model: "claude-sonnet-4-20250514", max_tokens: 8192, system: systemPrompt, messages: [{ role: "user", content: userContent }] }),
     });
 
     console.log("[API] Anthropic response status:", response.status);

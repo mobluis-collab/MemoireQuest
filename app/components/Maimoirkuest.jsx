@@ -84,6 +84,7 @@ export default function Maimoirkuest() {
   const [progress, setProgress] = useState(0);
   const [quests, setQuests] = useState(FALLBACK_QUESTS);
   const [analysis, setAnalysis] = useState(null);
+  const [requirementsSummary, setRequirementsSummary] = useState(null);
   const [activeQuest, setActiveQuest] = useState(1);
   const [activeTask, setActiveTask] = useState(null);
   const [completedSteps, setCompletedSteps] = useState({});
@@ -197,6 +198,7 @@ export default function Maimoirkuest() {
       if (data.quests && data.quests.length > 0) {
         setQuests(data.quests);
         setAnalysis(data.analysis || null);
+        setRequirementsSummary(data.requirements_summary || null);
       }
 
       await new Promise(r => setTimeout(r, 600));
@@ -567,18 +569,55 @@ export default function Maimoirkuest() {
           <main className="main">
             {aiError && <div className="ai-error">⚠️ {aiError}</div>}
 
+            {requirementsSummary && activeQuest === quests[0]?.id && (
+              <div className="analysis-card" style={{background: dk ? "rgba(0,113,227,0.08)" : "rgba(0,113,227,0.05)", borderColor: dk ? "rgba(0,113,227,0.2)" : "rgba(0,113,227,0.15)"}}>
+                <div style={{fontSize:11,fontWeight:600,color:c.accent,marginBottom:12,textTransform:"uppercase",letterSpacing:".06em",fontFamily:"'JetBrains Mono',monospace"}}>📋 Ce que le cahier des charges attend de vous</div>
+
+                {requirementsSummary.main_objective && (
+                  <div style={{fontSize:15,fontWeight:600,marginBottom:16,lineHeight:1.4}}>{requirementsSummary.main_objective}</div>
+                )}
+
+                {requirementsSummary.deliverables && requirementsSummary.deliverables.length > 0 && (
+                  <div style={{marginBottom:14}}>
+                    <div style={{fontSize:12,fontWeight:600,marginBottom:6,color:c.text}}>Livrables attendus</div>
+                    <ul style={{margin:0,paddingLeft:18,fontSize:13,color:c.textSec,lineHeight:1.6}}>
+                      {requirementsSummary.deliverables.map((d,i) => <li key={i}>{d}</li>)}
+                    </ul>
+                  </div>
+                )}
+
+                {requirementsSummary.constraints && requirementsSummary.constraints.length > 0 && (
+                  <div style={{marginBottom:14}}>
+                    <div style={{fontSize:12,fontWeight:600,marginBottom:6,color:c.text}}>Contraintes & exigences</div>
+                    <ul style={{margin:0,paddingLeft:18,fontSize:13,color:c.textSec,lineHeight:1.6}}>
+                      {requirementsSummary.constraints.map((c,i) => <li key={i}>{c}</li>)}
+                    </ul>
+                  </div>
+                )}
+
+                {requirementsSummary.evaluation_criteria && requirementsSummary.evaluation_criteria.length > 0 && (
+                  <div>
+                    <div style={{fontSize:12,fontWeight:600,marginBottom:6,color:c.text}}>Critères d'évaluation</div>
+                    <ul style={{margin:0,paddingLeft:18,fontSize:13,color:c.textSec,lineHeight:1.6}}>
+                      {requirementsSummary.evaluation_criteria.map((e,i) => <li key={i}>{e}</li>)}
+                    </ul>
+                  </div>
+                )}
+              </div>
+            )}
+
             {analysis && quest && activeQuest === quests[0]?.id && (
               <div className="analysis-card">
                 <div style={{fontSize:11,fontWeight:600,color:c.accent,marginBottom:8,textTransform:"uppercase",letterSpacing:".06em",fontFamily:"'JetBrains Mono',monospace"}}>Analyse de votre sujet</div>
                 <div className="analysis-subject">{analysis.subject}</div>
-                {analysis.keyThemes && (
+                {analysis.keywords && (
                   <div className="analysis-themes">
-                    {analysis.keyThemes.map((t,i)=><span key={i} className="analysis-theme">{t}</span>)}
+                    {analysis.keywords.map((t,i)=><span key={i} className="analysis-theme">{t}</span>)}
                   </div>
                 )}
                 <div className="analysis-meta">
                   {analysis.difficulty && <span>Difficulté : {analysis.difficulty}</span>}
-                  {analysis.estimatedWeeks && <span>~{analysis.estimatedWeeks} semaines</span>}
+                  {analysis.estimated_weeks && <span>~{analysis.estimated_weeks} semaines</span>}
                 </div>
               </div>
             )}
