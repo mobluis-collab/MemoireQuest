@@ -625,6 +625,10 @@ export default function Maimoirkuest() {
                 <span className={`q-pct ${qp.pct===100?"ok":""}`}>{qp.pct}%</span>
               </div>
             )})}
+
+            <div style={{marginTop:20,padding:"12px 10px",borderRadius:10,background:c.bgCard,border:`.5px solid ${c.border}`,fontSize:10,color:c.textTer,lineHeight:1.5}}>
+              💾 Votre progression est sauvegardée automatiquement sur ce navigateur. Utilisez toujours le même navigateur et appareil pour conserver vos données.
+            </div>
           </aside>
 
           <main className="main">
