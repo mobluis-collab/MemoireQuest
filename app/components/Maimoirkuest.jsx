@@ -119,9 +119,20 @@ export default function Maimoirkuest() {
   const handleFile = (f) => {
     setFile(f);
     if (!f) return;
+
     const reader = new FileReader();
-    reader.onload = (e) => setTextContent(e.target.result);
-    reader.readAsText(f);
+    const isImage = f.type.startsWith("image/");
+    const isPdf = f.type === "application/pdf";
+
+    if (isImage || isPdf) {
+      // For images and PDFs, read as base64
+      reader.onload = (e) => setTextContent(e.target.result);
+      reader.readAsDataURL(f);
+    } else {
+      // For text files, read as text
+      reader.onload = (e) => setTextContent(e.target.result);
+      reader.readAsText(f);
+    }
   };
 
   // ─── Real AI Analysis ───
@@ -149,8 +160,9 @@ export default function Maimoirkuest() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          content: content.substring(0, 15000),
-          domain: DOMAINS.find(d => d.id === domain)?.label || domain,
+          text: content.substring(0, 500000),
+          domain: domain,
+          fileType: file?.type || "text/plain",
           fileName: file?.name || "texte collé",
         }),
       });
@@ -474,10 +486,10 @@ export default function Maimoirkuest() {
                 />
               ) : (
                 <>
-                  <input ref={fileRef} type="file" accept=".txt,.md,.rtf" style={{display:"none"}} onChange={e=>handleFile(e.target.files?.[0]||null)}/>
+                  <input ref={fileRef} type="file" accept=".txt,.md,.rtf,.pdf,.png,.jpg,.jpeg,image/png,image/jpeg,application/pdf" style={{display:"none"}} onChange={e=>handleFile(e.target.files?.[0]||null)}/>
                   <div className={`upload-area ${file?"filled":""}`} onClick={()=>fileRef.current?.click()}>
                     {file?(<><div className="upload-icon-w">✓</div><div className="upload-f">{file.name}</div><div className="upload-h" style={{marginTop:4}}>Cliquez pour changer</div></>)
-                         :(<><div className="upload-icon-w">↑</div><div className="upload-l">Cliquez pour uploader</div><div className="upload-h">Fichier .txt (pour les PDF, utilisez le mode texte)</div></>)}
+                         :(<><div className="upload-icon-w">↑</div><div className="upload-l">Cliquez pour uploader</div><div className="upload-h">PDF, PNG, JPEG ou fichier texte</div></>)}
                   </div>
                 </>
               )}

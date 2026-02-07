@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 
 export async function POST(request) {
   try {
-    const { text, domain } = await request.json();
+    const { text, domain, fileType } = await request.json();
 
     if (!text || !domain) {
       return NextResponse.json({ error: "Texte et domaine requis" }, { status: 400 });
@@ -73,6 +73,63 @@ Chaque conseil (tip) doit être SPÉCIFIQUE au sujet de l'étudiant, pas génér
 
 IMPORTANT: Génère un JSON valide et compact. Évite les caractères spéciaux dans les textes. Utilise uniquement des guillemets doubles.`;
 
+    // Determine content type and prepare message
+    const isImage = fileType?.startsWith("image/");
+    const isPdf = fileType === "application/pdf";
+    const isBase64 = text.startsWith("data:");
+
+    let userContent;
+
+    if (isImage && isBase64) {
+      // Handle image with Claude Vision
+      const base64Data = text.split(",")[1];
+      const mediaType = text.split(";")[0].split(":")[1];
+
+      userContent = [
+        {
+          type: "image",
+          source: {
+            type: "base64",
+            media_type: mediaType,
+            data: base64Data,
+          },
+        },
+        {
+          type: "text",
+          text: `Voici une image du cahier des charges / sujet de mémoire de l'étudiant en ${domainLabel}. Lis attentivement tout le texte visible dans l'image, puis analyse ce sujet en profondeur et génère un plan de travail PERSONNALISÉ. Retourne UNIQUEMENT le JSON, rien d'autre.`,
+        },
+      ];
+    } else if (isPdf && isBase64) {
+      // Handle PDF - extract text server-side
+      const base64Data = text.split(",")[1];
+      const pdfBuffer = Buffer.from(base64Data, "base64");
+
+      let pdfText = "";
+      try {
+        const pdfParse = (await import("pdf-parse")).default;
+        const pdfData = await pdfParse(pdfBuffer);
+        pdfText = pdfData.text;
+      } catch (pdfError) {
+        console.error("PDF parsing error:", pdfError);
+        return NextResponse.json(
+          { error: "Erreur lors de la lecture du PDF. Essayez de copier-coller le texte." },
+          { status: 400 }
+        );
+      }
+
+      if (!pdfText.trim()) {
+        return NextResponse.json(
+          { error: "Le PDF semble vide ou contient uniquement des images. Essayez de copier-coller le texte." },
+          { status: 400 }
+        );
+      }
+
+      userContent = `Voici le cahier des charges / sujet de mémoire de l'étudiant en ${domainLabel} :\n\n${pdfText.slice(0, 15000)}\n\nAnalyse ce sujet en profondeur et génère un plan de travail PERSONNALISÉ. Retourne UNIQUEMENT le JSON, rien d'autre.`;
+    } else {
+      // Handle plain text
+      userContent = `Voici le cahier des charges / sujet de mémoire de l'étudiant en ${domainLabel} :\n\n${text.slice(0, 15000)}\n\nAnalyse ce sujet en profondeur et génère un plan de travail PERSONNALISÉ. Retourne UNIQUEMENT le JSON, rien d'autre.`;
+    }
+
     const response = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
       headers: {
@@ -87,7 +144,7 @@ IMPORTANT: Génère un JSON valide et compact. Évite les caractères spéciaux 
         messages: [
           {
             role: "user",
-            content: `Voici le cahier des charges / sujet de mémoire de l'étudiant en ${domainLabel} :\n\n${text.slice(0, 6000)}\n\nAnalyse ce sujet en profondeur et génère un plan de travail PERSONNALISÉ. Retourne UNIQUEMENT le JSON, rien d'autre.`,
+            content: userContent,
           },
         ],
       }),
