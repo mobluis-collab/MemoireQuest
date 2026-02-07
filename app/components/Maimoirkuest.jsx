@@ -92,9 +92,51 @@ export default function Maimoirkuest() {
   const [showTip, setShowTip] = useState(null);
   const [aiError, setAiError] = useState(null);
   const [mounted, setMounted] = useState(false);
+  const [hasSavedData, setHasSavedData] = useState(false);
   const fileRef = useRef();
 
-  useEffect(() => { setMounted(true); }, []);
+  // Load saved data from localStorage on mount
+  useEffect(() => {
+    setMounted(true);
+    try {
+      const saved = localStorage.getItem("maimoirkuest_data");
+      if (saved) {
+        const data = JSON.parse(saved);
+        if (data.quests) setQuests(data.quests);
+        if (data.completedSteps) setCompletedSteps(data.completedSteps);
+        if (data.analysis) setAnalysis(data.analysis);
+        if (data.requirementsSummary) setRequirementsSummary(data.requirementsSummary);
+        if (data.domain) setDomain(data.domain);
+        if (data.activeQuest) setActiveQuest(data.activeQuest);
+        if (data.quests && data.quests.length > 0) {
+          setPage("dashboard");
+          setHasSavedData(true);
+        }
+      }
+    } catch (e) {
+      console.error("Error loading saved data:", e);
+    }
+  }, []);
+
+  // Save data to localStorage when it changes
+  useEffect(() => {
+    if (!mounted) return;
+    if (page !== "dashboard") return;
+    try {
+      const dataToSave = {
+        quests,
+        completedSteps,
+        analysis,
+        requirementsSummary,
+        domain,
+        activeQuest,
+        savedAt: new Date().toISOString()
+      };
+      localStorage.setItem("maimoirkuest_data", JSON.stringify(dataToSave));
+    } catch (e) {
+      console.error("Error saving data:", e);
+    }
+  }, [quests, completedSteps, analysis, requirementsSummary, domain, activeQuest, page, mounted]);
 
   const dk = mode === "dark";
 
@@ -436,14 +478,32 @@ export default function Maimoirkuest() {
       <svg width="0" height="0"><defs><linearGradient id="rG" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stopColor="#0071e3"/><stop offset="100%" stopColor="#bf5af2"/></linearGradient></defs></svg>
 
       <nav className="nav">
-        <div className="nav-brand" onClick={()=>{setPage("landing");setDomain(null);setFile(null);setActiveTask(null);setTextContent("");setUseTextInput(false)}}>
+        <div className="nav-brand" onClick={()=>{
+          if (page === "dashboard" && !window.confirm("Voulez-vous vraiment quitter ? Votre progression est sauvegardée.")) return;
+          setPage("landing");setDomain(null);setFile(null);setActiveTask(null);setTextContent("");setUseTextInput(false);
+        }}>
           <div className="nav-logo">m</div><span>maimoirkuest</span>
         </div>
         <div className="nav-right">
           {page==="dashboard"&&domain&&<span className="nav-pill">{DOMAINS.find(d=>d.id===domain)?.label}</span>}
           {page==="dashboard"&&analysis&&<span className="nav-pill" style={{background:c.greenSoft,color:c.green,borderColor:"transparent"}}>✦ IA</span>}
+          {page==="dashboard"&&(
+            <button className="btn-sec" style={{fontSize:11,padding:"5px 12px"}} onClick={()=>{
+              if (window.confirm("Voulez-vous vraiment recommencer ? Toutes vos données seront effacées.")) {
+                localStorage.removeItem("maimoirkuest_data");
+                setQuests(FALLBACK_QUESTS);
+                setCompletedSteps({});
+                setAnalysis(null);
+                setRequirementsSummary(null);
+                setDomain(null);
+                setPage("landing");
+                setHasSavedData(false);
+              }
+            }}>Nouvelle analyse</button>
+          )}
           <button className="icon-btn" onClick={()=>setMode(dk?"light":"dark")}>{dk?"☀︎":"☾"}</button>
           {page==="landing"&&<button className="btn-blue" onClick={()=>setPage("onboard")}>Commencer</button>}
+          {page==="landing"&&hasSavedData&&<button className="btn-sec" onClick={()=>setPage("dashboard")}>Reprendre</button>}
         </div>
       </nav>
 
