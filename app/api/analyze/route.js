@@ -67,9 +67,11 @@ Tu dois retourner UNIQUEMENT un JSON valide (pas de markdown, pas de backticks, 
   ]
 }
 
-STRUCTURE ATTENDUE : 6 quêtes (phases), 3-5 missions par quête, 3-5 sous-étapes par mission.
+STRUCTURE ATTENDUE : 6 quêtes (phases), 3-4 missions par quête, 2-3 sous-étapes par mission.
 Les 6 quêtes doivent suivre cette progression : Cadrage → Recherche → Méthodologie → Terrain → Rédaction → Finalisation.
-Chaque conseil (tip) doit être SPÉCIFIQUE au sujet de l'étudiant, pas générique.`;
+Chaque conseil (tip) doit être SPÉCIFIQUE au sujet de l'étudiant, pas générique.
+
+IMPORTANT: Génère un JSON valide et compact. Évite les caractères spéciaux dans les textes. Utilise uniquement des guillemets doubles.`;
 
     const response = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
@@ -80,7 +82,7 @@ Chaque conseil (tip) doit être SPÉCIFIQUE au sujet de l'étudiant, pas génér
       },
       body: JSON.stringify({
         model: "claude-sonnet-4-20250514",
-        max_tokens: 4096,
+        max_tokens: 8192,
         system: systemPrompt,
         messages: [
           {
@@ -109,7 +111,16 @@ Chaque conseil (tip) doit être SPÉCIFIQUE au sujet de l'étudiant, pas génér
       // Try to extract JSON from possible markdown
       const match = raw.match(/\{[\s\S]*\}/);
       if (match) {
-        parsed = JSON.parse(match[0]);
+        // Clean up common JSON issues from LLM output
+        let cleanJson = match[0]
+          .replace(/,\s*]/g, ']')  // Remove trailing commas in arrays
+          .replace(/,\s*}/g, '}') // Remove trailing commas in objects
+          .replace(/[\x00-\x1F\x7F]/g, (char) => {
+            // Keep newlines and tabs, escape others
+            if (char === '\n' || char === '\r' || char === '\t') return char;
+            return '';
+          });
+        parsed = JSON.parse(cleanJson);
       } else {
         throw new Error("Impossible de parser la réponse IA");
       }
