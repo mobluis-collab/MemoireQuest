@@ -76,6 +76,8 @@ export default function Maimoirkuest() {
   const [domain, setDomain] = useState(null);
   const [file, setFile] = useState(null);
   const [textContent, setTextContent] = useState("");
+  const [fileBase64, setFileBase64] = useState(null);
+  const [fileType, setFileType] = useState(null);
   const [useTextInput, setUseTextInput] = useState(false);
   const [analyzing, setAnalyzing] = useState(false);
   const [analyzeStatus, setAnalyzeStatus] = useState("");
@@ -118,19 +120,28 @@ export default function Maimoirkuest() {
   // ─── Read file content ───
   const handleFile = (f) => {
     setFile(f);
+    setFileBase64(null);
+    setFileType(null);
     if (!f) return;
 
     const reader = new FileReader();
-    const isImage = f.type.startsWith("image/");
-    const isPdf = f.type === "application/pdf";
+    const isPdf = f.type === "application/pdf" || f.name?.toLowerCase().endsWith(".pdf");
 
-    if (isImage || isPdf) {
-      // For images and PDFs, read as base64
-      reader.onload = (e) => setTextContent(e.target.result);
+    if (isPdf) {
+      // For PDFs, read as base64
+      reader.onload = (e) => {
+        setFileBase64(e.target.result);
+        setFileType("application/pdf");
+        setTextContent("");
+      };
       reader.readAsDataURL(f);
     } else {
       // For text files, read as text
-      reader.onload = (e) => setTextContent(e.target.result);
+      reader.onload = (e) => {
+        setTextContent(e.target.result);
+        setFileBase64(null);
+        setFileType(null);
+      };
       reader.readAsText(f);
     }
   };
@@ -138,7 +149,9 @@ export default function Maimoirkuest() {
   // ─── Real AI Analysis ───
   const startAnalysis = async () => {
     const content = useTextInput ? textContent : textContent;
-    if (!content?.trim() || !domain) return;
+    const hasPdf = fileBase64 && fileType === "application/pdf";
+    if (!hasPdf && !content?.trim()) return;
+    if (!domain) return;
 
     setAnalyzing(true);
     setProgress(0);
@@ -160,10 +173,10 @@ export default function Maimoirkuest() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          text: content.substring(0, 500000),
+          text: hasPdf ? null : content,
           domain: domain,
-          fileType: file?.type || "text/plain",
-          fileName: file?.name || "texte collé",
+          fileBase64: hasPdf ? fileBase64 : null,
+          fileType: hasPdf ? fileType : null,
         }),
       });
 
