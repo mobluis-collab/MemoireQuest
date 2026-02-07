@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import { supabase } from "../lib/supabase";
 
 // ─── FALLBACK QUESTS (used if AI fails) ───
 const FALLBACK_QUESTS = [
@@ -93,50 +94,138 @@ export default function Maimoirkuest() {
   const [aiError, setAiError] = useState(null);
   const [mounted, setMounted] = useState(false);
   const [hasSavedData, setHasSavedData] = useState(false);
+  const [user, setUser] = useState(null);
+  const [authLoading, setAuthLoading] = useState(true);
+  const [saveStatus, setSaveStatus] = useState(null);
   const fileRef = useRef();
+  const saveTimeoutRef = useRef(null);
 
-  // Load saved data from localStorage on mount
+  // Initialize auth and load data
   useEffect(() => {
     setMounted(true);
-    try {
-      const saved = localStorage.getItem("maimoirkuest_data");
-      if (saved) {
-        const data = JSON.parse(saved);
-        if (data.quests) setQuests(data.quests);
-        if (data.completedSteps) setCompletedSteps(data.completedSteps);
-        if (data.analysis) setAnalysis(data.analysis);
-        if (data.requirementsSummary) setRequirementsSummary(data.requirementsSummary);
-        if (data.domain) setDomain(data.domain);
-        if (data.activeQuest) setActiveQuest(data.activeQuest);
-        if (data.quests && data.quests.length > 0) {
-          setPage("dashboard");
-          setHasSavedData(true);
-        }
+
+    // Check current session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null);
+      if (session?.user) {
+        loadUserData(session.user.id);
       }
-    } catch (e) {
-      console.error("Error loading saved data:", e);
-    }
+      setAuthLoading(false);
+    });
+
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      setUser(session?.user ?? null);
+      if (session?.user) {
+        loadUserData(session.user.id);
+      } else {
+        // Reset to initial state when logged out
+        setQuests(FALLBACK_QUESTS);
+        setCompletedSteps({});
+        setAnalysis(null);
+        setRequirementsSummary(null);
+        setDomain(null);
+        setPage("landing");
+        setHasSavedData(false);
+      }
+    });
+
+    return () => subscription.unsubscribe();
   }, []);
 
-  // Save data to localStorage when it changes
-  useEffect(() => {
-    if (!mounted) return;
-    if (page !== "dashboard") return;
+  // Load user data from Supabase
+  const loadUserData = async (userId) => {
+    try {
+      const { data, error } = await supabase
+        .from('user_progress')
+        .select('*')
+        .eq('user_id', userId)
+        .single();
+
+      if (error && error.code !== 'PGRST116') {
+        console.error("Error loading data:", error);
+        return;
+      }
+
+      if (data) {
+        if (data.quests) setQuests(data.quests);
+        if (data.completed_steps) setCompletedSteps(data.completed_steps);
+        if (data.analysis) setAnalysis(data.analysis);
+        if (data.requirements_summary) setRequirementsSummary(data.requirements_summary);
+        if (data.domain) setDomain(data.domain);
+        if (data.active_quest) setActiveQuest(data.active_quest);
+        setPage("dashboard");
+        setHasSavedData(true);
+      }
+    } catch (e) {
+      console.error("Error loading user data:", e);
+    }
+  };
+
+  // Save data to Supabase (debounced)
+  const saveUserData = async () => {
+    if (!user) return;
+
+    setSaveStatus("saving");
     try {
       const dataToSave = {
+        user_id: user.id,
         quests,
-        completedSteps,
+        completed_steps: completedSteps,
         analysis,
-        requirementsSummary,
+        requirements_summary: requirementsSummary,
         domain,
-        activeQuest,
-        savedAt: new Date().toISOString()
+        active_quest: activeQuest,
+        updated_at: new Date().toISOString()
       };
-      localStorage.setItem("maimoirkuest_data", JSON.stringify(dataToSave));
+
+      const { error } = await supabase
+        .from('user_progress')
+        .upsert(dataToSave, { onConflict: 'user_id' });
+
+      if (error) throw error;
+      setSaveStatus("saved");
+      setTimeout(() => setSaveStatus(null), 2000);
     } catch (e) {
       console.error("Error saving data:", e);
+      setSaveStatus("error");
     }
-  }, [quests, completedSteps, analysis, requirementsSummary, domain, activeQuest, page, mounted]);
+  };
+
+  // Auto-save when data changes (debounced)
+  useEffect(() => {
+    if (!mounted || !user || page !== "dashboard") return;
+
+    if (saveTimeoutRef.current) {
+      clearTimeout(saveTimeoutRef.current);
+    }
+
+    saveTimeoutRef.current = setTimeout(() => {
+      saveUserData();
+    }, 2000);
+
+    return () => {
+      if (saveTimeoutRef.current) {
+        clearTimeout(saveTimeoutRef.current);
+      }
+    };
+  }, [quests, completedSteps, analysis, requirementsSummary, domain, activeQuest, page, mounted, user]);
+
+  // Google Sign In
+  const signInWithGoogle = async () => {
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: window.location.origin
+      }
+    });
+    if (error) console.error("Error signing in:", error);
+  };
+
+  // Sign Out
+  const signOut = async () => {
+    await supabase.auth.signOut();
+  };
 
   const dk = mode === "dark";
 
@@ -487,10 +576,21 @@ export default function Maimoirkuest() {
         <div className="nav-right">
           {page==="dashboard"&&domain&&<span className="nav-pill">{DOMAINS.find(d=>d.id===domain)?.label}</span>}
           {page==="dashboard"&&analysis&&<span className="nav-pill" style={{background:c.greenSoft,color:c.green,borderColor:"transparent"}}>✦ IA</span>}
+          {page==="dashboard"&&saveStatus&&(
+            <span className="nav-pill" style={{
+              background: saveStatus === "saved" ? c.greenSoft : saveStatus === "error" ? c.redSoft : c.bgCard,
+              color: saveStatus === "saved" ? c.green : saveStatus === "error" ? c.red : c.textSec,
+              borderColor: "transparent"
+            }}>
+              {saveStatus === "saving" ? "⏳" : saveStatus === "saved" ? "✓ Sauvegardé" : "⚠️ Erreur"}
+            </span>
+          )}
           {page==="dashboard"&&(
-            <button className="btn-sec" style={{fontSize:11,padding:"5px 12px"}} onClick={()=>{
+            <button className="btn-sec" style={{fontSize:11,padding:"5px 12px"}} onClick={async ()=>{
               if (window.confirm("Voulez-vous vraiment recommencer ? Toutes vos données seront effacées.")) {
-                localStorage.removeItem("maimoirkuest_data");
+                if (user) {
+                  await supabase.from('user_progress').delete().eq('user_id', user.id);
+                }
                 setQuests(FALLBACK_QUESTS);
                 setCompletedSteps({});
                 setAnalysis(null);
@@ -502,8 +602,20 @@ export default function Maimoirkuest() {
             }}>Nouvelle analyse</button>
           )}
           <button className="icon-btn" onClick={()=>setMode(dk?"light":"dark")}>{dk?"☀︎":"☾"}</button>
-          {page==="landing"&&<button className="btn-blue" onClick={()=>setPage("onboard")}>Commencer</button>}
-          {page==="landing"&&hasSavedData&&<button className="btn-sec" onClick={()=>setPage("dashboard")}>Reprendre</button>}
+          {user ? (
+            <div style={{display:"flex",alignItems:"center",gap:8}}>
+              <img src={user.user_metadata?.avatar_url} alt="" style={{width:28,height:28,borderRadius:"50%",border:`.5px solid ${c.border}`}} />
+              <button className="btn-sec" style={{fontSize:11,padding:"5px 12px"}} onClick={signOut}>Déconnexion</button>
+            </div>
+          ) : (
+            !authLoading && page==="landing" && (
+              <button className="btn-blue" onClick={signInWithGoogle}>
+                <span style={{marginRight:6}}>G</span> Connexion Google
+              </button>
+            )
+          )}
+          {page==="landing"&&user&&<button className="btn-blue" onClick={()=>setPage("onboard")}>Commencer</button>}
+          {page==="landing"&&user&&hasSavedData&&<button className="btn-sec" onClick={()=>setPage("dashboard")}>Reprendre</button>}
         </div>
       </nav>
 
@@ -627,7 +739,7 @@ export default function Maimoirkuest() {
             )})}
 
             <div style={{marginTop:20,padding:"12px 10px",borderRadius:10,background:c.bgCard,border:`.5px solid ${c.border}`,fontSize:10,color:c.textTer,lineHeight:1.5}}>
-              💾 Votre progression est sauvegardée automatiquement sur ce navigateur. Utilisez toujours le même navigateur et appareil pour conserver vos données.
+              {user ? "☁️ Votre progression est sauvegardée automatiquement dans le cloud. Connectez-vous sur n'importe quel appareil pour retrouver vos données." : "💾 Connectez-vous avec Google pour sauvegarder votre progression dans le cloud."}
             </div>
           </aside>
 
