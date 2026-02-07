@@ -85,6 +85,7 @@ export default function Maimoirkuest() {
   const [quests, setQuests] = useState(FALLBACK_QUESTS);
   const [analysis, setAnalysis] = useState(null);
   const [requirementsSummary, setRequirementsSummary] = useState(null);
+  const [showFullRequirements, setShowFullRequirements] = useState(false);
   const [activeQuest, setActiveQuest] = useState(1);
   const [activeTask, setActiveTask] = useState(null);
   const [completedSteps, setCompletedSteps] = useState({});
@@ -358,7 +359,7 @@ export default function Maimoirkuest() {
     .q-pct{margin-left:auto;font-size:10px;font-family:'JetBrains Mono',monospace;color:${c.textTer};padding:2px 6px;border-radius:6px;background:${c.bgCard}}
     .q-pct.ok{background:${c.greenSoft};color:${c.green}}
 
-    .main{flex:1;padding:28px 32px 100px;max-width:700px;overflow-y:auto}
+    .main{flex:1;padding:28px 32px 100px;max-width:900px;overflow-y:auto}
     .q-header{margin-bottom:20px;animation:rise .4s cubic-bezier(.16,1,.3,1) both}
     .q-badge{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;font-family:'JetBrains Mono',monospace;padding:4px 10px;border-radius:8px;background:${c.accentSoft};color:${c.accent};margin-bottom:8px}
     .q-title{font-size:22px;font-weight:700;letter-spacing:-.03em;margin-bottom:4px}
@@ -574,35 +575,67 @@ export default function Maimoirkuest() {
                 <div style={{fontSize:11,fontWeight:600,color:c.accent,marginBottom:12,textTransform:"uppercase",letterSpacing:".06em",fontFamily:"'JetBrains Mono',monospace"}}>📋 Ce que le cahier des charges attend de vous</div>
 
                 {requirementsSummary.main_objective && (
-                  <div style={{fontSize:15,fontWeight:600,marginBottom:16,lineHeight:1.4}}>{requirementsSummary.main_objective}</div>
+                  <div style={{fontSize:15,fontWeight:600,marginBottom:showFullRequirements ? 16 : 12,lineHeight:1.4}}>{requirementsSummary.main_objective}</div>
                 )}
 
-                {requirementsSummary.deliverables && requirementsSummary.deliverables.length > 0 && (
-                  <div style={{marginBottom:14}}>
-                    <div style={{fontSize:12,fontWeight:600,marginBottom:6,color:c.text}}>Livrables attendus</div>
-                    <ul style={{margin:0,paddingLeft:18,fontSize:13,color:c.textSec,lineHeight:1.6}}>
-                      {requirementsSummary.deliverables.map((d,i) => <li key={i}>{d}</li>)}
-                    </ul>
-                  </div>
+                {showFullRequirements && (
+                  <>
+                    {requirementsSummary.deliverables && requirementsSummary.deliverables.length > 0 && (
+                      <div style={{marginBottom:14}}>
+                        <div style={{fontSize:12,fontWeight:600,marginBottom:6,color:c.text}}>Livrables attendus</div>
+                        <ul style={{margin:0,paddingLeft:18,fontSize:13,color:c.textSec,lineHeight:1.6}}>
+                          {requirementsSummary.deliverables.map((d,i) => <li key={i}>{d}</li>)}
+                        </ul>
+                      </div>
+                    )}
+
+                    {requirementsSummary.constraints && requirementsSummary.constraints.length > 0 && (
+                      <div style={{marginBottom:14}}>
+                        <div style={{fontSize:12,fontWeight:600,marginBottom:6,color:c.text}}>Contraintes & exigences</div>
+                        <ul style={{margin:0,paddingLeft:18,fontSize:13,color:c.textSec,lineHeight:1.6}}>
+                          {requirementsSummary.constraints.map((item,i) => <li key={i}>{item}</li>)}
+                        </ul>
+                      </div>
+                    )}
+
+                    {requirementsSummary.evaluation_criteria && requirementsSummary.evaluation_criteria.length > 0 && (
+                      <div style={{marginBottom:14}}>
+                        <div style={{fontSize:12,fontWeight:600,marginBottom:6,color:c.text}}>Critères d'évaluation</div>
+                        <ul style={{margin:0,paddingLeft:18,fontSize:13,color:c.textSec,lineHeight:1.6}}>
+                          {requirementsSummary.evaluation_criteria.map((item,i) => <li key={i}>{item}</li>)}
+                        </ul>
+                      </div>
+                    )}
+                  </>
                 )}
 
-                {requirementsSummary.constraints && requirementsSummary.constraints.length > 0 && (
-                  <div style={{marginBottom:14}}>
-                    <div style={{fontSize:12,fontWeight:600,marginBottom:6,color:c.text}}>Contraintes & exigences</div>
-                    <ul style={{margin:0,paddingLeft:18,fontSize:13,color:c.textSec,lineHeight:1.6}}>
-                      {requirementsSummary.constraints.map((c,i) => <li key={i}>{c}</li>)}
-                    </ul>
-                  </div>
-                )}
+                <button
+                  onClick={() => setShowFullRequirements(!showFullRequirements)}
+                  style={{
+                    background:"none",
+                    border:"none",
+                    color:c.accent,
+                    fontSize:12,
+                    fontWeight:500,
+                    cursor:"pointer",
+                    padding:"4px 0",
+                    fontFamily:"inherit"
+                  }}
+                >
+                  {showFullRequirements ? "▲ Voir moins" : "▼ Voir plus"}
+                </button>
 
-                {requirementsSummary.evaluation_criteria && requirementsSummary.evaluation_criteria.length > 0 && (
-                  <div>
-                    <div style={{fontSize:12,fontWeight:600,marginBottom:6,color:c.text}}>Critères d'évaluation</div>
-                    <ul style={{margin:0,paddingLeft:18,fontSize:13,color:c.textSec,lineHeight:1.6}}>
-                      {requirementsSummary.evaluation_criteria.map((e,i) => <li key={i}>{e}</li>)}
-                    </ul>
-                  </div>
-                )}
+                <div style={{
+                  marginTop:14,
+                  paddingTop:12,
+                  borderTop:`1px solid ${c.border}`,
+                  fontSize:10,
+                  color:c.textTer,
+                  lineHeight:1.5,
+                  fontStyle:"italic"
+                }}>
+                  ⚠️ Cet outil est fourni à titre pédagogique uniquement. L'IA peut commettre des erreurs d'interprétation. En utilisant ce service, vous reconnaissez que les suggestions générées ne constituent pas un avis professionnel et que vous êtes seul responsable de vos décisions académiques. L'éditeur décline toute responsabilité quant aux résultats obtenus.
+                </div>
               </div>
             )}
 
