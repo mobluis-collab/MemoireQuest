@@ -419,6 +419,13 @@ export default function Maimoirkuest() {
 
   const hasContent = useTextInput ? textContent.trim().length > 30 : !!file;
 
+  // Prevent hydration mismatch - render nothing until client-side mount
+  if (!mounted) {
+    return (
+      <div style={{ minHeight: "100vh", background: "#000" }} />
+    );
+  }
+
   return (
     <div className="root">
       <style>{css}</style>
@@ -437,7 +444,7 @@ export default function Maimoirkuest() {
         </div>
       </nav>
 
-      {page==="landing"&&mounted&&(
+      {page==="landing"&&(
         <div className="landing">
           <section className="hero">
             <div className="hero-chip"><span className="pulse-dot"/>Propulsé par l'IA · Gratuit</div>
