@@ -106,21 +106,12 @@ export default function Maimoirkuest() {
     setMounted(true);
     dataLoadedRef.current = false;
 
-    // Check current session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user ?? null);
-      if (session?.user && !dataLoadedRef.current) {
-        dataLoadedRef.current = true;
-        loadUserData(session.user.id);
-      }
-      setAuthLoading(false);
-    });
-
-    // Listen for auth changes (only handle NEW sign-in/sign-out, not initial session)
+    // Single listener handles all auth events (initial session, OAuth redirect, sign-in, sign-out)
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      if (event === 'INITIAL_SESSION') return;
       setUser(session?.user ?? null);
-      if (event === 'SIGNED_IN' && session?.user && !dataLoadedRef.current) {
+      setAuthLoading(false);
+
+      if (session?.user && !dataLoadedRef.current) {
         dataLoadedRef.current = true;
         loadUserData(session.user.id);
       } else if (event === 'SIGNED_OUT') {
@@ -618,7 +609,7 @@ export default function Maimoirkuest() {
               <button className="btn-sec" style={{fontSize:11,padding:"5px 12px"}} onClick={signOut}>Déconnexion</button>
             </div>
           ) : (
-            !authLoading && page==="landing" && (
+            !authLoading && (
               <button className="btn-blue" onClick={signInWithGoogle}>
                 <span style={{marginRight:6}}>G</span> Connexion Google
               </button>
