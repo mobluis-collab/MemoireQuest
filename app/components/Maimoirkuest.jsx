@@ -99,27 +99,32 @@ export default function Maimoirkuest() {
   const [saveStatus, setSaveStatus] = useState(null);
   const fileRef = useRef();
   const saveTimeoutRef = useRef(null);
+  const dataLoadedRef = useRef(false);
 
   // Initialize auth and load data
   useEffect(() => {
     setMounted(true);
+    dataLoadedRef.current = false;
 
     // Check current session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null);
-      if (session?.user) {
+      if (session?.user && !dataLoadedRef.current) {
+        dataLoadedRef.current = true;
         loadUserData(session.user.id);
       }
       setAuthLoading(false);
     });
 
-    // Listen for auth changes
+    // Listen for auth changes (only handle NEW sign-in/sign-out, not initial session)
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (event === 'INITIAL_SESSION') return;
       setUser(session?.user ?? null);
-      if (session?.user) {
+      if (event === 'SIGNED_IN' && session?.user && !dataLoadedRef.current) {
+        dataLoadedRef.current = true;
         loadUserData(session.user.id);
-      } else {
-        // Reset to initial state when logged out
+      } else if (event === 'SIGNED_OUT') {
+        dataLoadedRef.current = false;
         setQuests(FALLBACK_QUESTS);
         setCompletedSteps({});
         setAnalysis(null);
@@ -134,7 +139,9 @@ export default function Maimoirkuest() {
   }, []);
 
   // Load user data from Supabase
+  const isLoadingDataRef = useRef(false);
   const loadUserData = async (userId) => {
+    isLoadingDataRef.current = true;
     try {
       const { data, error } = await supabase
         .from('user_progress')
@@ -159,6 +166,9 @@ export default function Maimoirkuest() {
       }
     } catch (e) {
       console.error("Error loading user data:", e);
+    } finally {
+      // Small delay so auto-save effect doesn't fire for the initial load
+      setTimeout(() => { isLoadingDataRef.current = false; }, 3000);
     }
   };
 
@@ -192,9 +202,9 @@ export default function Maimoirkuest() {
     }
   };
 
-  // Auto-save when data changes (debounced)
+  // Auto-save when data changes (debounced) — skip during initial data load
   useEffect(() => {
-    if (!mounted || !user || page !== "dashboard") return;
+    if (!mounted || !user || page !== "dashboard" || isLoadingDataRef.current) return;
 
     if (saveTimeoutRef.current) {
       clearTimeout(saveTimeoutRef.current);
