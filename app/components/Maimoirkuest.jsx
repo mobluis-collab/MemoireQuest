@@ -741,6 +741,45 @@ export default function Maimoirkuest() {
             <div style={{marginTop:20,padding:"12px 10px",borderRadius:10,background:c.bgCard,border:`.5px solid ${c.border}`,fontSize:10,color:c.textTer,lineHeight:1.5}}>
               {user ? "☁️ Votre progression est sauvegardée automatiquement dans le cloud. Connectez-vous sur n'importe quel appareil pour retrouver vos données." : "💾 Connectez-vous avec Google pour sauvegarder votre progression dans le cloud."}
             </div>
+
+            {user && (
+              <button
+                onClick={async () => {
+                  if (!window.confirm("Voulez-vous vraiment supprimer votre compte et toutes vos données ? Cette action est irréversible.")) return;
+                  if (!window.confirm("Dernière confirmation : toutes vos données seront définitivement supprimées.")) return;
+                  try {
+                    await supabase.from('user_progress').delete().eq('user_id', user.id);
+                    await supabase.auth.signOut();
+                    setQuests(FALLBACK_QUESTS);
+                    setCompletedSteps({});
+                    setAnalysis(null);
+                    setRequirementsSummary(null);
+                    setDomain(null);
+                    setPage("landing");
+                    setHasSavedData(false);
+                  } catch (e) {
+                    console.error("Erreur suppression compte:", e);
+                    alert("Une erreur est survenue lors de la suppression. Veuillez réessayer.");
+                  }
+                }}
+                style={{
+                  marginTop:10,
+                  width:"100%",
+                  padding:"9px 10px",
+                  borderRadius:10,
+                  border:`.5px solid ${dk?'rgba(255,69,58,0.25)':'rgba(255,69,58,0.2)'}`,
+                  background:c.redSoft,
+                  color:c.red,
+                  fontSize:11,
+                  fontWeight:500,
+                  fontFamily:"inherit",
+                  cursor:"pointer",
+                  transition:"all .2s",
+                }}
+              >
+                Supprimer mon compte et mes données
+              </button>
+            )}
           </aside>
 
           <main className="main">
