@@ -98,6 +98,7 @@ export default function Maimoirkuest() {
   const [authLoading, setAuthLoading] = useState(true);
   const [saveStatus, setSaveStatus] = useState(null);
   const [showSignInPrompt, setShowSignInPrompt] = useState(false);
+  const [dataChecked, setDataChecked] = useState(false);
   const fileRef = useRef();
   const saveTimeoutRef = useRef(null);
   const dataLoadedRef = useRef(false);
@@ -117,6 +118,7 @@ export default function Maimoirkuest() {
         loadUserData(session.user.id);
       } else if (event === 'SIGNED_OUT') {
         dataLoadedRef.current = false;
+        setDataChecked(false);
         setQuests(FALLBACK_QUESTS);
         setCompletedSteps({});
         setAnalysis(null);
@@ -124,6 +126,8 @@ export default function Maimoirkuest() {
         setDomain(null);
         setPage("landing");
         setHasSavedData(false);
+      } else if (!session?.user) {
+        setDataChecked(true);
       }
     });
 
@@ -159,6 +163,7 @@ export default function Maimoirkuest() {
     } catch (e) {
       console.error("Error loading user data:", e);
     } finally {
+      setDataChecked(true);
       // Small delay so auto-save effect doesn't fire for the initial load
       setTimeout(() => { isLoadingDataRef.current = false; }, 3000);
     }
@@ -561,6 +566,33 @@ export default function Maimoirkuest() {
   if (!mounted) {
     return (
       <div style={{ minHeight: "100vh", background: "#000" }} />
+    );
+  }
+
+  // Show loading while checking saved data for authenticated user
+  if (user && !dataChecked) {
+    return (
+      <div style={{
+        minHeight: "100vh",
+        background: "#000",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        flexDirection: "column",
+        gap: 12,
+        fontFamily: "-apple-system, 'SF Pro Display', 'Helvetica Neue', 'Inter', sans-serif",
+      }}>
+        <div style={{
+          width: 40, height: 40, borderRadius: "50%",
+          border: "2.5px solid rgba(255,255,255,0.08)",
+          borderTopColor: "#0071e3",
+          animation: "spin .7s linear infinite",
+        }} />
+        <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
+        <div style={{ color: "rgba(255,255,255,0.5)", fontSize: 14, fontWeight: 500 }}>
+          Chargement de votre progression…
+        </div>
+      </div>
     );
   }
 
