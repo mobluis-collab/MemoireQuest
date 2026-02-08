@@ -97,6 +97,7 @@ export default function Maimoirkuest() {
   const [user, setUser] = useState(null);
   const [authLoading, setAuthLoading] = useState(true);
   const [saveStatus, setSaveStatus] = useState(null);
+  const [showSignInPrompt, setShowSignInPrompt] = useState(false);
   const fileRef = useRef();
   const saveTimeoutRef = useRef(null);
   const dataLoadedRef = useRef(false);
@@ -342,6 +343,7 @@ export default function Maimoirkuest() {
       setAnalyzing(false);
       setActiveQuest(data.quests?.[0]?.id || 1);
       setPage("dashboard");
+      if (!user) setShowSignInPrompt(true);
 
     } catch (err) {
       console.error("Analysis error:", err);
@@ -352,6 +354,7 @@ export default function Maimoirkuest() {
       await new Promise(r => setTimeout(r, 800));
       setAnalyzing(false);
       setPage("dashboard");
+      if (!user) setShowSignInPrompt(true);
     }
   };
 
@@ -707,6 +710,43 @@ export default function Maimoirkuest() {
             <div style={{fontSize:13,color:c.textSec,lineHeight:1.5,marginTop:4}}>{analyzeStatus}</div>
             <div className="prog-track"><div className="prog-fill" style={{width:`${Math.min(progress,100)}%`}}/></div>
             <div style={{fontSize:12,color:c.textTer,marginTop:8,fontFamily:"'JetBrains Mono',monospace"}}>{Math.min(Math.round(progress),100)}%</div>
+          </div>
+        </div>
+      )}
+
+      {showSignInPrompt && !user && (
+        <div style={{
+          position:"fixed",inset:0,zIndex:200,
+          background:dk?'rgba(0,0,0,.85)':'rgba(245,245,247,.9)',
+          backdropFilter:"blur(60px)",
+          display:"flex",alignItems:"center",justifyContent:"center",
+          animation:"fadeIn .5s"
+        }}>
+          <div style={{
+            textAlign:"center",padding:"40px 32px",borderRadius:24,
+            background:c.bgGlass,backdropFilter:"blur(40px)",
+            border:`.5px solid ${c.border}`,
+            minWidth:300,maxWidth:400,
+            boxShadow:`0 20px 60px ${dk?'rgba(0,0,0,.5)':'rgba(0,0,0,.08)'}`
+          }}>
+            <div style={{fontSize:40,marginBottom:16}}>☁️</div>
+            <div style={{fontSize:18,fontWeight:700,letterSpacing:"-.03em",marginBottom:8}}>
+              Sauvegardez votre progression
+            </div>
+            <p style={{fontSize:14,lineHeight:1.6,color:c.textSec,marginBottom:24}}>
+              Connectez-vous avec Google pour sauvegarder votre analyse et votre progression dans le cloud. Retrouvez vos données sur n'importe quel appareil.
+            </p>
+            <div style={{display:"flex",flexDirection:"column",gap:10}}>
+              <button className="btn-blue" style={{width:"100%",padding:"11px 20px",fontSize:14}} onClick={()=>{setShowSignInPrompt(false);signInWithGoogle()}}>
+                <span style={{marginRight:8}}>G</span> Se connecter avec Google
+              </button>
+              <button className="btn-sec" style={{width:"100%",padding:"10px 20px",fontSize:13}} onClick={()=>setShowSignInPrompt(false)}>
+                Continuer sans compte
+              </button>
+            </div>
+            <p style={{fontSize:11,color:c.textTer,marginTop:16,lineHeight:1.5}}>
+              Sans connexion, votre progression sera perdue à la fermeture du navigateur.
+            </p>
           </div>
         </div>
       )}

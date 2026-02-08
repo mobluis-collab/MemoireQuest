@@ -1,4 +1,3 @@
-import CookieBanner from "./components/CookieBanner";
 import Footer from "./components/Footer";
 
 export const metadata = {
@@ -12,7 +11,6 @@ export default function RootLayout({ children }) {
       <body style={{ margin: 0 }}>
         {children}
         <Footer />
-        <CookieBanner />
       </body>
     </html>
   );
