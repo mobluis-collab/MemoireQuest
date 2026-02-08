@@ -90,8 +90,8 @@ export default function MentionsLegalesPage() {
         <div style={s.section}>
           <h2 style={s.h2}>Contact</h2>
           <p style={s.p}>
-            <a href="mailto:chbt.louis@gmail.com" style={s.accent}>
-              chbt.louis@gmail.com
+            <a href="https://github.com/mobluis-collab/MemoireQuest/issues" target="_blank" rel="noopener noreferrer" style={s.accent}>
+              GitHub Issues
             </a>
           </p>
         </div>

@@ -147,9 +147,9 @@ export default function PrivacyPage() {
             </li>
           </ul>
           <p style={s.p}>
-            Pour exercer vos droits, contactez-nous à{" "}
-            <a href="mailto:chbt.louis@gmail.com" style={s.accent}>
-              chbt.louis@gmail.com
+            Pour exercer vos droits, ouvrez une demande sur{" "}
+            <a href="https://github.com/mobluis-collab/MemoireQuest/issues" target="_blank" rel="noopener noreferrer" style={s.accent}>
+              GitHub Issues
             </a>
           </p>
         </div>
