@@ -1,6 +1,6 @@
 import "./globals.css";
-import Maimoirkuest from "./components/Maimoirkuest";
+import Maimoirkouest from "./components/Maimoirkouest";
 
 export default function Home() {
-  return <Maimoirkuest />;
+  return <Maimoirkouest />;
 }

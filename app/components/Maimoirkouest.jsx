@@ -71,7 +71,7 @@ function AnimNum({ value, dur = 1200 }) {
   return d;
 }
 
-export default function Maimoirkuest() {
+export default function Maimoirkouest() {
   const [mode, setMode] = useState("dark");
   const [page, setPage] = useState("landing");
   const [domain, setDomain] = useState(null);
@@ -99,14 +99,38 @@ export default function Maimoirkuest() {
   const [saveStatus, setSaveStatus] = useState(null);
   const [showSignInPrompt, setShowSignInPrompt] = useState(false);
   const [dataChecked, setDataChecked] = useState(false);
+  const [cookieConsent, setCookieConsent] = useState(null); // null = not decided, "accepted", "refused"
   const fileRef = useRef();
   const saveTimeoutRef = useRef(null);
   const dataLoadedRef = useRef(false);
 
-  // Initialize auth and load data
+  // Load cookie consent from localStorage
+  useEffect(() => {
+    const stored = localStorage.getItem("cookie_consent");
+    setCookieConsent(stored); // null if not set, "accepted" or "refused"
+  }, []);
+
+  const acceptCookies = () => {
+    localStorage.setItem("cookie_consent", "accepted");
+    setCookieConsent("accepted");
+  };
+
+  const refuseCookies = () => {
+    localStorage.setItem("cookie_consent", "refused");
+    setCookieConsent("refused");
+  };
+
+  // Initialize auth and load data (only if cookies accepted)
   useEffect(() => {
     setMounted(true);
     dataLoadedRef.current = false;
+
+    // If cookies refused, skip auth setup
+    if (cookieConsent === "refused") {
+      setAuthLoading(false);
+      setDataChecked(true);
+      return;
+    }
 
     // Single listener handles all auth events (initial session, OAuth redirect, sign-in, sign-out)
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
@@ -132,7 +156,7 @@ export default function Maimoirkuest() {
     });
 
     return () => subscription.unsubscribe();
-  }, []);
+  }, [cookieConsent]);
 
   // Load user data from Supabase
   const isLoadingDataRef = useRef(false);
@@ -218,8 +242,12 @@ export default function Maimoirkuest() {
     };
   }, [quests, completedSteps, analysis, requirementsSummary, domain, activeQuest, page, mounted, user]);
 
-  // Google Sign In
+  // Google Sign In (only if cookies accepted)
   const signInWithGoogle = async () => {
+    if (cookieConsent === "refused") {
+      alert("Vous devez accepter les cookies pour vous connecter avec Google. Rechargez la page pour modifier votre choix.");
+      return;
+    }
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
@@ -288,7 +316,7 @@ export default function Maimoirkuest() {
 
   // ─── Real AI Analysis ───
   const startAnalysis = async () => {
-    const content = useTextInput ? textContent : textContent;
+    const content = textContent;
     const hasPdf = fileBase64 && fileType === "application/pdf";
     if (!hasPdf && !content?.trim()) return;
     if (!domain) return;
@@ -547,6 +575,15 @@ export default function Maimoirkuest() {
     .mob-tab.on{color:${c.accent}}
     .mob-tab-icon{font-size:20px}
 
+    .cookie-banner{position:fixed;bottom:0;left:0;right:0;z-index:300;padding:16px 20px;background:${c.bgGlassStrong};backdrop-filter:blur(40px) saturate(1.8);border-top:.5px solid ${c.border};display:flex;align-items:center;justify-content:center;gap:16px;flex-wrap:wrap;animation:rise .5s cubic-bezier(.16,1,.3,1) both}
+    .cookie-text{font-size:13px;color:${c.textSec};line-height:1.5;max-width:600px;text-align:center}
+    .cookie-text a{color:${c.accent};text-decoration:underline}
+    .cookie-btns{display:flex;gap:8px;flex-shrink:0}
+
+    .ia-disclaimer{padding:16px 18px;border-radius:14px;background:${dk?'rgba(255,159,10,0.08)':'rgba(255,159,10,0.06)'};border:.5px solid ${dk?'rgba(255,159,10,0.2)':'rgba(255,159,10,0.15)'};margin-bottom:20px;animation:rise .4s cubic-bezier(.16,1,.3,1) both}
+    .ia-disclaimer-title{font-size:13px;font-weight:600;color:${dk?'#ff9f0a':'#c77d00'};margin-bottom:6px}
+    .ia-disclaimer-text{font-size:12px;line-height:1.6;color:${c.textSec}}
+
     @media(max-width:768px){
       .features-grid{grid-template-columns:1fr}
       .stats-row{flex-direction:column;gap:0}
@@ -607,7 +644,7 @@ export default function Maimoirkuest() {
           if (page === "dashboard" && !window.confirm("Voulez-vous vraiment quitter ? Votre progression est sauvegardée.")) return;
           setPage("landing");setDomain(null);setFile(null);setActiveTask(null);setTextContent("");setUseTextInput(false);
         }}>
-          <div className="nav-logo">m</div><span>maimoirkuest</span>
+          <div className="nav-logo">m</div><span>maimoirkouest</span>
         </div>
         <div className="nav-right">
           {page==="dashboard"&&domain&&<span className="nav-pill">{DOMAINS.find(d=>d.id===domain)?.label}</span>}
@@ -676,7 +713,7 @@ export default function Maimoirkuest() {
             <div className="stat-g"><div className="stat-n">~<AnimNum value={25} dur={1100}/></div><div className="stat-l">Missions sur-mesure</div></div>
             <div className="stat-g"><div className="stat-n">~<AnimNum value={87} dur={1300}/></div><div className="stat-l">Actions concrètes</div></div>
           </div>
-          <div className="footer">maimoirkuest · Open Source · Propulsé par Claude AI</div>
+          <div className="footer">maimoirkouest · Open Source · Propulsé par Claude AI</div>
         </div>
       )}
 
@@ -725,9 +762,19 @@ export default function Maimoirkuest() {
                 </>
               )}
 
+              <div className="ia-disclaimer" style={{marginTop:20}}>
+                <div className="ia-disclaimer-title">Avertissement IA</div>
+                <div className="ia-disclaimer-text">
+                  Votre document sera envoy&eacute; &agrave; Anthropic (Claude AI) pour analyse. Les r&eacute;sultats g&eacute;n&eacute;r&eacute;s sont fournis
+                  &agrave; titre indicatif et p&eacute;dagogique uniquement. L&apos;IA peut commettre des erreurs. Vous restez seul responsable
+                  de vos d&eacute;cisions acad&eacute;miques. Consultez notre <a href="/privacy" target="_blank" style={{color:"inherit",textDecoration:"underline"}}>politique de confidentialit&eacute;</a> et
+                  nos <a href="/cgu" target="_blank" style={{color:"inherit",textDecoration:"underline"}}>CGU</a>.
+                </div>
+              </div>
+
               <div className="step-actions">
                 <button className="btn-sec" onClick={()=>setDomain(null)}>Retour</button>
-                <button className="btn-blue" style={{opacity:hasContent?1:.4,pointerEvents:hasContent?"auto":"none"}} onClick={startAnalysis}>Analyser avec l'IA →</button>
+                <button className="btn-blue" style={{opacity:hasContent?1:.4,pointerEvents:hasContent?"auto":"none"}} onClick={startAnalysis}>Analyser avec l&apos;IA →</button>
               </div>
             </div>
           )}
@@ -987,7 +1034,7 @@ export default function Maimoirkuest() {
                             </button>
                           </div>
                           {showTip===task.id&&task.tip&&(
-                            <div className="tip-box" dangerouslySetInnerHTML={{__html:`💡 ${task.tip.replace(/\*\*(.*?)\*\*/g,"<strong>$1</strong>")}`}}/>
+                            <div className="tip-box">💡 {task.tip}</div>
                           )}
                         </div>
                       )}
@@ -1009,6 +1056,21 @@ export default function Maimoirkuest() {
           )})}
         </div>
       </>)}
+
+      {/* Cookie consent banner */}
+      {mounted && cookieConsent === null && (
+        <div className="cookie-banner">
+          <div className="cookie-text">
+            Ce site utilise des cookies de session pour l&apos;authentification Google.
+            Aucun cookie publicitaire n&apos;est utilis&eacute;.{" "}
+            <a href="/privacy">En savoir plus</a>
+          </div>
+          <div className="cookie-btns">
+            <button className="btn-sec" style={{fontSize:12,padding:"6px 14px"}} onClick={refuseCookies}>Refuser</button>
+            <button className="btn-blue" style={{fontSize:12,padding:"6px 14px"}} onClick={acceptCookies}>Accepter</button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
