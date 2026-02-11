@@ -233,7 +233,7 @@ export default function Maimoirkouest() {
 
     saveTimeoutRef.current = setTimeout(() => {
       saveUserData();
-    }, 2000);
+    }, 800);
 
     return () => {
       if (saveTimeoutRef.current) {
@@ -316,6 +316,10 @@ export default function Maimoirkouest() {
 
   // ─── Real AI Analysis ───
   const startAnalysis = async () => {
+    if (!user) {
+      signInWithGoogle();
+      return;
+    }
     const content = textContent;
     const hasPdf = fileBase64 && fileType === "application/pdf";
     if (!hasPdf && !content?.trim()) return;
@@ -376,7 +380,6 @@ export default function Maimoirkouest() {
       setAnalyzing(false);
       setActiveQuest(data.quests?.[0]?.id || 1);
       setPage("dashboard");
-      if (!user) setShowSignInPrompt(true);
 
     } catch (err) {
       console.error("Analysis error:", err);
@@ -387,7 +390,6 @@ export default function Maimoirkouest() {
       await new Promise(r => setTimeout(r, 800));
       setAnalyzing(false);
       setPage("dashboard");
-      if (!user) setShowSignInPrompt(true);
     }
   };
 
@@ -658,6 +660,11 @@ export default function Maimoirkouest() {
               {saveStatus === "saving" ? "⏳" : saveStatus === "saved" ? "✓ Sauvegardé" : "⚠️ Erreur"}
             </span>
           )}
+          {page==="dashboard"&&user&&(
+            <button className="btn-blue" style={{fontSize:11,padding:"5px 12px"}} onClick={saveUserData}>
+              {saveStatus === "saving" ? "Sauvegarde…" : "Sauvegarder"}
+            </button>
+          )}
           {page==="dashboard"&&(
             <button className="btn-sec" style={{fontSize:11,padding:"5px 12px"}} onClick={async ()=>{
               if (window.confirm("Voulez-vous vraiment recommencer ? Toutes vos données seront effacées.")) {
@@ -687,8 +694,7 @@ export default function Maimoirkouest() {
               </button>
             )
           )}
-          {page==="landing"&&user&&<button className="btn-blue" onClick={()=>setPage("onboard")}>Commencer</button>}
-          {page==="landing"&&user&&hasSavedData&&<button className="btn-sec" onClick={()=>setPage("dashboard")}>Reprendre</button>}
+          {page==="landing"&&user&&hasSavedData&&<button className="btn-blue" onClick={()=>setPage("dashboard")}>Reprendre</button>}
         </div>
       </nav>
 
@@ -699,7 +705,7 @@ export default function Maimoirkouest() {
             <h1>Votre mémoire, <span className="grad">notre guide.</span></h1>
             <p className="hero-sub">L'IA analyse votre sujet et crée un plan d'action personnalisé. Vous avancez pas à pas, on vous accompagne.</p>
             <div className="hero-btns">
-              <button className="btn-blue" onClick={()=>setPage("onboard")}>Analyser mon sujet →</button>
+              <button className="btn-blue" onClick={()=>{if(!user){signInWithGoogle();return;}setPage("onboard");}}>Analyser mon sujet →</button>
               <button className="btn-sec">GitHub ↗</button>
             </div>
           </section>
