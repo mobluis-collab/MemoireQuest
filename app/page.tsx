@@ -1,4 +1,3 @@
-import "./globals.css";
 import Maimoirkouest from "./components/Maimoirkouest";
 
 export default function Home() {
