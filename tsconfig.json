@@ -15,7 +15,7 @@
     "incremental": true,
     "plugins": [{ "name": "next" }],
     "paths": {
-      "@/*": ["./app/*"]
+      "@/*": ["./src/*", "./app/*"]
     },
     "forceConsistentCasingInFileNames": true
   },
