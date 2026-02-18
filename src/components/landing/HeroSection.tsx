@@ -20,12 +20,13 @@ export default function HeroSection() {
       </div>
 
       <h1 className="text-[clamp(32px,6vw,52px)] font-bold tracking-tight leading-[1.1] mb-5 text-white">
-        Entraîne ta mémoire,{" "}
-        <span className="text-indigo-400">atteins tes objectifs.</span>
+        Ton mémoire,{" "}
+        <span className="text-indigo-400">structuré par l&apos;IA.</span>
       </h1>
 
-      <p className="text-[17px] leading-relaxed text-zinc-400 max-w-[440px] mx-auto mb-10 max-md:text-[15px]">
-        L&apos;IA génère des quêtes personnalisées pour ancrer durablement tes connaissances, étape par étape.
+      <p className="text-[17px] leading-relaxed text-zinc-400 max-w-[480px] mx-auto mb-10 max-md:text-[15px]">
+        Dépose ton cahier des charges, reçois un plan de rédaction complet et personnalisé.
+        De l&apos;introduction à la conclusion, étape par étape.
       </p>
 
       <button

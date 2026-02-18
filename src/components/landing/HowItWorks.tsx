@@ -4,7 +4,7 @@ const STEPS = [
   {
     number: "01",
     title: "Connecte-toi avec Google",
-    desc: "Une connexion sécurisée via OAuth Google. Tes données restent privées.",
+    desc: "Une connexion sécurisée en un clic. Tes documents et ton plan restent strictement privés.",
     icon: (
       <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true">
         <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z" fill="currentColor" />
@@ -13,8 +13,8 @@ const STEPS = [
   },
   {
     number: "02",
-    title: "Décris ce que tu veux mémoriser",
-    desc: "Colle ton cours, tes notes ou ton sujet. L'IA analyse le contenu en profondeur.",
+    title: "Dépose ton cahier des charges (PDF)",
+    desc: "L'IA lit et analyse tes exigences, contraintes, objectifs et format attendu.",
     icon: (
       <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true">
         <path d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zm4 18H6V4h7v5h5v11zM8 15h8v2H8zm0-4h8v2H8zm0-4h5v2H8z" fill="currentColor" />
@@ -23,11 +23,11 @@ const STEPS = [
   },
   {
     number: "03",
-    title: "Reçois tes quêtes personnalisées",
-    desc: "Un plan d'apprentissage unique avec des questions ciblées, adapté à ton niveau.",
+    title: "Reçois ton plan de rédaction sur mesure",
+    desc: "Structure complète, chapitres, sous-parties et conseils de rédaction adaptés à ton sujet.",
     icon: (
       <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-        <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" fill="currentColor" />
+        <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z" fill="currentColor" />
       </svg>
     ),
   },

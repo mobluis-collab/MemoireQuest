@@ -1,8 +1,11 @@
 import "./globals.css";
 import type { Metadata, Viewport } from "next";
-import { ThemeProvider } from "@/context/ThemeProvider";
-import { AppProvider } from "@/context/AppProvider";
+import { Inter } from "next/font/google";
+import { ThemeProvider } from "./context/ThemeProvider";
+import { AppProvider } from "./context/AppProvider";
 import Footer from "./components/Footer";
+
+const inter = Inter({ subsets: ["latin"] });
 
 export const viewport: Viewport = {
   width: "device-width",
@@ -16,14 +19,15 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  title: "maimoirkouest — Structurez votre mémoire avec l'IA",
-  description: "L'assistant IA qui analyse votre sujet et vous guide pas à pas.",
+  title: "MemoireQuest — Ton mémoire, structuré par l'IA",
+  description:
+    "Dépose ton cahier des charges, reçois un plan de rédaction complet et personnalisé pour ton mémoire de fin d'études.",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="fr" className="dark" suppressHydrationWarning>
-      <body>
+      <body className={inter.className}>
         <a href="#main-content" className="skip-to-content">
           Aller au contenu principal
         </a>
