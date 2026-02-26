@@ -1,9 +1,11 @@
 "use client";
 
+import { useState, useRef } from "react";
 import { useTheme } from "@/context/ThemeProvider";
 import { useApp } from "@/context/AppProvider";
 import { DOMAINS } from "@/types";
 import type { User } from "@supabase/supabase-js";
+import MemoryGame from "@/components/games/MemoryGame";
 
 interface NavbarProps {
   user: User | null;
@@ -19,7 +21,32 @@ export function Navbar({ user, authLoading, onSignIn, onSignOut, onSave, onReset
   const { state, dispatch } = useApp();
   const { page, domain, analysisSource, saveStatus, hasSavedData } = state;
 
+  // Easter egg : 10 clics sur le logo
+  const [logoClickCount, setLogoClickCount] = useState(0);
+  const [isMemoryGameOpen, setIsMemoryGameOpen] = useState(false);
+  const logoClickTimerRef = useRef<NodeJS.Timeout | null>(null);
+
   const handleLogoClick = () => {
+    // Incrémenter compteur de clics
+    const newCount = logoClickCount + 1;
+    setLogoClickCount(newCount);
+
+    // Reset après 2 secondes d'inactivité
+    if (logoClickTimerRef.current) {
+      clearTimeout(logoClickTimerRef.current);
+    }
+    logoClickTimerRef.current = setTimeout(() => {
+      setLogoClickCount(0);
+    }, 2000);
+
+    // 10 clics = ouvrir mini-jeu
+    if (newCount === 10) {
+      setIsMemoryGameOpen(true);
+      setLogoClickCount(0);
+      return;
+    }
+
+    // Navigation normale
     if (page === "dashboard" && !window.confirm("Voulez-vous vraiment quitter ? Votre progression est sauvegardée."))
       return;
     dispatch({ type: "SET_PAGE", payload: "landing" });
@@ -153,6 +180,9 @@ export function Navbar({ user, authLoading, onSignIn, onSignOut, onSave, onReset
           </button>
         )}
       </div>
+
+      {/* Easter egg : Memory Game */}
+      <MemoryGame isOpen={isMemoryGameOpen} onClose={() => setIsMemoryGameOpen(false)} />
     </nav>
   );
 }

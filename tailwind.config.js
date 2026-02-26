@@ -3,6 +3,7 @@ module.exports = {
   darkMode: "class",
   content: [
     "./app/**/*.{ts,tsx,js,jsx}",
+    "./src/**/*.{ts,tsx,js,jsx}",
   ],
   theme: {
     extend: {
@@ -36,6 +37,9 @@ module.exports = {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
+        'neon-blue': '#00f0ff',
+        'neon-pink': '#ff006e',
+        'neon-purple': '#8b5cf6',
       },
       borderRadius: {
         lg: "var(--radius)",

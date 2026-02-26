@@ -2,17 +2,23 @@
 
 import { useRouter } from 'next/navigation'
 import { signOut } from '@/lib/auth/actions'
+import { calculateLevel } from '@/lib/xp/levels'
+import UserAvatar from '@/components/ui/UserAvatar'
+import { useAvatarAnimation } from '@/hooks/useAvatarAnimation'
 
 interface DashboardHeaderProps {
   user: {
     email: string
     user_metadata?: { full_name?: string }
   }
+  totalXP?: number
 }
 
-export default function DashboardHeader({ user }: DashboardHeaderProps) {
+export default function DashboardHeader({ user, totalXP = 0 }: DashboardHeaderProps) {
   const router = useRouter()
   const firstName = user.user_metadata?.full_name?.split(' ')[0] ?? user.email
+  const currentLevel = calculateLevel(totalXP)
+  const shouldAnimateAvatar = useAvatarAnimation(currentLevel)
 
   const handleSignOut = async () => {
     await signOut()
@@ -29,6 +35,11 @@ export default function DashboardHeader({ user }: DashboardHeaderProps) {
 
         {/* Right side */}
         <div className="flex items-center gap-3">
+          <UserAvatar
+            level={currentLevel}
+            size="sm"
+            animate={shouldAnimateAvatar}
+          />
           <span className="text-sm text-zinc-400 max-sm:hidden">
             Bonjour, <span className="text-white font-medium">{firstName}</span>
           </span>

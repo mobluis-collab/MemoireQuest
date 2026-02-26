@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef, type DragEvent, type ChangeEvent } from 'react'
+import { useState, useRef, useEffect, type DragEvent, type ChangeEvent } from 'react'
 
 interface UploadZoneProps {
   onUpload: (file: File) => Promise<void>
@@ -9,11 +9,71 @@ interface UploadZoneProps {
 
 const MAX_MB = 10
 
+const LOADING_STEPS = [
+  { label: 'Lecture du PDF…', pct: 15 },
+  { label: 'Identification du type de mémoire…', pct: 32 },
+  { label: 'Analyse du cahier des charges…', pct: 55 },
+  { label: 'Extraction des contraintes et blocs de compétences…', pct: 72 },
+  { label: 'Génération du plan sur mesure…', pct: 88 },
+  { label: 'Structuration des chapitres…', pct: 96 },
+]
+
 const UploadIcon = () => (
   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true">
     <path d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zm-1 7V3.5L18.5 9H13zM12 18l-4-4h2.5v-3h3v3H16l-4 4z" fill="currentColor" className="text-zinc-400" />
   </svg>
 )
+
+function LoadingState() {
+  const [stepIndex, setStepIndex] = useState(0)
+
+  useEffect(() => {
+    const delays = [0, 2500, 5000, 8500, 13000, 17000]
+    const timers = delays.map((delay, i) =>
+      setTimeout(() => setStepIndex(i), delay)
+    )
+    return () => timers.forEach(clearTimeout)
+  }, [])
+
+  const current = LOADING_STEPS[stepIndex]
+
+  return (
+    <div className="flex flex-col items-center gap-4 py-2">
+      <div className="w-8 h-8 rounded-full border-2 border-indigo-500 border-t-transparent animate-spin" aria-label="Chargement" />
+
+      {/* Barre de progression */}
+      <div className="w-full max-w-xs">
+        <div className="flex justify-between mb-1.5">
+          <span className="text-xs text-zinc-500">Analyse en cours</span>
+          <span className="text-xs font-medium text-indigo-400">{current.pct}%</span>
+        </div>
+        <div className="h-1.5 bg-zinc-800 rounded-full overflow-hidden">
+          <div
+            className="h-full bg-indigo-500 rounded-full transition-all duration-1000 ease-out"
+            style={{ width: `${current.pct}%` }}
+          />
+        </div>
+      </div>
+
+      {/* Étape courante */}
+      <p className="text-sm text-zinc-400 text-center min-h-[20px] transition-all duration-500">
+        {current.label}
+      </p>
+
+      {/* Étapes passées */}
+      <ul className="text-xs text-zinc-600 space-y-1 text-center">
+        {LOADING_STEPS.slice(0, stepIndex).map((s) => (
+          <li key={s.label} className="flex items-center justify-center gap-1.5">
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
+              <path d="M2 6l3 3 5-5" stroke="#6366f1" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+            {s.label}
+          </li>
+        ))}
+      </ul>
+    </div>
+  )
+}
 
 export default function UploadZone({ onUpload, isLoading }: UploadZoneProps) {
   const [isDragging, setIsDragging] = useState(false)
@@ -53,13 +113,10 @@ export default function UploadZone({ onUpload, isLoading }: UploadZoneProps) {
         onDragOver={onDragOver}
         onDragLeave={onDragLeave}
         onDrop={onDrop}
-        className={`rounded-2xl border-2 border-dashed p-12 text-center transition-all duration-200 ${borderClass}`}
+        className={`rounded-2xl border-2 border-dashed p-10 text-center transition-all duration-200 ${borderClass}`}
       >
         {isLoading ? (
-          <div className="flex flex-col items-center gap-3">
-            <div className="w-8 h-8 rounded-full border-2 border-indigo-500 border-t-transparent animate-spin" aria-label="Chargement" />
-            <p className="text-sm text-zinc-400">Analyse en cours…</p>
-          </div>
+          <LoadingState />
         ) : (
           <>
             <div className="w-12 h-12 rounded-xl bg-zinc-800 flex items-center justify-center mx-auto mb-4"><UploadIcon /></div>
@@ -75,7 +132,13 @@ export default function UploadZone({ onUpload, isLoading }: UploadZoneProps) {
           </>
         )}
       </div>
+
       {error && <p role="alert" className="mt-3 text-sm text-red-400 text-center">{error}</p>}
+
+      {/* Disclaimer */}
+      <p className="mt-5 text-xs text-zinc-600 text-center leading-relaxed max-w-sm mx-auto">
+        L&apos;IA peut faire des erreurs et ses suggestions restent indicatives. Elle ne produit aucun contenu à ta place — son rôle est uniquement de t&apos;aider à structurer ta méthode de travail. La rédaction du mémoire t&apos;appartient entièrement.
+      </p>
     </div>
   )
 }

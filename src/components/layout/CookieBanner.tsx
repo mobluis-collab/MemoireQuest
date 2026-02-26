@@ -38,12 +38,12 @@ export function CookieBanner({ onAccept, onRefuse }: CookieBannerProps = {}) {
     >
       {/* Backdrop */}
       <div
-        className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+        className="absolute inset-0 bg-black/70"
         aria-hidden="true"
       />
 
       {/* Modal */}
-      <div className="relative bg-zinc-900 border border-zinc-700 rounded-2xl p-6 max-w-md w-full shadow-2xl">
+      <div className="relative bg-zinc-950 border border-zinc-700 rounded-2xl p-6 max-w-md w-full shadow-2xl shadow-black/80">
         <div
           className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-zinc-500/30 to-transparent rounded-t-2xl"
           aria-hidden="true"
@@ -77,7 +77,7 @@ export function CookieBanner({ onAccept, onRefuse }: CookieBannerProps = {}) {
           </button>
           <button
             onClick={handleAccept}
-            className="h-10 px-5 rounded-xl text-sm font-medium bg-indigo-600 text-white hover:bg-indigo-500 shadow-lg shadow-indigo-900/30 transition-all cursor-pointer"
+            className="h-10 px-5 rounded-xl text-sm font-medium bg-white text-zinc-900 hover:bg-zinc-100 shadow-lg shadow-white/10 transition-all cursor-pointer"
           >
             Accepter
           </button>

@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useApp } from "@/context/AppProvider";
 import { useUserData } from "@/hooks/useUserData";
 import { useAnalysis } from "@/hooks/useAnalysis";
+import { useKonamiCode } from "@/hooks/useKonamiCode";
 import { Navbar } from "@/components/layout/Navbar";
 import { CookieBanner } from "@/components/layout/CookieBanner";
 import { Landing } from "@/components/landing/Landing";
@@ -12,6 +13,7 @@ import { Dashboard } from "@/components/dashboard/Dashboard";
 import { AnalysisOverlay } from "@/components/dialogs/AnalysisOverlay";
 import { SignInPrompt } from "@/components/dialogs/SignInPrompt";
 import { DashboardSkeleton } from "@/components/ui/Skeleton";
+import MatrixTheme from "@/components/ui/MatrixTheme";
 import { supabase } from "@/lib/supabase";
 import { FALLBACK_QUESTS } from "@/lib/fallback-quests";
 
@@ -32,6 +34,24 @@ export default function Maimoirkouest() {
 
   const { analyzing, analyzeStatus, progress, aiError, startAnalysis } = useAnalysis();
   const [showSignInPrompt, setShowSignInPrompt] = useState(false);
+
+  // Easter egg : Konami Code → Matrix Theme
+  const [isMatrixActive, setIsMatrixActive] = useState(false);
+  useKonamiCode(() => {
+    setIsMatrixActive(true);
+  });
+
+  // ESC pour sortir du Matrix Theme
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isMatrixActive) {
+        setIsMatrixActive(false);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isMatrixActive]);
 
   const handleReset = async () => {
     if (!window.confirm("Voulez-vous vraiment recommencer ? Toutes vos données seront effacées.")) return;
@@ -96,6 +116,9 @@ export default function Maimoirkouest() {
 
       {/* Cookie consent */}
       {cookieConsent === null && <CookieBanner onAccept={acceptCookies} onRefuse={refuseCookies} />}
+
+      {/* Easter egg : Matrix Theme */}
+      <MatrixTheme isActive={isMatrixActive} />
     </div>
   );
 }

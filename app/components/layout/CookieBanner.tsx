@@ -55,7 +55,7 @@ export function CookieBanner({ onAccept, onRefuse }: CookieBannerProps) {
           </button>
           <button
             onClick={onAccept}
-            className="min-h-[40px] px-5 py-2 rounded-full border-none bg-[var(--accent-blue)] text-white text-xs font-medium cursor-pointer hover:bg-[var(--accent-blue-hover)] hover:shadow-[0_4px_16px_var(--accent-glow)] transition-all"
+            className="min-h-[40px] px-5 py-2 rounded-full border-none bg-white text-zinc-900 text-xs font-semibold cursor-pointer hover:bg-zinc-100 shadow-[0_2px_12px_rgba(255,255,255,0.15)] transition-all"
           >
             Accepter
           </button>

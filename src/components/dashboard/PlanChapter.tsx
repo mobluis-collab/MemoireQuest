@@ -28,7 +28,7 @@ export default function PlanChapter({ chapter }: PlanChapterProps) {
         {chapter.sections.map((section, i) => (
           <li key={i} className="flex items-start gap-2 text-xs text-zinc-400">
             <span className="mt-1 w-1 h-1 rounded-full bg-indigo-500/60 shrink-0" aria-hidden="true" />
-            {section}
+            {section.text}
           </li>
         ))}
       </ul>

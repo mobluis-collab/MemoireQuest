@@ -119,6 +119,12 @@
   backdrop-filter: blur(40px) saturate(1.8);
   border: 0.5px solid var(--border-glass);
 }
+.glass-enhanced {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+}
 
 /* Gradient text */
 .text-gradient {
@@ -152,6 +158,26 @@ textarea:focus-visible,
   outline-offset: 2px;
 }
 
+/* Animation fade-in pour les entrées journal */
+@keyframes fade-in {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.animate-fade-in {
+  animation: fade-in 0.35s ease-out both;
+}
+
+/* Accessibility: respect prefers-reduced-motion */
+@media (prefers-reduced-motion: reduce) {
+  .animate-fade-in,
+  .animate-pulse,
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
 /* Skip-to-content link */
 .skip-to-content {
   position: absolute;
@@ -168,4 +194,14 @@ textarea:focus-visible,
 }
 .skip-to-content:focus {
   top: 0;
+}
+
+/* Boss Battle shake animation */
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  10%, 30%, 50%, 70%, 90% { transform: translateX(-4px); }
+  20%, 40%, 60%, 80% { transform: translateX(4px); }
+}
+.animate-shake {
+  animation: shake 0.5s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
 }

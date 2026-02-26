@@ -1,7 +1,22 @@
 import { createClient } from '@/lib/supabase/server'
-import type { MemoirePlan } from '@/types/memoir'
+import type { ChapterProgress, MemoirePlan, QuestProgress, StreakData } from '@/types/memoir'
+import type { ComboState } from '@/lib/combo'
 
-export async function getUserPlan(userId: string) {
+export interface PlanRow {
+  id: string
+  user_id: string
+  title: string
+  plan_data: MemoirePlan
+  chapter_progress: ChapterProgress
+  quest_progress: QuestProgress
+  total_points: number
+  streak_data: StreakData
+  combo_state: ComboState
+  created_at: string
+  updated_at: string
+}
+
+export async function getUserPlan(userId: string): Promise<PlanRow | null> {
   const supabase = await createClient()
   const { data } = await supabase
     .from('memoir_plans')
@@ -19,7 +34,16 @@ export async function savePlan(userId: string, title: string, planData: MemoireP
   await supabase.from('memoir_plans').delete().eq('user_id', userId)
   const { data, error } = await supabase
     .from('memoir_plans')
-    .insert({ user_id: userId, title, plan_data: planData })
+    .insert({
+      user_id: userId,
+      title,
+      plan_data: planData,
+      chapter_progress: {},
+      quest_progress: {},
+      total_points: 0,
+      streak_data: { current: 0, last_activity: null, jokers: 1 },
+      combo_state: { count: 0, lastQuestTime: null },
+    })
     .select()
     .single()
   if (error) throw error
