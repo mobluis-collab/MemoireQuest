@@ -80,31 +80,19 @@ function GBorder({
 
 /* ─── Arc SVG ─────────────────────────────────────────────────── */
 function Arc({ pct }: { pct: number }) {
-  const R = 68, SW = 8, C2 = 86, circ = 2 * Math.PI * R
+  const R = 68, SW = 6, C2 = 86, circ = 2 * Math.PI * R
   const dash = (pct / 100) * circ
   return (
     <svg width={C2 * 2} height={C2 * 2} viewBox={`0 0 ${C2 * 2} ${C2 * 2}`}
       style={{ overflow: 'visible', flexShrink: 0 }}>
-      <defs>
-        <linearGradient id="ag" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%"   stopColor={C.sky} />
-          <stop offset="100%" stopColor={C.indigo} />
-        </linearGradient>
-        <filter id="arcglow" x="-50%" y="-50%" width="200%" height="200%">
-          <feGaussianBlur stdDeviation="4" result="blur" />
-          <feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge>
-        </filter>
-      </defs>
-      {/* Track — plus visible */}
-      <circle cx={C2} cy={C2} r={R} fill="none" stroke="rgba(255,255,255,0.12)" strokeWidth={SW} />
+      <circle cx={C2} cy={C2} r={R} fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth={SW} />
       <circle cx={C2} cy={C2} r={R} fill="none"
-        stroke="url(#ag)" strokeWidth={SW} strokeLinecap="round"
+        stroke="rgba(255,255,255,0.40)" strokeWidth={SW} strokeLinecap="round"
         strokeDasharray={`${dash} ${circ}`} strokeDashoffset={circ * 0.25}
-        filter="url(#arcglow)"
         style={{ animation: 'mq-arc-in 1.2s cubic-bezier(.4,0,.2,1) both' }} />
-      <text x={C2} y={C2 - 10} textAnchor="middle" fill="white"
+      <text x={C2} y={C2 - 10} textAnchor="middle" fill="rgba(255,255,255,0.88)"
         fontSize="34" fontWeight="800" fontFamily={FONT} letterSpacing="-1.5">{pct}</text>
-      <text x={C2} y={C2 + 14} textAnchor="middle" fill="rgba(255,255,255,0.55)"
+      <text x={C2} y={C2 + 14} textAnchor="middle" fill="rgba(255,255,255,0.35)"
         fontSize="12" fontFamily={FONT} fontWeight="500">% terminé</text>
     </svg>
   )
@@ -667,12 +655,11 @@ export default function NewDashboard({
         <rect width="100%" height="100%" filter="url(#mq-grain)" opacity="0.12" />
       </svg>
 
-      {/* ── Aurora orbs ── */}
+      {/* ── Aurora orbs — very subtle ── */}
       {[
-        { color: 'rgba(99,102,241,0.22)',  x: '8%',  y: '5%',  w: 700, h: 600, delay: '0s' },
-        { color: 'rgba(167,139,250,0.14)', x: '75%', y: '60%', w: 600, h: 550, delay: '-4s' },
-        { color: 'rgba(56,189,248,0.10)',  x: '45%', y: '30%', w: 500, h: 400, delay: '-8s' },
-        { color: 'rgba(52,211,153,0.07)',  x: '20%', y: '75%', w: 400, h: 350, delay: '-12s' },
+        { color: 'rgba(99,102,241,0.07)',  x: '8%',  y: '5%',  w: 700, h: 600, delay: '0s' },
+        { color: 'rgba(167,139,250,0.05)', x: '75%', y: '60%', w: 600, h: 550, delay: '-4s' },
+        { color: 'rgba(56,189,248,0.04)',  x: '45%', y: '30%', w: 500, h: 400, delay: '-8s' },
       ].map((o, i) => (
         <div key={i} style={{
           position: 'fixed', left: o.x, top: o.y, width: o.w, height: o.h, zIndex: 0, pointerEvents: 'none',
@@ -697,10 +684,10 @@ export default function NewDashboard({
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
             <div style={{
               width: 30, height: 30, borderRadius: 9,
-              background: `linear-gradient(135deg,${C.indigo},${C.violet})`,
+              background: 'rgba(255,255,255,0.1)',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              color: '#fff', fontSize: 13, fontWeight: 800,
-              boxShadow: `0 4px 18px ${C.indigo}66`,
+              color: 'rgba(255,255,255,0.8)', fontSize: 13, fontWeight: 800,
+              border: '1px solid rgba(255,255,255,0.12)',
             }}>M</div>
             <div>
               <div style={{ fontSize: 13, fontWeight: 700, letterSpacing: '-0.3px', color: 'rgba(255,255,255,0.92)' }}>MemoireQuest</div>
@@ -715,10 +702,10 @@ export default function NewDashboard({
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
             <div style={{
               width: 34, height: 34, borderRadius: '50%', flexShrink: 0,
-              background: `linear-gradient(135deg,${C.indigo},${C.violet})`,
+              background: 'rgba(255,255,255,0.1)',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              color: '#fff', fontSize: 14, fontWeight: 800,
-              boxShadow: `0 0 0 2px rgba(99,102,241,0.3), 0 4px 14px rgba(99,102,241,0.4)`,
+              color: 'rgba(255,255,255,0.8)', fontSize: 14, fontWeight: 800,
+              border: '1px solid rgba(255,255,255,0.15)',
             }}>{firstInitial}</div>
             <div>
               <div style={{ fontSize: 13, fontWeight: 600, color: 'rgba(255,255,255,0.92)' }}>{firstName}</div>
@@ -728,28 +715,14 @@ export default function NewDashboard({
               </div>
             </div>
           </div>
-          {/* FIX: XP bar height was 3 → 6px for visibility */}
-          <div style={{ height: 6, borderRadius: 99, background: 'rgba(255,255,255,0.1)', overflow: 'hidden', marginBottom: 4 }}>
+          <div style={{ height: 4, borderRadius: 99, background: 'rgba(255,255,255,0.08)', overflow: 'hidden', marginBottom: 4 }}>
             <div style={{
               height: '100%', width: `${xpPct}%`, borderRadius: 99,
-              background: `linear-gradient(90deg,${C.indigo},${C.violet})`,
-              boxShadow: `0 0 10px ${C.indigo}88`,
-              position: 'relative', overflow: 'hidden',
-            }}>
-              <div style={{
-                position: 'absolute', inset: 0,
-                background: 'linear-gradient(90deg,transparent,rgba(255,255,255,0.3),transparent)',
-                backgroundSize: '200px 100%',
-                animation: 'mq-shimmer 2.5s linear infinite',
-              }} />
-            </div>
+              background: 'rgba(255,255,255,0.35)',
+            }} />
           </div>
-          {/* FIX: XP labels were 0.2 → 0.45 */}
-          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-            <span style={{ fontSize: 9, color: 'rgba(255,255,255,0.45)' }}>{totalPoints} XP</span>
-            <span style={{ fontSize: 9, color: 'rgba(255,255,255,0.45)' }}>
-              {levelInfo.isMaxLevel ? 'Max !' : `+${xpToNext} XP → niv. ${currentLevel + 1}`}
-            </span>
+          <div style={{ fontSize: 9, color: 'rgba(255,255,255,0.40)' }}>
+            {totalPoints} XP{levelInfo.isMaxLevel ? '' : ` · encore ${xpToNext} avant le niv. ${currentLevel + 1}`}
           </div>
         </div>
 
@@ -761,12 +734,11 @@ export default function NewDashboard({
               <button key={i} onClick={() => setActiveView(item.view)} style={{
                 width: '100%', display: 'flex', alignItems: 'center', gap: 9,
                 padding: '8px 11px 8px 13px', borderRadius: 9, border: 'none', cursor: 'pointer',
-                background: active ? `linear-gradient(90deg,rgba(99,102,241,0.2),rgba(167,139,250,0.08))` : 'transparent',
-                color: active ? 'rgba(255,255,255,0.95)' : 'rgba(255,255,255,0.6)',
+                background: active ? 'rgba(255,255,255,0.06)' : 'transparent',
+                color: active ? 'rgba(255,255,255,0.90)' : 'rgba(255,255,255,0.45)',
                 fontSize: 13, fontWeight: active ? 600 : 400,
                 textAlign: 'left', transition: 'all 0.15s', marginBottom: 1,
-                /* FIX: left border indicator instead of tiny dot */
-                borderLeft: active ? `3px solid ${C.indigo}` : '3px solid transparent',
+                borderLeft: active ? '2px solid rgba(255,255,255,0.5)' : '2px solid transparent',
               }}>
                 <span style={{ fontSize: 11, opacity: active ? 1 : 0.75 }}>{item.icon}</span>
                 {item.label}
@@ -869,16 +841,13 @@ export default function NewDashboard({
               </div>
               {/* Streak pill */}
               <div style={{
-                display: 'flex', alignItems: 'center', gap: 8, padding: '8px 16px',
+                display: 'flex', alignItems: 'center', gap: 6, padding: '6px 14px',
                 borderRadius: 99,
-                background: 'rgba(251,191,36,0.1)',
-                border: '1px solid rgba(251,191,36,0.3)',
-                backdropFilter: 'blur(16px)',
-                boxShadow: '0 0 20px rgba(251,191,36,0.12)',
+                background: 'rgba(255,255,255,0.05)',
+                border: '1px solid rgba(255,255,255,0.10)',
               }}>
-                <span style={{ fontSize: 15 }}>🔥</span>
-                <span style={{ fontSize: 15, fontWeight: 800, color: C.amber, letterSpacing: '-0.5px' }}>{streak.current}</span>
-                <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.6)' }}>
+                <span style={{ fontSize: 14, fontWeight: 700, color: 'rgba(255,255,255,0.8)' }}>{streak.current}</span>
+                <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.45)' }}>
                   jour{streak.current !== 1 ? 's' : ''} de suite
                 </span>
               </div>
@@ -893,24 +862,24 @@ export default function NewDashboard({
             }}>
 
               {/* HERO: countdown + dot grid */}
-              <GBorder gradient="linear-gradient(135deg, rgba(99,102,241,0.5), rgba(167,139,250,0.2), rgba(56,189,248,0.3))">
+              <div style={{
+                borderRadius: 18,
+                border: '1px solid rgba(255,255,255,0.08)',
+                background: 'rgba(255,255,255,0.02)',
+              }}>
                 <div style={{
                   height: '100%', padding: '22px 26px',
-                  background: 'linear-gradient(145deg, rgba(99,102,241,0.1) 0%, rgba(4,3,14,0.95) 60%)',
-                  backdropFilter: 'blur(28px)', WebkitBackdropFilter: 'blur(28px)',
                   display: 'flex', flexDirection: 'column', justifyContent: 'space-between',
                   borderRadius: 17,
                 }}>
                   <div>
-                    {/* FIX: label was 0.3 → 0.55 */}
-                    <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.55)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '1px', marginBottom: 10 }}>
+                    <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.45)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px', marginBottom: 10 }}>
                       Soutenance dans
                     </div>
                     <div style={{ display: 'flex', alignItems: 'flex-end', gap: 10, marginBottom: 6 }}>
                       <span style={{
                         fontSize: 68, fontWeight: 900, letterSpacing: '-3px', lineHeight: 1,
-                        background: `linear-gradient(135deg, #fff 30%, ${C.indigo})`,
-                        WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
+                        color: 'rgba(255,255,255,0.9)',
                       }}>{remaining}</span>
                       <div style={{ paddingBottom: 8 }}>
                         <div style={{ fontSize: 16, color: 'rgba(255,255,255,0.65)', fontWeight: 500 }}>jours</div>
@@ -929,9 +898,9 @@ export default function NewDashboard({
                   {/* Timeline bar */}
                   <div>
                     {/* FIX: track was 0.06 → 0.14 */}
-                    <div style={{ height: 2, borderRadius: 99, background: 'rgba(255,255,255,0.14)', overflow: 'visible', position: 'relative', marginBottom: 7 }}>
-                      <div style={{ height: '100%', width: `${timePct}%`, borderRadius: 99, background: `linear-gradient(90deg,${C.indigo},${C.violet})`, boxShadow: `0 0 12px ${C.indigo}66` }} />
-                      <div style={{ position: 'absolute', left: `${timePct}%`, top: '50%', transform: 'translate(-50%,-50%)', width: 8, height: 8, borderRadius: '50%', background: C.amber, boxShadow: `0 0 10px ${C.amber}` }} />
+                    <div style={{ height: 2, borderRadius: 99, background: 'rgba(255,255,255,0.08)', overflow: 'visible', position: 'relative', marginBottom: 7 }}>
+                      <div style={{ height: '100%', width: `${timePct}%`, borderRadius: 99, background: 'rgba(255,255,255,0.30)' }} />
+                      <div style={{ position: 'absolute', left: `${timePct}%`, top: '50%', transform: 'translate(-50%,-50%)', width: 6, height: 6, borderRadius: '50%', background: 'rgba(255,255,255,0.6)' }} />
                     </div>
                     <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                       {/* FIX: dates were 0.2 → 0.5 */}
@@ -941,53 +910,48 @@ export default function NewDashboard({
                     </div>
                   </div>
                 </div>
-              </GBorder>
+              </div>
 
               {/* ARC progress */}
-              <GBorder gradient="linear-gradient(135deg, rgba(56,189,248,0.4), rgba(99,102,241,0.2), rgba(4,3,14,0.1))">
+              <div style={{
+                borderRadius: 18,
+                border: '1px solid rgba(255,255,255,0.08)',
+                background: 'rgba(255,255,255,0.02)',
+              }}>
                 <div style={{
                   height: '100%', padding: '20px 22px',
-                  background: 'linear-gradient(145deg, rgba(56,189,248,0.07) 0%, rgba(4,3,14,0.95) 70%)',
-                  backdropFilter: 'blur(28px)', WebkitBackdropFilter: 'blur(28px)',
                   display: 'flex', alignItems: 'center', gap: 20,
                   borderRadius: 17,
                 }}>
                   <Arc pct={pct} />
                   <div style={{ flex: 1 }}>
-                    {/* FIX: label was 0.28 → 0.55 */}
-                    <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.55)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.8px', marginBottom: 14 }}>
+                    <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.45)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.8px', marginBottom: 14 }}>
                       Avancement
                     </div>
-                    {/* FIX: connected layout with dot connector — no more huge gap */}
                     {[
-                      { label: 'Sections faites', val: `${doneSec}/${totalSec}`, color: C.sky },
-                      { label: 'Chapitres finis',  val: `${doneChapters}/${chapters.length}`, color: C.emerald },
-                      { label: 'En cours',          val: `${chapters.filter(c => c.done > 0 && c.done < c.sections).length} chap.`, color: C.violet },
-                      /* FIX: Replaced "Temps restant X%" (duplicate with hero) with avance/retard delta */
-                      { label: isAhead ? 'En avance de' : 'En retard de', val: `${delta} pts`, color: isAhead ? C.emerald : C.rose },
+                      { label: 'Sections faites', val: `${doneSec}/${totalSec}` },
+                      { label: 'Chapitres finis',  val: `${doneChapters}/${chapters.length}` },
+                      { label: 'En cours',          val: `${chapters.filter(c => c.done > 0 && c.done < c.sections).length} chap.` },
                     ].map(s => (
                       <div key={s.label} style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 9 }}>
-                        <div style={{ width: 5, height: 5, borderRadius: '50%', background: s.color, flexShrink: 0, boxShadow: `0 0 6px ${s.color}` }} />
-                        {/* FIX: label was 0.32 → 0.65 */}
-                        <span style={{ fontSize: 11.5, color: 'rgba(255,255,255,0.65)' }}>{s.label}</span>
-                        {/* Dot connector */}
-                        <div style={{ flex: 1, borderBottom: '1px dashed rgba(255,255,255,0.1)', marginBottom: 2 }} />
-                        <span style={{ fontSize: 11.5, fontWeight: 700, color: s.color }}>{s.val}</span>
+                        <span style={{ fontSize: 11.5, color: 'rgba(255,255,255,0.50)' }}>{s.label}</span>
+                        <div style={{ flex: 1, borderBottom: '1px dashed rgba(255,255,255,0.06)', marginBottom: 2 }} />
+                        <span style={{ fontSize: 11.5, fontWeight: 600, color: 'rgba(255,255,255,0.80)' }}>{s.val}</span>
                       </div>
                     ))}
                   </div>
                 </div>
-              </GBorder>
+              </div>
 
               {/* STATS bar */}
-              <GBorder
-                gradient="linear-gradient(90deg, rgba(99,102,241,0.4), rgba(167,139,250,0.3), rgba(251,191,36,0.3))"
-                style={{ gridColumn: '1/3' as unknown as undefined }}
-              >
+              <div style={{
+                gridColumn: '1/3',
+                borderRadius: 18,
+                border: '1px solid rgba(255,255,255,0.08)',
+                background: 'rgba(255,255,255,0.02)',
+              }}>
                 <div style={{
                   height: '100%', padding: '16px 20px',
-                  background: 'rgba(4,3,14,0.88)',
-                  backdropFilter: 'blur(28px)', WebkitBackdropFilter: 'blur(28px)',
                   display: 'flex', alignItems: 'center',
                   borderRadius: 17,
                 }}>
@@ -995,40 +959,35 @@ export default function NewDashboard({
                     {
                       label: 'Niveau',
                       val: String(currentLevel),
-                      sub: currentLevel <= 2 ? 'Étudiant' : currentLevel <= 4 ? 'Chercheur Junior' : currentLevel <= 7 ? 'Chercheur Confirmé' : 'Expert ès Mémoires',
-                      col: C.indigo,
+                      sub: levelTitle,
                     },
                     {
-                      label: 'XP Total',
+                      label: 'Points',
                       val: String(totalPoints),
-                      sub: levelInfo.isMaxLevel ? 'Niveau maximum !' : `+${xpToNext} XP avant niv. ${currentLevel + 1}`,
-                      col: C.violet,
+                      sub: levelInfo.isMaxLevel ? 'Niveau max' : `encore ${xpToNext} avant le niv. ${currentLevel + 1}`,
                     },
                     {
-                      label: 'Série',
+                      label: 'Régularité',
                       val: `${streak.current}j`,
-                      sub: `Jokers dispo : ${streak.jokers}`,
-                      col: C.amber,
+                      sub: streak.current > 1 ? 'Continue comme ça' : 'Valide une section aujourd\'hui',
                     },
                   ].map((s, i) => (
                     <div key={i} style={{
                       flex: 1, textAlign: 'center',
-                      borderRight: i < 2 ? '1px solid rgba(255,255,255,0.07)' : 'none',
+                      borderRight: i < 2 ? '1px solid rgba(255,255,255,0.06)' : 'none',
                       padding: '0 24px',
                     }}>
-                      {/* FIX: label was 0.28 → 0.55 */}
-                      <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.55)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.8px', marginBottom: 4 }}>
+                      <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.40)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.8px', marginBottom: 4 }}>
                         {s.label}
                       </div>
-                      <div style={{ fontSize: 36, fontWeight: 900, letterSpacing: '-1px', lineHeight: 1, color: '#fff', textShadow: `0 0 28px ${s.col}77`, marginBottom: 4 }}>
+                      <div style={{ fontSize: 32, fontWeight: 800, letterSpacing: '-1px', lineHeight: 1, color: 'rgba(255,255,255,0.88)', marginBottom: 4 }}>
                         {s.val}
                       </div>
-                      {/* FIX: sub was 0.25 → 0.5 */}
-                      <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.5)' }}>{s.sub}</div>
+                      <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)' }}>{s.sub}</div>
                     </div>
                   ))}
                 </div>
-              </GBorder>
+              </div>
 
               {/* CHAPTERS grid — adaptatif au nombre de chapitres */}
               <div style={{ gridColumn: '1/3' as unknown as undefined, display: 'flex', flexDirection: 'column', gap: 7, minHeight: 0 }}>
