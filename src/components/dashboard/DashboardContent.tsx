@@ -3,9 +3,7 @@
 import { useState, useMemo } from 'react'
 import type { MemoirePlan, QuestProgress, StreakData } from '@/types/memoir'
 import type { ComboState } from '@/lib/combo'
-import UploadZone from './UploadZone'
-import QuestJournal from '@/components/journal/QuestJournal'
-import RateLimitWarning from '@/components/ui/RateLimitWarning'
+import NewDashboard from './new/NewDashboard'
 import PrestigeModal from '@/components/prestige/PrestigeModal'
 import { useToast } from '@/hooks/useToast'
 import { usePrestigeMode } from '@/hooks/usePrestigeMode'
@@ -14,20 +12,29 @@ import { getComboBonus } from '@/lib/combo'
 
 const DEFAULT_STREAK: StreakData = { current: 0, last_activity: null, jokers: 0 }
 
+interface User {
+  email: string
+  user_metadata?: { full_name?: string }
+}
+
 interface DashboardContentProps {
+  user: User
   initialPlan: MemoirePlan | null
   initialQuestProgress: QuestProgress
   initialTotalPoints: number
   initialStreak: StreakData
   initialComboState?: ComboState
+  planCreatedAt?: string
 }
 
 export default function DashboardContent({
+  user,
   initialPlan,
   initialQuestProgress,
   initialTotalPoints,
   initialStreak,
   initialComboState,
+  planCreatedAt,
 }: DashboardContentProps) {
   const { showToast, ToastContainer } = useToast()
   const [plan, setPlan] = useState<MemoirePlan | null>(initialPlan)
@@ -35,7 +42,7 @@ export default function DashboardContent({
   const [error, setError] = useState<string | null>(null)
   const [questProgress, setQuestProgress] = useState<QuestProgress>(initialQuestProgress)
   const [totalPoints, setTotalPoints] = useState(initialTotalPoints)
-  const [streak, setStreak] = useState<StreakData>(initialStreak)
+  const [streak, setStreak] = useState<StreakData>(initialStreak ?? DEFAULT_STREAK)
   const [planRemaining, setPlanRemaining] = useState<number | null>(null)
   const [loadingKey, setLoadingKey] = useState<string | null>(null)
   const [isPrestiging, setIsPrestiging] = useState(false)
@@ -43,15 +50,13 @@ export default function DashboardContent({
     initialComboState || { count: 0, lastQuestTime: null }
   )
 
-  // Calculate total quests and completed quests
+  // Calculate total quests and completed quests for prestige
   const { totalQuests, completedQuests } = useMemo(() => {
     if (!plan) return { totalQuests: 0, completedQuests: 0 }
-
     const total = plan.chapters.reduce((acc, ch) => acc + ch.sections.length, 0)
     const completed = Object.values(questProgress).reduce((acc, chapterProgress) => {
       return acc + Object.values(chapterProgress).filter(v => v === 'done').length
     }, 0)
-
     return { totalQuests: total, completedQuests: completed }
   }, [plan, questProgress])
 
@@ -60,7 +65,7 @@ export default function DashboardContent({
     showPrestigeModal,
     isEligibleForPrestige,
     prestigeCount,
-    openPrestigeModal,
+    openPrestigeModal: _openPrestigeModal,
     closePrestigeModal,
   } = usePrestigeMode({
     totalXP: totalPoints,
@@ -107,7 +112,6 @@ export default function DashboardContent({
         comboState: ComboState
       }
 
-      // Détection level up avec le système XP dynamique
       const oldLevel = calculateLevel(totalPoints)
       const newLevel = calculateLevel(data.totalPoints)
 
@@ -117,7 +121,6 @@ export default function DashboardContent({
       setComboState(data.comboState)
 
       if (newLevel > oldLevel) {
-        // Toast spécial si niveau 10 atteint
         if (newLevel === MAX_LEVEL) {
           showToast(`🏆 Niveau ${newLevel} atteint ! Niveau maximum !`, 'success')
         } else {
@@ -131,7 +134,6 @@ export default function DashboardContent({
 
   const handlePrestige = async () => {
     if (!isEligibleForPrestige || isPrestiging) return
-
     setIsPrestiging(true)
     try {
       const res = await fetch('/api/prestige', { method: 'POST' })
@@ -139,13 +141,8 @@ export default function DashboardContent({
         showToast('Erreur lors du prestige', 'error')
         return
       }
-
       const data = await res.json() as { prestigeCount: number }
-
-      // Reset local state
       setQuestProgress({})
-
-      // Update plan with new prestige count
       if (plan) {
         setPlan({
           ...plan,
@@ -153,11 +150,8 @@ export default function DashboardContent({
           title: `${plan.title} — Maître ès Mémoires ⭐`,
         })
       }
-
       showToast(`Prestige ${data.prestigeCount} activé !`, 'success')
       closePrestigeModal()
-
-      // Reload page to refresh data from server
       setTimeout(() => window.location.reload(), 1500)
     } catch (error) {
       console.error('Prestige error:', error)
@@ -168,38 +162,30 @@ export default function DashboardContent({
   }
 
   return (
-    <div>
+    <>
       <ToastContainer />
-      {planRemaining !== null && (
-        <RateLimitWarning remaining={planRemaining} endpoint="plan" />
+      <NewDashboard
+        user={user}
+        plan={plan}
+        questProgress={questProgress}
+        totalPoints={totalPoints}
+        streak={streak}
+        isLoading={isLoading}
+        error={error}
+        planRemaining={planRemaining}
+        planCreatedAt={planCreatedAt}
+        onUpload={handleUpload}
+        onQuestComplete={handleQuestComplete}
+        loadingKey={loadingKey}
+      />
+      {plan && (
+        <PrestigeModal
+          isOpen={showPrestigeModal}
+          onClose={closePrestigeModal}
+          onPrestige={handlePrestige}
+          currentPrestigeCount={prestigeCount}
+        />
       )}
-      {error && (
-        <p role="alert" className="mx-auto mt-6 max-w-xl text-center text-sm text-red-400 px-4">
-          {error}
-        </p>
-      )}
-      {plan ? (
-        <>
-          <QuestJournal
-            plan={plan}
-            questProgress={questProgress}
-            totalPoints={totalPoints}
-            streak={streak}
-            onQuestComplete={handleQuestComplete}
-            loadingKey={loadingKey}
-            comboCount={comboState.count}
-            comboBonusXP={getComboBonus(comboState.count)}
-          />
-          <PrestigeModal
-            isOpen={showPrestigeModal}
-            onClose={closePrestigeModal}
-            onPrestige={handlePrestige}
-            currentPrestigeCount={prestigeCount}
-          />
-        </>
-      ) : (
-        <UploadZone onUpload={handleUpload} isLoading={isLoading} />
-      )}
-    </div>
+    </>
   )
 }
