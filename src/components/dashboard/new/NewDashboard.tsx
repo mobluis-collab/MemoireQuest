@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo, CSSProperties } from 'react'
+import { useState, useMemo, useEffect, useRef, useCallback, CSSProperties } from 'react'
 import type { MemoirePlan, QuestProgress, StreakData } from '@/types/memoir'
 import { getLevelProgress } from '@/lib/xp/levels'
 import UploadZone from '@/components/dashboard/UploadZone'
@@ -189,7 +189,7 @@ function ChapterCard({ ch, onClick }: { ch: ChapterData; onClick: () => void }) 
       }} />
       {/* Content */}
       <div style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: 10, width: '100%', paddingLeft: 8 }}>
-        <span style={{ fontSize: 10, color: done ? `${C.emerald}cc` : wip ? `${C.sky}cc` : 'rgba(255,255,255,0.45)', fontWeight: 700, width: 20, flexShrink: 0, letterSpacing: '0.2px' }}>
+        <span style={{ fontSize: 10, color: done ? `${C.emerald}cc` : wip ? `${C.sky}cc` : 'rgba(255,255,255,0.45)', fontWeight: 700, flexShrink: 0, letterSpacing: '0.2px', whiteSpace: 'nowrap', maxWidth: 60, overflow: 'hidden', textOverflow: 'ellipsis' }}>
           {ch.num}
         </span>
         <span style={{
@@ -268,10 +268,11 @@ function SidePanel({
                 {ch.title}
               </h2>
             </div>
+            {/* FIX: close button 30 → 36px, text 0.7 → 0.9 */}
             <button onClick={onClose} style={{
-              width: 30, height: 30, borderRadius: '50%',
-              border: '1px solid rgba(255,255,255,0.15)',
-              background: 'rgba(255,255,255,0.07)', color: 'rgba(255,255,255,0.7)',
+              width: 36, height: 36, borderRadius: '50%',
+              border: '1px solid rgba(255,255,255,0.2)',
+              background: 'rgba(255,255,255,0.09)', color: 'rgba(255,255,255,0.9)',
               fontSize: 14, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
               flexShrink: 0, marginTop: 2, transition: 'all 0.15s',
             }}>✕</button>
@@ -300,7 +301,8 @@ function SidePanel({
             </svg>
             <div style={{ flex: 1 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
-                <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.55)' }}>Sections terminées</span>
+                {/* FIX: 0.55 → 0.75 */}
+                <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.75)' }}>Sections terminées</span>
                 <span style={{ fontSize: 12, fontWeight: 700, color: C.sky }}>{ch.done}/{ch.sections}</span>
               </div>
               <div style={{ height: 5, borderRadius: 99, background: 'rgba(255,255,255,0.1)', overflow: 'hidden' }}>
@@ -310,7 +312,8 @@ function SidePanel({
                   boxShadow: `0 0 8px ${C.sky}66`,
                 }} />
               </div>
-              <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.45)', marginTop: 5 }}>
+              {/* FIX: 0.45 → 0.68 */}
+              <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.68)', marginTop: 5 }}>
                 {pct === 100 ? '✓ Chapitre terminé'
                   : pct === 0 ? 'Pas encore commencé'
                   : `${ch.sections - ch.done} section${ch.sections - ch.done > 1 ? 's' : ''} restante${ch.sections - ch.done > 1 ? 's' : ''}`}
@@ -322,10 +325,11 @@ function SidePanel({
         {/* Sections list */}
         <div style={{ flex: 1, overflowY: 'auto', padding: '16px 20px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-            <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.45)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '1px' }}>
+            {/* FIX: sections label 0.45 → 0.72, hint 0.3 → 0.55 */}
+            <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.72)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '1px' }}>
               Sections
             </div>
-            <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.3)' }}>
+            <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.55)' }}>
               Clique sur ✓ pour décocher
             </div>
           </div>
@@ -368,7 +372,8 @@ function SidePanel({
                   <div style={{ flex: 1 }}>
                     <div style={{
                       fontSize: 13, fontWeight: isNext ? 600 : 400,
-                      color: isDone ? 'rgba(255,255,255,0.65)' : isNext ? 'rgba(255,255,255,0.95)' : 'rgba(255,255,255,0.55)',
+                      /* FIX: locked sections 0.55 → 0.72 */
+                      color: isDone ? 'rgba(255,255,255,0.65)' : isNext ? 'rgba(255,255,255,0.95)' : 'rgba(255,255,255,0.72)',
                     }}>{sec.text}</div>
                     {isNext && (
                       <div style={{ fontSize: 10, color: 'rgba(99,102,241,0.9)', marginTop: 2, fontWeight: 600 }}>
@@ -394,13 +399,172 @@ function SidePanel({
           </div>
         </div>
 
+        {/* FIX: footer hint 0.4 → 0.60 */}
         <div style={{ padding: '16px 20px', borderTop: '1px solid rgba(255,255,255,0.08)', flexShrink: 0 }}>
-          <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)', textAlign: 'center' }}>
+          <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.60)', textAlign: 'center' }}>
             Clique sur la prochaine section pour la valider
           </div>
         </div>
       </div>
     </>
+  )
+}
+
+/* ─── Confetti burst ──────────────────────────────────────────── */
+const CONFETTI_COLORS = ['#6366f1', '#34d399', '#fbbf24', '#fb7185', '#38bdf8', '#a78bfa', '#fff']
+
+function ConfettiBurst({ title, onDone }: { title: string; onDone: () => void }) {
+  const particles = useRef(
+    Array.from({ length: 60 }, (_, i) => ({
+      id: i,
+      color: CONFETTI_COLORS[i % CONFETTI_COLORS.length],
+      left: 5 + Math.random() * 90,
+      delay: Math.random() * 0.6,
+      dur: 1.4 + Math.random() * 1.2,
+      size: 5 + Math.random() * 7,
+      isCircle: Math.random() > 0.5,
+      rotEnd: 180 + Math.random() * 540,
+    }))
+  ).current
+
+  useEffect(() => {
+    const t = setTimeout(onDone, 3500)
+    return () => clearTimeout(t)
+  }, [onDone])
+
+  return (
+    <div style={{
+      position: 'fixed', inset: 0, zIndex: 200, pointerEvents: 'none', overflow: 'hidden',
+    }}>
+      {/* Backdrop */}
+      <div style={{
+        position: 'absolute', inset: 0,
+        background: 'rgba(4,3,14,0.55)',
+        backdropFilter: 'blur(2px)',
+        animation: 'mq-overlay-in 0.2s ease both',
+      }} />
+      {/* Banner */}
+      <div style={{
+        position: 'absolute', top: '50%', left: '50%',
+        transform: 'translate(-50%, -50%)',
+        textAlign: 'center',
+        animation: 'mq-celebrate-in 0.5s cubic-bezier(.34,1.56,.64,1) both',
+        zIndex: 201,
+      }}>
+        <div style={{ fontSize: 72, marginBottom: 12, lineHeight: 1 }}>🎉</div>
+        <div style={{
+          fontSize: 28, fontWeight: 900, letterSpacing: '-0.5px',
+          background: `linear-gradient(90deg, ${C.emerald}, ${C.sky})`,
+          WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
+          marginBottom: 6,
+        }}>Chapitre terminé !</div>
+        <div style={{
+          fontSize: 15, color: 'rgba(255,255,255,0.75)',
+          maxWidth: 300, lineHeight: 1.4,
+        }}>{title}</div>
+        <div style={{ marginTop: 16, fontSize: 13, color: 'rgba(255,255,255,0.45)' }}>
+          +XP accordé 🚀
+        </div>
+      </div>
+      {/* Particles */}
+      {particles.map(p => (
+        <div key={p.id} style={{
+          position: 'absolute',
+          left: `${p.left}%`,
+          top: '-12px',
+          width: p.size, height: p.size,
+          background: p.color,
+          borderRadius: p.isCircle ? '50%' : '2px',
+          opacity: 0,
+          animation: `mq-confetti-fall ${p.dur}s ease-in ${p.delay}s both`,
+        }} />
+      ))}
+    </div>
+  )
+}
+
+/* ─── Onboarding screen ───────────────────────────────────────── */
+function OnboardingScreen({ firstName, onUpload, isLoading }: {
+  firstName: string
+  onUpload: (file: File) => Promise<void>
+  isLoading: boolean
+}) {
+  const features = [
+    {
+      icon: '📋',
+      title: 'Plan sur mesure',
+      desc: "Analyse ton CDC et génère un plan adapté à ton mémoire, avec le bon nombre de chapitres",
+      color: C.indigo,
+    },
+    {
+      icon: '⚡',
+      title: 'XP & Niveaux',
+      desc: 'Gagne des points à chaque section validée et monte en niveau au fil de ta rédaction',
+      color: C.amber,
+    },
+    {
+      icon: '🏆',
+      title: 'Achievements',
+      desc: 'Débloque des badges exclusifs en atteignant des jalons clés sur ton mémoire',
+      color: C.violet,
+    },
+  ]
+
+  return (
+    <div style={{
+      flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center',
+      justifyContent: 'center', gap: 32, padding: '20px 0',
+      overflowY: 'auto',
+    }}>
+      {/* Hero */}
+      <div style={{ textAlign: 'center' }}>
+        <div style={{
+          display: 'inline-flex', alignItems: 'center', gap: 8,
+          padding: '5px 14px', borderRadius: 99, marginBottom: 16,
+          background: `rgba(99,102,241,0.1)`,
+          border: `1px solid rgba(99,102,241,0.3)`,
+          fontSize: 11, fontWeight: 600, color: 'rgba(255,255,255,0.7)',
+          letterSpacing: '0.3px',
+        }}>
+          <span style={{ fontSize: 12 }}>✦</span>
+          Thesis OS v1.0
+        </div>
+        <h1 style={{
+          fontSize: 36, fontWeight: 900, letterSpacing: '-1px', margin: '0 0 10px',
+          background: 'linear-gradient(135deg, rgba(255,255,255,0.95) 20%, rgba(99,102,241,0.85))',
+          WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
+          lineHeight: 1.1,
+        }}>Bonjour, {firstName}. 👋</h1>
+        <p style={{ fontSize: 15, color: 'rgba(255,255,255,0.60)', margin: 0, maxWidth: 400, lineHeight: 1.5 }}>
+          Transforme ton mémoire en quête. Importe ton cahier des charges pour commencer.
+        </p>
+      </div>
+
+      {/* Feature pills */}
+      <div style={{ display: 'flex', gap: 12 }}>
+        {features.map(f => (
+          <div key={f.title} style={{
+            padding: '16px 20px', borderRadius: 16, width: 190,
+            background: `${f.color}0d`,
+            border: `1px solid ${f.color}30`,
+            textAlign: 'center',
+          }}>
+            <div style={{ fontSize: 28, marginBottom: 8 }}>{f.icon}</div>
+            <div style={{ fontSize: 13, fontWeight: 700, color: 'rgba(255,255,255,0.92)', marginBottom: 6 }}>
+              {f.title}
+            </div>
+            <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.55)', lineHeight: 1.5 }}>
+              {f.desc}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Upload zone */}
+      <div style={{ width: '100%', maxWidth: 480 }}>
+        <UploadZone onUpload={onUpload} isLoading={isLoading} />
+      </div>
+    </div>
   )
 }
 
@@ -430,6 +594,8 @@ export default function NewDashboard({
 }: NewDashboardProps) {
   const [activeView, setActiveView] = useState<ActiveView>('dashboard')
   const [selectedCh, setSelectedCh] = useState<ChapterData | null>(null)
+  const [celebratingChapter, setCelebratingChapter] = useState<string | null>(null)
+  const prevChaptersRef = useRef<ChapterData[]>([])
 
   const today = new Date()
   const firstName = user.user_metadata?.full_name?.split(' ')[0] ?? user.email.split('@')[0]
@@ -479,6 +645,24 @@ export default function NewDashboard({
   const xpToNext     = levelInfo.isMaxLevel ? 0 : (levelInfo.xpRequiredForNext - levelInfo.xpInCurrentLevel)
   const levelTitle   = currentLevel <= 2 ? 'Étudiant' : currentLevel <= 4 ? 'Chercheur Jr.' : currentLevel <= 7 ? 'Chercheur' : 'Expert'
 
+  /* ── Chapter completion detection ── */
+  useEffect(() => {
+    const prev = prevChaptersRef.current
+    if (prev.length > 0 && chapters.length > 0) {
+      const justCompleted = chapters.find(ch => {
+        const prevCh = prev.find(p => p.num === ch.num)
+        return prevCh
+          && prevCh.done < prevCh.sections
+          && ch.done === ch.sections
+          && ch.sections > 0
+      })
+      if (justCompleted) setCelebratingChapter(justCompleted.num)
+    }
+    prevChaptersRef.current = chapters
+  }, [chapters])
+
+  const handleCelebrationDone = useCallback(() => setCelebratingChapter(null), [])
+
   /* ── Sign out ── */
   const handleSignOut = async () => {
     const { signOut: signOutFn } = await import('@/lib/auth/actions')
@@ -516,6 +700,16 @@ export default function NewDashboard({
           to   { transform: translateX(0);    opacity: 1; }
         }
         @keyframes mq-overlay-in { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes mq-confetti-fall {
+          0%   { opacity: 1; transform: translateY(0) rotate(0deg) scale(1); }
+          80%  { opacity: 0.8; }
+          100% { opacity: 0; transform: translateY(105vh) rotate(720deg) scale(0.5); }
+        }
+        @keyframes mq-celebrate-in {
+          0%   { opacity: 0; transform: translate(-50%,-50%) scale(0.4); }
+          70%  { opacity: 1; transform: translate(-50%,-50%) scale(1.05); }
+          100% { opacity: 1; transform: translate(-50%,-50%) scale(1); }
+        }
         ::-webkit-scrollbar { width: 4px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 99px; }
@@ -623,17 +817,16 @@ export default function NewDashboard({
             return (
               <button key={i} onClick={() => setActiveView(item.view)} style={{
                 width: '100%', display: 'flex', alignItems: 'center', gap: 9,
-                padding: '8px 11px', borderRadius: 9, border: 'none', cursor: 'pointer',
-                background: active ? `linear-gradient(90deg,rgba(99,102,241,0.22),rgba(167,139,250,0.1))` : 'transparent',
-                /* FIX: inactive was 0.32 → 0.6 */
+                padding: '8px 11px 8px 13px', borderRadius: 9, border: 'none', cursor: 'pointer',
+                background: active ? `linear-gradient(90deg,rgba(99,102,241,0.2),rgba(167,139,250,0.08))` : 'transparent',
                 color: active ? 'rgba(255,255,255,0.95)' : 'rgba(255,255,255,0.6)',
                 fontSize: 13, fontWeight: active ? 600 : 400,
                 textAlign: 'left', transition: 'all 0.15s', marginBottom: 1,
-                boxShadow: active ? 'inset 1px 0 0 rgba(99,102,241,0.7)' : 'none',
+                /* FIX: left border indicator instead of tiny dot */
+                borderLeft: active ? `3px solid ${C.indigo}` : '3px solid transparent',
               }}>
-                <span style={{ fontSize: 11, opacity: active ? 1 : 0.8 }}>{item.icon}</span>
+                <span style={{ fontSize: 11, opacity: active ? 1 : 0.75 }}>{item.icon}</span>
                 {item.label}
-                {active && <div style={{ marginLeft: 'auto', width: 4, height: 4, borderRadius: '50%', background: C.indigo }} />}
               </button>
             )
           })}
@@ -897,10 +1090,11 @@ export default function NewDashboard({
               {/* CHAPTERS grid — adaptatif au nombre de chapitres */}
               <div style={{ gridColumn: '1/3' as unknown as undefined, display: 'flex', flexDirection: 'column', gap: 7, minHeight: 0 }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 }}>
-                  <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.5)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '1px' }}>
+                  {/* FIX: "Chapitres" label 0.5 → 0.75, count badge 0.35 → 0.60 */}
+                  <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.75)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '1px' }}>
                     Chapitres
                   </div>
-                  <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.35)' }}>
+                  <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.60)' }}>
                     {chapters.length} chapitre{chapters.length > 1 ? 's' : ''}
                   </div>
                 </div>
@@ -925,23 +1119,21 @@ export default function NewDashboard({
           )}
           </>
         ) : (
-          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-            <div style={{ marginBottom: 24, textAlign: 'center' }}>
-              <h1 style={{
-                fontSize: 26, fontWeight: 800, letterSpacing: '-0.6px',
-                background: 'linear-gradient(90deg, rgba(255,255,255,0.95), rgba(255,255,255,0.55))',
-                WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', marginBottom: 8,
-              }}>Bonjour, {firstName}.</h1>
-              <p style={{ fontSize: 14, color: 'rgba(255,255,255,0.55)' }}>
-                Importe ton sujet de mémoire pour commencer ta quête.
-              </p>
-            </div>
-            {isLoading
-              ? <div style={{ color: 'rgba(255,255,255,0.6)', fontSize: 14 }}>Génération du plan en cours…</div>
-              : <UploadZone onUpload={onUpload} isLoading={isLoading} />}
-          </div>
+          <OnboardingScreen
+            firstName={firstName}
+            onUpload={onUpload}
+            isLoading={isLoading}
+          />
         )}
       </main>
+
+      {/* Confetti celebration */}
+      {celebratingChapter && (
+        <ConfettiBurst
+          title={chapters.find(c => c.num === celebratingChapter)?.title ?? ''}
+          onDone={handleCelebrationDone}
+        />
+      )}
 
       {/* Side Panel */}
       {selectedCh && plan && (
