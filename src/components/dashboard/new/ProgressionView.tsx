@@ -87,7 +87,7 @@ export default function ProgressionView({ chapters, totalPoints, streak, startDa
           WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
         }}>Progression</h1>
         <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)', marginTop: 3 }}>
-          Vue d'ensemble de ton avancement sur le mémoire
+          Vue d&apos;ensemble de ton avancement sur le mémoire
         </p>
       </div>
 
