@@ -149,14 +149,7 @@ function ChapterCard({ ch, onClick }: { ch: ChapterData; onClick: () => void }) 
   const [hovered, setHovered] = useState(false)
   const pct  = ch.sections > 0 ? Math.round((ch.done / ch.sections) * 100) : 0
   const done = pct === 100, wip = pct > 0 && !done
-  const col  = done ? C.emerald : wip ? C.sky : 'rgba(255,255,255,0.3)'
-
-  /* FIX: fill much more subtle so it doesn't darken text */
-  const grd  = done
-    ? 'linear-gradient(90deg,rgba(52,211,153,0.0),rgba(52,211,153,0.05))'
-    : wip
-      ? 'linear-gradient(90deg,rgba(56,189,248,0.0),rgba(99,102,241,0.05))'
-      : 'transparent'
+  const col  = done ? C.emerald : wip ? C.sky : 'rgba(255,255,255,0.4)'
 
   return (
     <div
@@ -167,56 +160,61 @@ function ChapterCard({ ch, onClick }: { ch: ChapterData; onClick: () => void }) 
         position: 'relative', overflow: 'hidden',
         borderRadius: 13,
         background: hovered
-          ? done ? 'rgba(52,211,153,0.09)' : wip ? 'rgba(56,189,248,0.08)' : 'rgba(255,255,255,0.06)'
-          : done ? 'rgba(52,211,153,0.05)' : wip ? 'rgba(56,189,248,0.04)' : 'rgba(255,255,255,0.03)',
-        /* FIX: borders more visible */
-        border: `1px solid ${done ? 'rgba(52,211,153,0.4)' : wip ? 'rgba(56,189,248,0.35)' : 'rgba(255,255,255,0.14)'}`,
+          ? done ? 'rgba(52,211,153,0.18)' : wip ? 'rgba(56,189,248,0.15)' : 'rgba(255,255,255,0.10)'
+          : done ? 'rgba(52,211,153,0.11)' : wip ? 'rgba(56,189,248,0.09)' : 'rgba(255,255,255,0.06)',
+        border: `1px solid ${done ? 'rgba(52,211,153,0.6)' : wip ? 'rgba(56,189,248,0.55)' : 'rgba(255,255,255,0.22)'}`,
         backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)',
-        padding: '10px 16px',
+        padding: '12px 16px',
         display: 'flex', alignItems: 'center',
         transition: 'all 0.18s',
         transform: hovered ? 'translateY(-2px)' : 'none',
-        boxShadow: hovered
-          ? `0 8px 24px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.07), 0 0 0 1px ${done ? 'rgba(52,211,153,0.2)' : wip ? 'rgba(56,189,248,0.2)' : 'rgba(255,255,255,0.05)'}`
-          : 'none',
+        boxShadow: done
+          ? `0 0 0 1px rgba(52,211,153,0.15), inset 0 1px 0 rgba(52,211,153,0.12)${hovered ? ', 0 8px 24px rgba(0,0,0,0.3)' : ''}`
+          : wip
+            ? `0 0 0 1px rgba(56,189,248,0.12), inset 0 1px 0 rgba(56,189,248,0.10)${hovered ? ', 0 8px 24px rgba(0,0,0,0.3)' : ''}`
+            : hovered ? '0 8px 24px rgba(0,0,0,0.25)' : 'none',
         cursor: 'pointer',
         minHeight: 0,
       }}>
-      {/* Liquid fill — very subtle, won't darken text */}
+      {/* Left accent bar */}
       <div style={{
-        position: 'absolute', left: 0, top: 0, bottom: 0, width: `${pct}%`,
-        background: grd, pointerEvents: 'none',
-        transition: 'width 1s cubic-bezier(.4,0,.2,1)',
+        position: 'absolute', left: 0, top: 0, bottom: 0,
+        width: 3, borderRadius: '3px 0 0 3px',
+        background: done
+          ? `linear-gradient(180deg, ${C.emerald}, rgba(52,211,153,0.4))`
+          : wip
+            ? `linear-gradient(180deg, ${C.sky}, rgba(56,189,248,0.4))`
+            : 'rgba(255,255,255,0.15)',
+        boxShadow: (done || wip) ? `0 0 10px ${col}99` : 'none',
       }} />
-      {/* Left accent line — thicker and brighter */}
-      {(done || wip) && (
-        <div style={{
-          position: 'absolute', left: 0, top: '15%', bottom: '15%',
-          width: 4, borderRadius: '0 3px 3px 0',
-          background: col, boxShadow: `0 0 12px ${col}aa`,
-        }} />
-      )}
       {/* Content */}
-      <div style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: 10, width: '100%' }}>
-        <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)', fontWeight: 700, width: 16, flexShrink: 0 }}>
+      <div style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: 10, width: '100%', paddingLeft: 8 }}>
+        <span style={{ fontSize: 10, color: done ? `${C.emerald}cc` : wip ? `${C.sky}cc` : 'rgba(255,255,255,0.45)', fontWeight: 700, width: 20, flexShrink: 0, letterSpacing: '0.2px' }}>
           {ch.num}
         </span>
-        {/* FIX: allow 2-line wrap instead of truncating */}
         <span style={{
           flex: 1, fontSize: 13,
-          fontWeight: done ? 400 : wip ? 500 : 400,
-          color: done ? 'rgba(255,255,255,0.45)' : 'rgba(255,255,255,0.9)',
-          textDecoration: done ? 'line-through' : 'none',
+          fontWeight: wip ? 600 : 500,
+          color: done ? 'rgba(255,255,255,0.70)' : wip ? 'rgba(255,255,255,0.95)' : 'rgba(255,255,255,0.80)',
           display: '-webkit-box',
           WebkitLineClamp: 2,
           WebkitBoxOrient: 'vertical',
           overflow: 'hidden',
-          lineHeight: '1.35',
+          lineHeight: '1.4',
           whiteSpace: 'normal',
         }}>{ch.title}</span>
-        <span style={{ fontSize: 11, fontWeight: 700, color: col, flexShrink: 0, letterSpacing: '-0.2px' }}>
-          {done ? '✓' : wip ? `${ch.done}/${ch.sections}` : '—'}
-        </span>
+        {/* Status badge */}
+        <div style={{
+          flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center',
+          width: 26, height: 26, borderRadius: '50%',
+          background: done ? 'rgba(52,211,153,0.2)' : wip ? 'rgba(56,189,248,0.15)' : 'rgba(255,255,255,0.08)',
+          border: `1.5px solid ${done ? 'rgba(52,211,153,0.7)' : wip ? 'rgba(56,189,248,0.6)' : 'rgba(255,255,255,0.2)'}`,
+          fontSize: done ? 12 : 10, fontWeight: 800,
+          color: done ? C.emerald : wip ? C.sky : 'rgba(255,255,255,0.45)',
+          boxShadow: (done || wip) ? `0 0 10px ${col}55` : 'none',
+        }}>
+          {done ? '✓' : wip ? `${ch.done}` : '○'}
+        </div>
       </div>
     </div>
   )
@@ -323,33 +321,41 @@ function SidePanel({
 
         {/* Sections list */}
         <div style={{ flex: 1, overflowY: 'auto', padding: '16px 20px' }}>
-          <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.45)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '1px', marginBottom: 12 }}>
-            Sections
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+            <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.45)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '1px' }}>
+              Sections
+            </div>
+            <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.3)' }}>
+              Clique sur ✓ pour décocher
+            </div>
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
             {ch.sectionList.map((sec, i) => {
               const isDone = chapterProgress[String(i)] === 'done'
               const isNext = !isDone && ch.sectionList.slice(0, i).every((_, j) => chapterProgress[String(j)] === 'done')
               const isLoading = loadingKey === `${ch.num}:${i}`
+              const isClickable = isDone || isNext
               return (
                 <div key={i}
-                  onClick={() => { if (isNext && !isDone) onSectionComplete(i) }}
+                  onClick={() => { if (isClickable && !isLoading) onSectionComplete(i) }}
                   style={{
                     display: 'flex', alignItems: 'center', gap: 12,
                     padding: '12px 16px', borderRadius: 11,
-                    background: isDone ? 'rgba(52,211,153,0.07)' : isNext ? 'rgba(99,102,241,0.12)' : 'rgba(255,255,255,0.03)',
-                    border: `1px solid ${isDone ? 'rgba(52,211,153,0.25)' : isNext ? 'rgba(99,102,241,0.3)' : 'rgba(255,255,255,0.08)'}`,
+                    background: isDone ? 'rgba(52,211,153,0.09)' : isNext ? 'rgba(99,102,241,0.12)' : 'rgba(255,255,255,0.03)',
+                    border: `1px solid ${isDone ? 'rgba(52,211,153,0.35)' : isNext ? 'rgba(99,102,241,0.3)' : 'rgba(255,255,255,0.08)'}`,
                     transition: 'all 0.15s',
-                    cursor: isDone ? 'default' : isNext ? 'pointer' : 'default',
+                    cursor: isClickable ? 'pointer' : 'default',
                     boxShadow: isNext ? '0 0 20px rgba(99,102,241,0.15)' : 'none',
                     opacity: isLoading ? 0.6 : 1,
                   }}>
                   <div style={{
-                    width: 20, height: 20, borderRadius: '50%', flexShrink: 0,
+                    width: 22, height: 22, borderRadius: '50%', flexShrink: 0,
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    background: isDone ? 'rgba(52,211,153,0.2)' : isNext ? 'rgba(99,102,241,0.25)' : 'rgba(255,255,255,0.08)',
-                    border: `1px solid ${isDone ? 'rgba(52,211,153,0.5)' : isNext ? 'rgba(99,102,241,0.6)' : 'rgba(255,255,255,0.15)'}`,
-                    fontSize: 9,
+                    background: isDone ? 'rgba(52,211,153,0.25)' : isNext ? 'rgba(99,102,241,0.25)' : 'rgba(255,255,255,0.08)',
+                    border: `1.5px solid ${isDone ? 'rgba(52,211,153,0.7)' : isNext ? 'rgba(99,102,241,0.6)' : 'rgba(255,255,255,0.15)'}`,
+                    fontSize: 10, fontWeight: 800,
+                    boxShadow: isDone ? `0 0 8px rgba(52,211,153,0.4)` : 'none',
+                    transition: 'all 0.15s',
                   }}>
                     {isLoading
                       ? <span style={{ color: C.indigo, fontSize: 8 }}>…</span>
@@ -357,21 +363,22 @@ function SidePanel({
                         ? <span style={{ color: C.emerald }}>✓</span>
                         : isNext
                           ? <span style={{ color: C.indigo, fontWeight: 800, fontSize: 8 }}>→</span>
-                          : <span style={{ color: 'rgba(255,255,255,0.35)', fontSize: 8 }}>{i + 1}</span>}
+                          : <span style={{ color: 'rgba(255,255,255,0.35)', fontSize: 9 }}>{i + 1}</span>}
                   </div>
                   <div style={{ flex: 1 }}>
                     <div style={{
                       fontSize: 13, fontWeight: isNext ? 600 : 400,
-                      color: isDone ? 'rgba(255,255,255,0.4)' : isNext ? 'rgba(255,255,255,0.95)' : 'rgba(255,255,255,0.6)',
-                      textDecoration: isDone ? 'line-through' : 'none',
+                      color: isDone ? 'rgba(255,255,255,0.65)' : isNext ? 'rgba(255,255,255,0.95)' : 'rgba(255,255,255,0.55)',
                     }}>{sec.text}</div>
-                    {isNext && !isDone && (
+                    {isNext && (
                       <div style={{ fontSize: 10, color: 'rgba(99,102,241,0.9)', marginTop: 2, fontWeight: 600 }}>
                         Cliquer pour valider ↗
                       </div>
                     )}
                     {isDone && (
-                      <div style={{ fontSize: 10, color: 'rgba(52,211,153,0.7)', marginTop: 2 }}>Terminé</div>
+                      <div style={{ fontSize: 10, color: 'rgba(52,211,153,0.65)', marginTop: 2 }}>
+                        Terminé · cliquer pour annuler
+                      </div>
                     )}
                   </div>
                   <span style={{
