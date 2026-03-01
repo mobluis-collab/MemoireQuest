@@ -489,59 +489,22 @@ function OnboardingScreen({ firstName, onUpload, isLoading }: {
   onUpload: (file: File) => Promise<void>
   isLoading: boolean
 }) {
-  const features = [
-    { icon: '📋', title: 'Plan sur mesure', desc: "Analyse ton CDC et génère un plan adapté à ton mémoire" },
-    { icon: '⚡', title: 'XP & Niveaux',    desc: 'Gagne des points à chaque section validée' },
-    { icon: '🏆', title: 'Achievements',    desc: 'Débloque des badges en atteignant des jalons clés' },
-  ]
-
   return (
     <div style={{
       flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center',
-      justifyContent: 'center', gap: 24, padding: '20px 0',
-      overflowY: 'auto',
+      justifyContent: 'center', padding: '0 20px',
     }}>
-      {/* Hero */}
-      <div style={{ textAlign: 'center' }}>
-        <div style={{
-          display: 'inline-flex', alignItems: 'center', gap: 8,
-          padding: '5px 14px', borderRadius: 99, marginBottom: 16,
-          background: `rgba(99,102,241,0.1)`,
-          border: `1px solid rgba(99,102,241,0.3)`,
-          fontSize: 11, fontWeight: 600, color: 'rgba(255,255,255,0.7)',
-          letterSpacing: '0.3px',
-        }}>
-          <span style={{ fontSize: 12 }}>✦</span>
-          Thesis OS v1.0
-        </div>
-        <h1 style={{
-          fontSize: 36, fontWeight: 900, letterSpacing: '-1px', margin: '0 0 10px',
-          background: 'linear-gradient(135deg, rgba(255,255,255,0.95) 20%, rgba(99,102,241,0.85))',
-          WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
-          lineHeight: 1.1,
-        }}>Bonjour, {firstName}. 👋</h1>
-        <p style={{ fontSize: 15, color: 'rgba(255,255,255,0.60)', margin: 0, maxWidth: 400, lineHeight: 1.5 }}>
-          Transforme ton mémoire en quête. Importe ton cahier des charges pour commencer.
-        </p>
-      </div>
-
-      {/* Feature pills — compact neutral row */}
-      <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', justifyContent: 'center' }}>
-        {features.map(f => (
-          <div key={f.title} style={{
-            display: 'flex', alignItems: 'center', gap: 8,
-            padding: '8px 14px', borderRadius: 99,
-            background: 'rgba(255,255,255,0.05)',
-            border: '1px solid rgba(255,255,255,0.12)',
-          }}>
-            <span style={{ fontSize: 15 }}>{f.icon}</span>
-            <span style={{ fontSize: 12, fontWeight: 600, color: 'rgba(255,255,255,0.75)' }}>{f.title}</span>
-          </div>
-        ))}
-      </div>
-
-      {/* Upload zone */}
-      <div style={{ width: '100%', maxWidth: 480 }}>
+      <h1 style={{
+        fontSize: 42, fontWeight: 800, letterSpacing: '-1.5px',
+        color: 'rgba(255,255,255,0.92)',
+        margin: '0 0 10px', textAlign: 'center', lineHeight: 1.15,
+      }}>Importe ton cahier des charges.</h1>
+      <p style={{
+        fontSize: 16, color: 'rgba(255,255,255,0.40)',
+        margin: '0 0 40px', textAlign: 'center',
+        fontWeight: 400,
+      }}>On s&#39;occupe du reste.</p>
+      <div style={{ width: '100%', maxWidth: 440 }}>
         <UploadZone onUpload={onUpload} isLoading={isLoading} />
       </div>
     </div>
