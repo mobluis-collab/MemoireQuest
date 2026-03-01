@@ -116,12 +116,11 @@ function DotGrid({ start, deadline }: { start: Date; deadline: Date }) {
             return (
               <div key={c} title={fmt(addDays(start, i), 'long')} style={{
                 width: 5, height: 5, borderRadius: 1.5, flexShrink: 0,
-                background: isToday ? C.amber
+                background: isToday ? 'rgba(255,255,255,0.8)'
                   : isElapsed
-                    ? `rgba(99,102,241,${0.45 + (i / elapsed) * 0.45})`
-                    /* FIX: future dots much more visible — was 0.09 */
-                    : 'rgba(255,255,255,0.2)',
-                animation: isToday ? 'mq-pulse-today 2s ease-in-out infinite' : 'none',
+                    ? `rgba(255,255,255,${0.12 + (i / elapsed) * 0.25})`
+                    : 'rgba(255,255,255,0.06)',
+                animation: 'none',
                 transition: 'background 0.3s',
               }} />
             )
@@ -137,7 +136,6 @@ function ChapterCard({ ch, onClick }: { ch: ChapterData; onClick: () => void }) 
   const [hovered, setHovered] = useState(false)
   const pct  = ch.sections > 0 ? Math.round((ch.done / ch.sections) * 100) : 0
   const done = pct === 100, wip = pct > 0 && !done
-  const col  = done ? C.emerald : wip ? C.sky : 'rgba(255,255,255,0.4)'
 
   return (
     <div
@@ -146,44 +144,32 @@ function ChapterCard({ ch, onClick }: { ch: ChapterData; onClick: () => void }) 
       onClick={onClick}
       style={{
         position: 'relative', overflow: 'hidden',
-        borderRadius: 13,
-        background: hovered
-          ? done ? 'rgba(52,211,153,0.18)' : wip ? 'rgba(56,189,248,0.15)' : 'rgba(255,255,255,0.10)'
-          : done ? 'rgba(52,211,153,0.11)' : wip ? 'rgba(56,189,248,0.09)' : 'rgba(255,255,255,0.06)',
-        border: `1px solid ${done ? 'rgba(52,211,153,0.6)' : wip ? 'rgba(56,189,248,0.55)' : 'rgba(255,255,255,0.22)'}`,
-        backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)',
+        borderRadius: 12,
+        background: hovered ? 'rgba(255,255,255,0.07)' : 'rgba(255,255,255,0.03)',
+        border: '1px solid rgba(255,255,255,0.08)',
         padding: '12px 16px',
         display: 'flex', alignItems: 'center',
-        transition: 'all 0.18s',
-        transform: hovered ? 'translateY(-2px)' : 'none',
-        boxShadow: done
-          ? `0 0 0 1px rgba(52,211,153,0.15), inset 0 1px 0 rgba(52,211,153,0.12)${hovered ? ', 0 8px 24px rgba(0,0,0,0.3)' : ''}`
-          : wip
-            ? `0 0 0 1px rgba(56,189,248,0.12), inset 0 1px 0 rgba(56,189,248,0.10)${hovered ? ', 0 8px 24px rgba(0,0,0,0.3)' : ''}`
-            : hovered ? '0 8px 24px rgba(0,0,0,0.25)' : 'none',
+        transition: 'all 0.15s',
+        transform: hovered ? 'translateY(-1px)' : 'none',
+        boxShadow: hovered ? '0 4px 16px rgba(0,0,0,0.2)' : 'none',
         cursor: 'pointer',
         minHeight: 0,
       }}>
       {/* Left accent bar */}
       <div style={{
         position: 'absolute', left: 0, top: 0, bottom: 0,
-        width: 3, borderRadius: '3px 0 0 3px',
-        background: done
-          ? `linear-gradient(180deg, ${C.emerald}, rgba(52,211,153,0.4))`
-          : wip
-            ? `linear-gradient(180deg, ${C.sky}, rgba(56,189,248,0.4))`
-            : 'rgba(255,255,255,0.15)',
-        boxShadow: (done || wip) ? `0 0 10px ${col}99` : 'none',
+        width: 2, borderRadius: '2px 0 0 2px',
+        background: done ? 'rgba(255,255,255,0.5)' : wip ? 'rgba(255,255,255,0.25)' : 'rgba(255,255,255,0.08)',
       }} />
       {/* Content */}
       <div style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: 10, width: '100%', paddingLeft: 8 }}>
-        <span style={{ fontSize: 10, color: done ? `${C.emerald}cc` : wip ? `${C.sky}cc` : 'rgba(255,255,255,0.45)', fontWeight: 700, flexShrink: 0, letterSpacing: '0.2px', whiteSpace: 'nowrap', maxWidth: 60, overflow: 'hidden', textOverflow: 'ellipsis' }}>
+        <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.35)', fontWeight: 600, flexShrink: 0, letterSpacing: '0.2px', whiteSpace: 'nowrap', maxWidth: 60, overflow: 'hidden', textOverflow: 'ellipsis' }}>
           {ch.num}
         </span>
         <span style={{
           flex: 1, fontSize: 13,
-          fontWeight: wip ? 600 : 500,
-          color: done ? 'rgba(255,255,255,0.70)' : wip ? 'rgba(255,255,255,0.95)' : 'rgba(255,255,255,0.80)',
+          fontWeight: 500,
+          color: done ? 'rgba(255,255,255,0.50)' : wip ? 'rgba(255,255,255,0.85)' : 'rgba(255,255,255,0.65)',
           display: '-webkit-box',
           WebkitLineClamp: 2,
           WebkitBoxOrient: 'vertical',
@@ -191,18 +177,13 @@ function ChapterCard({ ch, onClick }: { ch: ChapterData; onClick: () => void }) 
           lineHeight: '1.4',
           whiteSpace: 'normal',
         }}>{ch.title}</span>
-        {/* Status badge */}
-        <div style={{
-          flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center',
-          width: 26, height: 26, borderRadius: '50%',
-          background: done ? 'rgba(52,211,153,0.2)' : wip ? 'rgba(56,189,248,0.15)' : 'rgba(255,255,255,0.08)',
-          border: `1.5px solid ${done ? 'rgba(52,211,153,0.7)' : wip ? 'rgba(56,189,248,0.6)' : 'rgba(255,255,255,0.2)'}`,
-          fontSize: done ? 12 : 10, fontWeight: 800,
-          color: done ? C.emerald : wip ? C.sky : 'rgba(255,255,255,0.45)',
-          boxShadow: (done || wip) ? `0 0 10px ${col}55` : 'none',
+        {/* Status */}
+        <span style={{
+          flexShrink: 0, fontSize: 11, fontWeight: 600,
+          color: done ? 'rgba(255,255,255,0.50)' : wip ? 'rgba(255,255,255,0.60)' : 'rgba(255,255,255,0.25)',
         }}>
-          {done ? '✓' : wip ? `${ch.done}` : '○'}
-        </div>
+          {done ? '✓' : wip ? `${ch.done}/${ch.sections}` : '—'}
+        </span>
       </div>
     </div>
   )
@@ -241,9 +222,9 @@ function SidePanel({
         display: 'flex', flexDirection: 'column',
         background: 'rgba(10,9,28,0.92)',
         backdropFilter: 'blur(40px) saturate(180%)',
-        borderLeft: '1px solid rgba(99,102,241,0.3)',
+        borderLeft: '1px solid rgba(255,255,255,0.08)',
         animation: 'mq-panel-in 0.3s cubic-bezier(.4,0,.2,1) both',
-        boxShadow: '-20px 0 60px rgba(0,0,0,0.5), inset 1px 0 0 rgba(99,102,241,0.15)',
+        boxShadow: '-20px 0 60px rgba(0,0,0,0.4)',
       }}>
         {/* Header */}
         <div style={{ padding: '24px 24px 20px', borderBottom: '1px solid rgba(255,255,255,0.08)', flexShrink: 0 }}>
@@ -267,22 +248,11 @@ function SidePanel({
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginTop: 16 }}>
             <svg width={70} height={70} viewBox="0 0 70 70" style={{ flexShrink: 0, overflow: 'visible' }}>
-              <defs>
-                <linearGradient id="pg2" x1="0%" y1="0%" x2="100%" y2="0%">
-                  <stop offset="0%" stopColor={C.sky} />
-                  <stop offset="100%" stopColor={C.indigo} />
-                </linearGradient>
-                <filter id="glow2">
-                  <feGaussianBlur stdDeviation="2" result="b" />
-                  <feMerge><feMergeNode in="b" /><feMergeNode in="SourceGraphic" /></feMerge>
-                </filter>
-              </defs>
-              <circle cx={35} cy={35} r={R} fill="none" stroke="rgba(255,255,255,0.12)" strokeWidth={SW} />
-              <circle cx={35} cy={35} r={R} fill="none" stroke="url(#pg2)" strokeWidth={SW}
+              <circle cx={35} cy={35} r={R} fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth={SW} />
+              <circle cx={35} cy={35} r={R} fill="none" stroke="rgba(255,255,255,0.40)" strokeWidth={SW}
                 strokeLinecap="round"
                 strokeDasharray={`${dash} ${circ}`}
-                strokeDashoffset={circ * 0.25}
-                filter="url(#glow2)" />
+                strokeDashoffset={circ * 0.25} />
               <text x={35} y={38} textAnchor="middle" fill="white" fontSize="13" fontWeight="800" fontFamily={FONT}>
                 {pct}%
               </text>
@@ -291,13 +261,12 @@ function SidePanel({
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
                 {/* FIX: 0.55 → 0.75 */}
                 <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.75)' }}>Sections terminées</span>
-                <span style={{ fontSize: 12, fontWeight: 700, color: C.sky }}>{ch.done}/{ch.sections}</span>
+                <span style={{ fontSize: 12, fontWeight: 700, color: 'rgba(255,255,255,0.80)' }}>{ch.done}/{ch.sections}</span>
               </div>
               <div style={{ height: 5, borderRadius: 99, background: 'rgba(255,255,255,0.1)', overflow: 'hidden' }}>
                 <div style={{
                   height: '100%', width: `${pct}%`, borderRadius: 99,
-                  background: `linear-gradient(90deg,${C.sky},${C.indigo})`,
-                  boxShadow: `0 0 8px ${C.sky}66`,
+                  background: 'rgba(255,255,255,0.35)',
                 }} />
               </div>
               {/* FIX: 0.45 → 0.68 */}
@@ -333,29 +302,29 @@ function SidePanel({
                   style={{
                     display: 'flex', alignItems: 'center', gap: 12,
                     padding: '12px 16px', borderRadius: 11,
-                    background: isDone ? 'rgba(52,211,153,0.09)' : isNext ? 'rgba(99,102,241,0.12)' : 'rgba(255,255,255,0.03)',
-                    border: `1px solid ${isDone ? 'rgba(52,211,153,0.35)' : isNext ? 'rgba(99,102,241,0.3)' : 'rgba(255,255,255,0.08)'}`,
+                    background: isDone ? 'rgba(255,255,255,0.04)' : isNext ? 'rgba(255,255,255,0.06)' : 'rgba(255,255,255,0.02)',
+                    border: `1px solid ${isNext ? 'rgba(255,255,255,0.15)' : 'rgba(255,255,255,0.06)'}`,
                     transition: 'all 0.15s',
                     cursor: isClickable ? 'pointer' : 'default',
-                    boxShadow: isNext ? '0 0 20px rgba(99,102,241,0.15)' : 'none',
+                    boxShadow: 'none',
                     opacity: isLoading ? 0.6 : 1,
                   }}>
                   <div style={{
                     width: 22, height: 22, borderRadius: '50%', flexShrink: 0,
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    background: isDone ? 'rgba(52,211,153,0.25)' : isNext ? 'rgba(99,102,241,0.25)' : 'rgba(255,255,255,0.08)',
-                    border: `1.5px solid ${isDone ? 'rgba(52,211,153,0.7)' : isNext ? 'rgba(99,102,241,0.6)' : 'rgba(255,255,255,0.15)'}`,
+                    background: isDone ? 'rgba(255,255,255,0.12)' : isNext ? 'rgba(255,255,255,0.10)' : 'rgba(255,255,255,0.05)',
+                    border: `1.5px solid ${isDone ? 'rgba(255,255,255,0.30)' : isNext ? 'rgba(255,255,255,0.25)' : 'rgba(255,255,255,0.10)'}`,
                     fontSize: 10, fontWeight: 800,
-                    boxShadow: isDone ? `0 0 8px rgba(52,211,153,0.4)` : 'none',
+                    boxShadow: 'none',
                     transition: 'all 0.15s',
                   }}>
                     {isLoading
-                      ? <span style={{ color: C.indigo, fontSize: 8 }}>…</span>
+                      ? <span style={{ color: 'rgba(255,255,255,0.5)', fontSize: 8 }}>…</span>
                       : isDone
-                        ? <span style={{ color: C.emerald }}>✓</span>
+                        ? <span style={{ color: 'rgba(255,255,255,0.6)' }}>✓</span>
                         : isNext
-                          ? <span style={{ color: C.indigo, fontWeight: 800, fontSize: 8 }}>→</span>
-                          : <span style={{ color: 'rgba(255,255,255,0.35)', fontSize: 9 }}>{i + 1}</span>}
+                          ? <span style={{ color: 'rgba(255,255,255,0.7)', fontWeight: 800, fontSize: 8 }}>→</span>
+                          : <span style={{ color: 'rgba(255,255,255,0.25)', fontSize: 9 }}>{i + 1}</span>}
                   </div>
                   <div style={{ flex: 1 }}>
                     <div style={{
@@ -364,22 +333,22 @@ function SidePanel({
                       color: isDone ? 'rgba(255,255,255,0.65)' : isNext ? 'rgba(255,255,255,0.95)' : 'rgba(255,255,255,0.72)',
                     }}>{sec.text}</div>
                     {isNext && (
-                      <div style={{ fontSize: 10, color: 'rgba(99,102,241,0.9)', marginTop: 2, fontWeight: 600 }}>
-                        Cliquer pour valider ↗
+                      <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.45)', marginTop: 2, fontWeight: 500 }}>
+                        Cliquer pour valider
                       </div>
                     )}
                     {isDone && (
-                      <div style={{ fontSize: 10, color: 'rgba(52,211,153,0.65)', marginTop: 2 }}>
-                        Terminé · cliquer pour annuler
+                      <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.30)', marginTop: 2 }}>
+                        Cliquer pour annuler
                       </div>
                     )}
                   </div>
                   <span style={{
-                    fontSize: 9, fontWeight: 700, flexShrink: 0, padding: '2px 6px', borderRadius: 99,
-                    background: sec.difficulty === 'hard' ? 'rgba(251,113,133,0.15)' : sec.difficulty === 'medium' ? 'rgba(251,191,36,0.15)' : 'rgba(52,211,153,0.15)',
-                    color: sec.difficulty === 'hard' ? C.rose : sec.difficulty === 'medium' ? C.amber : C.emerald,
+                    fontSize: 9, fontWeight: 600, flexShrink: 0, padding: '2px 6px', borderRadius: 99,
+                    background: 'rgba(255,255,255,0.05)',
+                    color: 'rgba(255,255,255,0.35)',
                   }}>
-                    {sec.difficulty === 'hard' ? '🔥' : sec.difficulty === 'medium' ? '⚡' : '✦'}
+                    {sec.difficulty === 'hard' ? 'difficile' : sec.difficulty === 'medium' ? 'moyen' : 'facile'}
                   </span>
                 </div>
               )
@@ -828,15 +797,13 @@ export default function NewDashboard({
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 }}>
               <div>
                 <h1 style={{
-                  fontSize: 26, fontWeight: 800, letterSpacing: '-0.6px', margin: 0,
-                  background: 'linear-gradient(90deg, rgba(255,255,255,0.95), rgba(255,255,255,0.6))',
-                  WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
+                  fontSize: 24, fontWeight: 700, letterSpacing: '-0.5px', margin: 0,
+                  color: 'rgba(255,255,255,0.88)',
                 }}>Bonjour, {firstName}.</h1>
-                {/* FIX: subtitle was 0.32 → 0.55 */}
-                <p style={{ fontSize: 12.5, color: 'rgba(255,255,255,0.55)', marginTop: 3 }}>
+                <p style={{ fontSize: 12.5, color: 'rgba(255,255,255,0.40)', marginTop: 3 }}>
                   {isAhead
-                    ? `🟢 Tu es en avance de ${delta}% — profite-en pour consolider.`
-                    : `⚡ ${delta}% de retard sur le temps écoulé — pousse un peu plus.`}
+                    ? `En avance de ${delta}% sur le planning.`
+                    : `${delta}% de retard — une section à la fois.`}
                 </p>
               </div>
               {/* Streak pill */}
