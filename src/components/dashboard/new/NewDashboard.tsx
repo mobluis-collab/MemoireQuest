@@ -490,30 +490,15 @@ function OnboardingScreen({ firstName, onUpload, isLoading }: {
   isLoading: boolean
 }) {
   const features = [
-    {
-      icon: '📋',
-      title: 'Plan sur mesure',
-      desc: "Analyse ton CDC et génère un plan adapté à ton mémoire, avec le bon nombre de chapitres",
-      color: C.indigo,
-    },
-    {
-      icon: '⚡',
-      title: 'XP & Niveaux',
-      desc: 'Gagne des points à chaque section validée et monte en niveau au fil de ta rédaction',
-      color: C.amber,
-    },
-    {
-      icon: '🏆',
-      title: 'Achievements',
-      desc: 'Débloque des badges exclusifs en atteignant des jalons clés sur ton mémoire',
-      color: C.violet,
-    },
+    { icon: '📋', title: 'Plan sur mesure', desc: "Analyse ton CDC et génère un plan adapté à ton mémoire" },
+    { icon: '⚡', title: 'XP & Niveaux',    desc: 'Gagne des points à chaque section validée' },
+    { icon: '🏆', title: 'Achievements',    desc: 'Débloque des badges en atteignant des jalons clés' },
   ]
 
   return (
     <div style={{
       flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center',
-      justifyContent: 'center', gap: 32, padding: '20px 0',
+      justifyContent: 'center', gap: 24, padding: '20px 0',
       overflowY: 'auto',
     }}>
       {/* Hero */}
@@ -540,22 +525,17 @@ function OnboardingScreen({ firstName, onUpload, isLoading }: {
         </p>
       </div>
 
-      {/* Feature pills */}
-      <div style={{ display: 'flex', gap: 12 }}>
+      {/* Feature pills — compact neutral row */}
+      <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', justifyContent: 'center' }}>
         {features.map(f => (
           <div key={f.title} style={{
-            padding: '16px 20px', borderRadius: 16, width: 190,
-            background: `${f.color}0d`,
-            border: `1px solid ${f.color}30`,
-            textAlign: 'center',
+            display: 'flex', alignItems: 'center', gap: 8,
+            padding: '8px 14px', borderRadius: 99,
+            background: 'rgba(255,255,255,0.05)',
+            border: '1px solid rgba(255,255,255,0.12)',
           }}>
-            <div style={{ fontSize: 28, marginBottom: 8 }}>{f.icon}</div>
-            <div style={{ fontSize: 13, fontWeight: 700, color: 'rgba(255,255,255,0.92)', marginBottom: 6 }}>
-              {f.title}
-            </div>
-            <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.55)', lineHeight: 1.5 }}>
-              {f.desc}
-            </div>
+            <span style={{ fontSize: 15 }}>{f.icon}</span>
+            <span style={{ fontSize: 12, fontWeight: 600, color: 'rgba(255,255,255,0.75)' }}>{f.title}</span>
           </div>
         ))}
       </div>
