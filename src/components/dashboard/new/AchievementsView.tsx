@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 
-/* ─── Types ──────────────────────────────────────────────── */
+/* ─── Types ─────────────────────────────────────────────── */
 
 interface Achievement {
   id: string
