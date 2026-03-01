@@ -887,13 +887,27 @@ export default function NewDashboard({
                 </div>
               </GBorder>
 
-              {/* CHAPTERS grid */}
+              {/* CHAPTERS grid — adaptatif au nombre de chapitres */}
               <div style={{ gridColumn: '1/3' as unknown as undefined, display: 'flex', flexDirection: 'column', gap: 7, minHeight: 0 }}>
-                {/* FIX: header was 0.25 → 0.5 */}
-                <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.5)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '1px', flexShrink: 0 }}>
-                  Chapitres
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 }}>
+                  <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.5)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '1px' }}>
+                    Chapitres
+                  </div>
+                  <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.35)' }}>
+                    {chapters.length} chapitre{chapters.length > 1 ? 's' : ''}
+                  </div>
                 </div>
-                <div style={{ flex: 1, display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gridTemplateRows: '1fr 1fr', gap: 7 }}>
+                <div style={{
+                  flex: 1, overflowY: 'auto',
+                  display: 'grid',
+                  gridTemplateColumns: chapters.length <= 2
+                    ? 'repeat(2, 1fr)'
+                    : chapters.length <= 4
+                      ? 'repeat(2, 1fr)'
+                      : 'repeat(3, 1fr)',
+                  gridAutoRows: 'minmax(0, 1fr)',
+                  gap: 7,
+                }}>
                   {chapters.map(ch => (
                     <ChapterCard key={ch.num} ch={ch} onClick={() => setSelectedCh(ch)} />
                   ))}

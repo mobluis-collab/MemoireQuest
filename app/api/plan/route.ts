@@ -52,7 +52,11 @@ Réponds UNIQUEMENT en JSON valide selon ce schéma exact :
   ]
 }
 
-Minimum 4 chapitres, maximum 8. Chaque chapitre : minimum 2 sections, maximum 10 sections. Pas de texte en dehors du JSON.`
+NOMBRE DE CHAPITRES :
+- Si le cahier des charges mentionne explicitement un nombre de chapitres, parties, ou une structure attendue (ex: "3 parties", "5 chapitres", "plan en 4 temps"), génère EXACTEMENT ce nombre de chapitres.
+- Si le document précise un nombre de pages ou un volume (ex: "60 pages" → généralement 4-5 chapitres, "100 pages" → 5-7 chapitres), adapte le nombre de chapitres en conséquence.
+- Si aucune structure n'est précisée, génère un plan académique standard cohérent avec le niveau et le type de mémoire (généralement 4 à 6 chapitres).
+- Dans tous les cas : minimum 2 chapitres, maximum 15 chapitres. Chaque chapitre : minimum 2 sections, maximum 10 sections. Pas de texte en dehors du JSON.`
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024 // 10 MB
 
@@ -71,7 +75,7 @@ const ChapterSchema = z.object({
 
 const MemoirePlanSchema = z.object({
   title: z.string(),
-  chapters: z.array(ChapterSchema).min(4).max(8),
+  chapters: z.array(ChapterSchema).min(2).max(15),
 })
 
 export async function POST(request: Request) {
