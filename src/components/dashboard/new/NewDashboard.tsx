@@ -5,6 +5,9 @@ import type { MemoirePlan, QuestProgress, StreakData } from '@/types/memoir'
 import { getLevelProgress } from '@/lib/xp/levels'
 import UploadZone from '@/components/dashboard/UploadZone'
 import RateLimitWarning from '@/components/ui/RateLimitWarning'
+import MemoireView from './MemoireView'
+import ProgressionView from './ProgressionView'
+import AchievementsView from './AchievementsView'
 
 /* ─── Types ───────────────────────────────────────────────────── */
 interface User {
@@ -15,6 +18,7 @@ interface User {
 interface ChapterData {
   num: string
   title: string
+  objective: string
   sections: number
   done: number
   sectionList: Array<{ text: string; difficulty: 'easy' | 'medium' | 'hard' }>
@@ -394,11 +398,12 @@ function SidePanel({
 }
 
 /* ─── Nav items ───────────────────────────────────────────────── */
-const NAV = [
-  { icon: '⊞', label: 'Dashboard' },
-  { icon: '◎', label: 'Mon mémoire' },
-  { icon: '◈', label: 'Progression' },
-  { icon: '◇', label: 'Achievements' },
+type ActiveView = 'dashboard' | 'memoire' | 'progression' | 'achievements'
+const NAV: Array<{ icon: string; label: string; view: ActiveView }> = [
+  { icon: '⊞', label: 'Dashboard',     view: 'dashboard'     },
+  { icon: '◎', label: 'Mon mémoire',   view: 'memoire'       },
+  { icon: '◈', label: 'Progression',   view: 'progression'   },
+  { icon: '◇', label: 'Achievements',  view: 'achievements'  },
 ]
 
 /* ─── MAIN COMPONENT ──────────────────────────────────────────── */
@@ -416,7 +421,7 @@ export default function NewDashboard({
   onQuestComplete,
   loadingKey,
 }: NewDashboardProps) {
-  const [navIdx, setNavIdx] = useState(0)
+  const [activeView, setActiveView] = useState<ActiveView>('dashboard')
   const [selectedCh, setSelectedCh] = useState<ChapterData | null>(null)
 
   const today = new Date()
@@ -448,7 +453,7 @@ export default function NewDashboard({
     return plan.chapters.map(ch => {
       const chP = questProgress[ch.number] ?? {}
       const done = Object.values(chP).filter(v => v === 'done').length
-      return { num: ch.number, title: ch.title, sections: ch.sections.length, done, sectionList: ch.sections }
+      return { num: ch.number, title: ch.title, objective: ch.objective ?? '', sections: ch.sections.length, done, sectionList: ch.sections }
     })
   }, [plan, questProgress])
 
@@ -607,9 +612,9 @@ export default function NewDashboard({
         {/* Nav */}
         <nav style={{ flex: 1, padding: '8px 7px' }}>
           {NAV.map((item, i) => {
-            const active = navIdx === i
+            const active = activeView === item.view
             return (
-              <button key={i} onClick={() => setNavIdx(i)} style={{
+              <button key={i} onClick={() => setActiveView(item.view)} style={{
                 width: '100%', display: 'flex', alignItems: 'center', gap: 9,
                 padding: '8px 11px', borderRadius: 9, border: 'none', cursor: 'pointer',
                 background: active ? `linear-gradient(90deg,rgba(99,102,241,0.22),rgba(167,139,250,0.1))` : 'transparent',
@@ -658,6 +663,52 @@ export default function NewDashboard({
 
         {plan ? (
           <>
+          {/* ── Non-dashboard views ── */}
+          {activeView !== 'dashboard' && (
+            <div style={{ flex: 1, minHeight: 0, overflow: 'hidden' }}>
+              {activeView === 'memoire' && (
+                <MemoireView
+                  chapters={chapters}
+                  questProgress={
+                    Object.fromEntries(
+                      Object.entries(questProgress).map(([k, v]) =>
+                        [k, Object.fromEntries(Object.entries(v).map(([ik, iv]) => [String(ik), iv]))]
+                      )
+                    )
+                  }
+                  loadingKey={loadingKey}
+                  onQuestComplete={handleSectionComplete}
+                />
+              )}
+              {activeView === 'progression' && (
+                <ProgressionView
+                  chapters={chapters}
+                  totalPoints={totalPoints}
+                  streak={streak}
+                  startDate={startDate}
+                  deadlineDate={deadlineDate}
+                />
+              )}
+              {activeView === 'achievements' && (
+                <AchievementsView
+                  totalPoints={totalPoints}
+                  streak={streak}
+                  questProgress={
+                    Object.fromEntries(
+                      Object.entries(questProgress).map(([k, v]) =>
+                        [k, Object.fromEntries(Object.entries(v).map(([ik, iv]) => [String(ik), iv]))]
+                      )
+                    )
+                  }
+                  chapters={chapters}
+                />
+              )}
+            </div>
+          )}
+
+          {/* ── Dashboard view ── */}
+          {activeView === 'dashboard' && (
+            <>
             {/* Header */}
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 }}>
               <div>
@@ -849,6 +900,8 @@ export default function NewDashboard({
                 </div>
               </div>
             </div>
+            </>
+          )}
           </>
         ) : (
           <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
