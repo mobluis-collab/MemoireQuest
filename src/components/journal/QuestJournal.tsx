@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import type { MemoirePlan, QuestProgress, StreakData } from '@/types/memoir'
-import LevelsBar from './LevelsBar'
+import AvatarCard from '@/components/ui/AvatarCard'
 import MemoryTimeline from './MemoryTimeline'
 import StreakCounter from './StreakCounter'
 import ChapterEntry from './ChapterEntry'
@@ -66,7 +66,7 @@ export default function QuestJournal({
 
       {/* Barre de stats */}
       <div className="rounded-xl border border-zinc-800 bg-zinc-900/60 px-5 py-4 space-y-4">
-        <LevelsBar totalPoints={totalPoints} />
+        <AvatarCard totalPoints={totalPoints} />
         <MemoryTimeline plan={plan} questProgress={questProgress} />
         <StreakCounter streak={streak.current} />
       </div>

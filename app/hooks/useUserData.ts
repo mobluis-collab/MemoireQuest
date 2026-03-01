@@ -209,7 +209,7 @@ export function useUserData() {
     }
     await supabase.auth.signInWithOAuth({
       provider: "google",
-      options: { redirectTo: window.location.origin },
+      options: { redirectTo: `${window.location.origin}/auth/callback` },
     });
   }, [cookieConsent, state.page, state.domain]);
 

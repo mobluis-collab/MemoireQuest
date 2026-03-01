@@ -1,6 +1,5 @@
 'use client'
 
-import { useRouter } from 'next/navigation'
 import { signOut } from '@/lib/auth/actions'
 import { calculateLevel } from '@/lib/xp/levels'
 import UserAvatar from '@/components/ui/UserAvatar'
@@ -15,14 +14,14 @@ interface DashboardHeaderProps {
 }
 
 export default function DashboardHeader({ user, totalXP = 0 }: DashboardHeaderProps) {
-  const router = useRouter()
   const firstName = user.user_metadata?.full_name?.split(' ')[0] ?? user.email
   const currentLevel = calculateLevel(totalXP)
   const shouldAnimateAvatar = useAvatarAnimation(currentLevel)
 
   const handleSignOut = async () => {
     await signOut()
-    router.push('/')
+    // Rechargement complet pour vider le cache de session côté client
+    window.location.href = '/'
   }
 
   return (
