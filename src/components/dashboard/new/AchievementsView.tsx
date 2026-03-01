@@ -1,16 +1,12 @@
 'use client'
 
-const C = {
-  indigo: '#6366f1', sky: '#38bdf8', violet: '#a78bfa',
-  emerald: '#34d399', amber: '#fbbf24', rose: '#fb7185',
-}
+import { useState } from 'react'
 
 interface Achievement {
   id: string
   icon: string
   title: string
   description: string
-  color: string
   unlocked: boolean
   progress?: { current: number; target: number }
   rarity: 'common' | 'rare' | 'epic' | 'legendary'
@@ -23,18 +19,18 @@ interface AchievementsViewProps {
   chapters: Array<{ num: string; title: string; sections: number; done: number }>
 }
 
-const RARITY_COLORS = {
-  common: C.sky,
-  rare: C.indigo,
-  epic: C.violet,
-  legendary: C.amber,
-}
-
 const RARITY_LABELS = {
   common: 'Commun',
   rare: 'Rare',
   epic: 'Épique',
   legendary: 'Légendaire',
+}
+
+const RARITY_OPACITY = {
+  common: 0.25,
+  rare: 0.35,
+  epic: 0.50,
+  legendary: 0.70,
 }
 
 function buildAchievements(
@@ -50,118 +46,106 @@ function buildAchievements(
   return [
     {
       id: 'first_step',
-      icon: '🚀',
+      icon: '→',
       title: 'Premier pas',
       description: 'Valider ta première section',
-      color: C.sky,
       rarity: 'common',
       unlocked: doneSec >= 1,
     },
     {
       id: 'xp_100',
-      icon: '⚡',
-      title: '100 XP',
-      description: 'Atteindre 100 points d\'expérience',
-      color: C.amber,
+      icon: '·',
+      title: '100 points',
+      description: "Atteindre 100 points d'expérience",
       rarity: 'common',
       unlocked: totalPoints >= 100,
       progress: { current: Math.min(totalPoints, 100), target: 100 },
     },
     {
       id: 'streak_3',
-      icon: '🔥',
-      title: 'En feu',
+      icon: '∿',
+      title: 'Régulier',
       description: '3 jours de travail consécutifs',
-      color: C.amber,
       rarity: 'common',
       unlocked: streak.current >= 3,
       progress: { current: Math.min(streak.current, 3), target: 3 },
     },
     {
       id: 'sections_5',
-      icon: '📝',
+      icon: '§',
       title: 'Chercheur Jr.',
       description: 'Valider 5 sections',
-      color: C.sky,
       rarity: 'common',
       unlocked: doneSec >= 5,
       progress: { current: Math.min(doneSec, 5), target: 5 },
     },
     {
       id: 'first_chapter',
-      icon: '📖',
+      icon: '¶',
       title: 'Premier chapitre',
       description: 'Terminer un chapitre en entier',
-      color: C.emerald,
       rarity: 'rare',
       unlocked: completedChapters >= 1,
     },
     {
       id: 'xp_300',
-      icon: '💎',
-      title: '300 XP',
-      description: 'Atteindre 300 points d\'expérience',
-      color: C.violet,
+      icon: '◇',
+      title: '300 points',
+      description: "Atteindre 300 points d'expérience",
       rarity: 'rare',
       unlocked: totalPoints >= 300,
       progress: { current: Math.min(totalPoints, 300), target: 300 },
     },
     {
       id: 'streak_7',
-      icon: '🌟',
+      icon: '∞',
       title: 'Semaine parfaite',
       description: '7 jours de travail consécutifs',
-      color: C.amber,
       rarity: 'rare',
       unlocked: streak.current >= 7,
       progress: { current: Math.min(streak.current, 7), target: 7 },
     },
     {
       id: 'half_way',
-      icon: '🏃',
+      icon: '½',
       title: 'Mi-chemin',
       description: 'Compléter 50% du mémoire',
-      color: C.indigo,
       rarity: 'rare',
       unlocked: totalSec > 0 && doneSec / totalSec >= 0.5,
       progress: totalSec > 0 ? { current: doneSec, target: Math.ceil(totalSec / 2) } : undefined,
     },
     {
       id: 'sections_20',
-      icon: '🔬',
+      icon: '◆',
       title: 'Chercheur Confirmé',
       description: 'Valider 20 sections',
-      color: C.emerald,
       rarity: 'epic',
       unlocked: doneSec >= 20,
       progress: { current: Math.min(doneSec, 20), target: 20 },
     },
     {
       id: 'streak_14',
-      icon: '⚔️',
-      title: 'Guerrier du savoir',
+      icon: '∎',
+      title: 'Endurant',
       description: '14 jours de travail consécutifs',
-      color: C.rose,
       rarity: 'epic',
       unlocked: streak.current >= 14,
       progress: { current: Math.min(streak.current, 14), target: 14 },
     },
     {
       id: 'xp_1000',
-      icon: '👑',
-      title: 'Maître XP',
-      description: 'Atteindre 1000 points d\'expérience',
-      color: C.amber,
+      icon: '◈',
+      title: '1 000 points',
+      description: "Atteindre 1000 points d'expérience",
       rarity: 'epic',
       unlocked: totalPoints >= 1000,
       progress: { current: Math.min(totalPoints, 1000), target: 1000 },
     },
     {
       id: 'all_done',
-      icon: '🏆',
+      icon: '✦',
       title: 'Docteur ès Mémoires',
       description: 'Compléter 100% du mémoire',
-      color: C.amber,
       rarity: 'legendary',
       unlocked: totalSec > 0 && doneSec === totalSec,
       progress: { current: doneSec, target: totalSec },
@@ -170,34 +154,28 @@ function buildAchievements(
 }
 
 function AchievementCard({ a }: { a: Achievement }) {
-  const rarityColor = RARITY_COLORS[a.rarity]
+  const [hovered, setHovered] = useState(false)
   const progressPct = a.progress
     ? Math.round((a.progress.current / a.progress.target) * 100)
     : null
+  const opa = RARITY_OPACITY[a.rarity]
 
   return (
-    <div style={{
-      padding: '16px',
-      borderRadius: 14,
-      background: a.unlocked
-        ? `${rarityColor}10`
-        : 'rgba(255,255,255,0.025)',
-      border: `1px solid ${a.unlocked ? `${rarityColor}35` : 'rgba(255,255,255,0.08)'}`,
-      display: 'flex',
-      flexDirection: 'column',
-      gap: 10,
-      transition: 'all 0.2s',
-      position: 'relative',
-      overflow: 'hidden',
-    }}>
-      {/* Glow effect for unlocked */}
-      {a.unlocked && (
-        <div style={{
-          position: 'absolute', inset: 0, borderRadius: 14,
-          background: `radial-gradient(circle at 50% 0%, ${rarityColor}0a, transparent 70%)`,
-          pointerEvents: 'none',
-        }} />
-      )}
+    <div
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      style={{
+        padding: '16px',
+        borderRadius: 14,
+        background: hovered ? 'rgba(255,255,255,0.04)' : 'rgba(255,255,255,0.02)',
+        border: `1px solid rgba(255,255,255,${hovered ? '0.12' : '0.08'})`,
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 10,
+        transition: 'all 0.2s',
+        cursor: 'default',
+        opacity: a.unlocked ? 1 : 0.55,
+      }}>
 
       {/* Top row */}
       <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
@@ -205,64 +183,65 @@ function AchievementCard({ a }: { a: Achievement }) {
         <div style={{
           width: 44, height: 44, borderRadius: 12, flexShrink: 0,
           display: 'flex', alignItems: 'center', justifyContent: 'center',
-          background: a.unlocked ? `${rarityColor}20` : 'rgba(255,255,255,0.05)',
-          border: `1px solid ${a.unlocked ? `${rarityColor}40` : 'rgba(255,255,255,0.1)'}`,
-          fontSize: 22,
-          filter: a.unlocked ? 'none' : 'grayscale(1) opacity(0.4)',
+          background: `rgba(255,255,255,${a.unlocked ? '0.08' : '0.04'})`,
+          border: `1px solid rgba(255,255,255,${a.unlocked ? '0.15' : '0.08'})`,
+          fontSize: 18,
+          color: `rgba(255,255,255,${opa})`,
+          fontWeight: 300,
         }}>{a.icon}</div>
 
         {/* Title + rarity */}
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 3 }}>
             <span style={{
-              fontSize: 13, fontWeight: 700,
-              color: a.unlocked ? 'rgba(255,255,255,0.95)' : 'rgba(255,255,255,0.38)',
+              fontSize: 13, fontWeight: 600,
+              color: `rgba(255,255,255,${a.unlocked ? '0.88' : '0.55'})`,
             }}>{a.title}</span>
             <span style={{
-              fontSize: 9, fontWeight: 700, padding: '2px 6px', borderRadius: 99,
-              background: `${rarityColor}18`,
-              color: a.unlocked ? rarityColor : 'rgba(255,255,255,0.25)',
-              border: `1px solid ${a.unlocked ? `${rarityColor}30` : 'rgba(255,255,255,0.1)'}`,
+              fontSize: 9, fontWeight: 600, padding: '2px 6px', borderRadius: 99,
+              background: 'rgba(255,255,255,0.05)',
+              color: 'rgba(255,255,255,0.35)',
               textTransform: 'uppercase', letterSpacing: '0.5px',
             }}>{RARITY_LABELS[a.rarity]}</span>
           </div>
           <div style={{
             fontSize: 11, lineHeight: 1.4,
-            color: a.unlocked ? 'rgba(255,255,255,0.55)' : 'rgba(255,255,255,0.25)',
+            color: `rgba(255,255,255,${a.unlocked ? '0.50' : '0.35'})`,
           }}>{a.description}</div>
         </div>
 
         {/* Status */}
         <div style={{
-          width: 22, height: 22, borderRadius: '50%', flexShrink: 0,
+          width: 24, height: 24, borderRadius: '50%', flexShrink: 0,
           display: 'flex', alignItems: 'center', justifyContent: 'center',
-          background: a.unlocked ? `${rarityColor}25` : 'rgba(255,255,255,0.06)',
-          border: `1px solid ${a.unlocked ? `${rarityColor}50` : 'rgba(255,255,255,0.12)'}`,
+          background: `rgba(255,255,255,${a.unlocked ? '0.10' : '0.04'})`,
+          border: `1px solid rgba(255,255,255,${a.unlocked ? '0.20' : '0.08'})`,
           fontSize: 10,
         }}>
           {a.unlocked
-            ? <span style={{ color: rarityColor }}>✓</span>
-            : <span style={{ color: 'rgba(255,255,255,0.2)' }}>🔒</span>}
+            ? <span style={{ color: 'rgba(255,255,255,0.55)' }}>✓</span>
+            : <span style={{ color: 'rgba(255,255,255,0.25)', fontSize: 9 }}>○</span>}
         </div>
       </div>
 
-      {/* Progress bar — only if not unlocked and has progress */}
-      {!a.unlocked && a.progress && (
+      {/* Progress bar */}
+      {a.progress && (
         <div>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 5 }}>
-            <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.3)' }}>
+            <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.40)' }}>
               {a.progress.current} / {a.progress.target}
             </span>
-            <span style={{ fontSize: 10, fontWeight: 700, color: 'rgba(255,255,255,0.35)' }}>
+            <span style={{ fontSize: 10, fontWeight: 600, color: 'rgba(255,255,255,0.55)' }}>
               {progressPct}%
             </span>
           </div>
-          <div style={{ height: 3, borderRadius: 99, background: 'rgba(255,255,255,0.07)', overflow: 'hidden' }}>
+          <div style={{ height: 4, borderRadius: 99, background: 'rgba(255,255,255,0.06)', overflow: 'hidden' }}>
             <div style={{
               height: '100%',
               width: `${progressPct}%`,
               borderRadius: 99,
-              background: `linear-gradient(90deg, ${rarityColor}80, ${rarityColor}40)`,
+              background: `rgba(255,255,255,${a.unlocked ? '0.35' : '0.15'})`,
+              transition: 'width 0.8s cubic-bezier(.4,0,.2,1)',
             }} />
           </div>
         </div>
@@ -289,24 +268,22 @@ export default function AchievementsView({ totalPoints, streak, questProgress, c
       {/* Header */}
       <div style={{ flexShrink: 0 }}>
         <h1 style={{
-          fontSize: 24, fontWeight: 800, letterSpacing: '-0.5px', margin: 0,
-          background: 'linear-gradient(90deg, rgba(255,255,255,0.95), rgba(255,255,255,0.6))',
-          WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
-        }}>Achievements</h1>
-        <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)', marginTop: 3 }}>
-          {unlocked} / {total} badges débloqués
+          fontSize: 24, fontWeight: 700, letterSpacing: '-0.5px', margin: 0,
+          color: 'rgba(255,255,255,0.88)',
+        }}>Badges</h1>
+        <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.40)', marginTop: 3 }}>
+          {unlocked} / {total} débloqués
         </p>
       </div>
 
       {/* Summary bar */}
       <div style={{ flexShrink: 0 }}>
-        <div style={{ height: 6, borderRadius: 99, background: 'rgba(255,255,255,0.08)', overflow: 'hidden' }}>
+        <div style={{ height: 4, borderRadius: 99, background: 'rgba(255,255,255,0.06)', overflow: 'hidden' }}>
           <div style={{
             height: '100%',
             width: `${Math.round((unlocked / total) * 100)}%`,
             borderRadius: 99,
-            background: `linear-gradient(90deg, ${C.amber}, ${C.violet})`,
-            boxShadow: `0 0 12px ${C.amber}66`,
+            background: 'rgba(255,255,255,0.35)',
             transition: 'width 0.8s cubic-bezier(.4,0,.2,1)',
           }} />
         </div>
@@ -318,11 +295,11 @@ export default function AchievementsView({ totalPoints, streak, questProgress, c
               <div key={rarity} style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
                 <div style={{
                   width: 8, height: 8, borderRadius: '50%',
-                  background: RARITY_COLORS[rarity],
-                  boxShadow: `0 0 6px ${RARITY_COLORS[rarity]}88`,
+                  background: `rgba(255,255,255,${RARITY_OPACITY[rarity]})`,
+                  flexShrink: 0,
                 }} />
                 <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.45)' }}>
-                  {label} <strong style={{ color: 'rgba(255,255,255,0.7)' }}>{count}/{total_r}</strong>
+                  {label} <strong style={{ color: 'rgba(255,255,255,0.65)' }}>{count}/{total_r}</strong>
                 </span>
               </div>
             )
@@ -335,14 +312,14 @@ export default function AchievementsView({ totalPoints, streak, questProgress, c
         {(['legendary', 'epic', 'rare', 'common'] as const).map(rarity => (
           <div key={rarity} style={{ marginBottom: 18 }}>
             <div style={{
-              fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.8px',
-              color: `${RARITY_COLORS[rarity]}bb`,
+              fontSize: 10, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.8px',
+              color: 'rgba(255,255,255,0.35)',
               marginBottom: 10,
               display: 'flex', alignItems: 'center', gap: 8,
             }}>
-              <div style={{ flex: 1, height: 1, background: `${RARITY_COLORS[rarity]}25` }} />
+              <div style={{ flex: 1, height: 1, background: 'rgba(255,255,255,0.06)' }} />
               {RARITY_LABELS[rarity]}
-              <div style={{ flex: 1, height: 1, background: `${RARITY_COLORS[rarity]}25` }} />
+              <div style={{ flex: 1, height: 1, background: 'rgba(255,255,255,0.06)' }} />
             </div>
             <div style={{
               display: 'grid',
