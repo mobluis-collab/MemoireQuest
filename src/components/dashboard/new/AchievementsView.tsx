@@ -146,11 +146,16 @@ export default function AchievementsView({ totalPoints, streak, questProgress, c
   const unlocked = achievements.filter(a => a.unlocked).length
   const total = achievements.length
 
-  // Group achievements
-  const groups = ['Premiers pas', 'Jalons', 'Défis', 'Aboutissement']
+  // Group achievements with descriptions
+  const groups: { label: string; desc: string }[] = [
+    { label: 'Premiers pas', desc: 'Les bases pour bien démarrer ton mémoire.' },
+    { label: 'Jalons', desc: 'Tu avances sérieusement, les premiers résultats arrivent.' },
+    { label: 'Défis', desc: 'Les étapes longues qui demandent de la constance.' },
+    { label: 'Aboutissement', desc: 'La ligne d\'arrivée.' },
+  ]
   const grouped = groups.map(g => ({
-    label: g,
-    items: achievements.filter(a => a.group === g),
+    ...g,
+    items: achievements.filter(a => a.group === g.label),
   }))
 
   return (
@@ -171,16 +176,21 @@ export default function AchievementsView({ totalPoints, streak, questProgress, c
 
       {/* List */}
       <div style={{ flex: 1, overflowY: 'auto', paddingRight: 4 }}>
-        {grouped.map(({ label, items }) => (
+        {grouped.map(({ label, desc, items }) => (
           <div key={label} style={{ marginBottom: 20 }}>
-            {/* Group label */}
-            <div style={{
-              fontSize: 10, fontWeight: 600,
-              textTransform: 'uppercase', letterSpacing: '0.6px',
-              color: 'rgba(255,255,255,0.20)',
-              padding: '0 14px',
-              marginBottom: 4,
-            }}>{label}</div>
+            {/* Group label + description */}
+            <div style={{ padding: '0 14px', marginBottom: 6 }}>
+              <div style={{
+                fontSize: 10, fontWeight: 600,
+                textTransform: 'uppercase', letterSpacing: '0.6px',
+                color: 'rgba(255,255,255,0.20)',
+              }}>{label}</div>
+              <div style={{
+                fontSize: 11,
+                color: 'rgba(255,255,255,0.25)',
+                marginTop: 2,
+              }}>{desc}</div>
+            </div>
 
             {/* Items */}
             {items.map(a => (
