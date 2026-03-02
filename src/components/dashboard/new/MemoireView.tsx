@@ -133,7 +133,7 @@ export default function MemoireView({ chapters, questProgress, loadingKey, onQue
 
               {/* Sections */}
               {isOpen && (
-                <div style={{ padding: '0 20px 16px', display: 'flex', flexDirection: 'column', gap: 6 }}>
+                <div style={{ padding: '0 20px 16px', display: 'flex', flexDirection: 'column', gap: 6, maxHeight: 320, overflowY: 'auto' }}>
                   <div style={{ height: 1, background: 'rgba(255,255,255,0.06)', marginBottom: 4 }} />
                   {ch.sectionList.map((sec, i) => {
                     const isDone = chProgress[String(i)] === 'done'
