@@ -1,7 +1,5 @@
 'use client'
 
-import { useState } from 'react'
-
 /* ─── Types ─────────────────────────────────────────────── */
 
 interface Achievement {
@@ -33,100 +31,67 @@ function buildAchievements(
   const completedChapters = chapters.filter(c => c.done === c.sections && c.sections > 0).length
 
   return [
-    // Débutant
     { id: 'first_section', title: 'Première section validée', description: 'Valider ta toute première section', group: 'Débutant', unlocked: doneSec >= 1 },
     { id: 'streak_3', title: '3 jours consécutifs', description: 'Travailler 3 jours de suite', group: 'Débutant', unlocked: streak.current >= 3, progress: { current: Math.min(streak.current, 3), target: 3 } },
     { id: 'sections_5', title: '5 sections validées', description: 'Valider 5 sections au total', group: 'Débutant', unlocked: doneSec >= 5, progress: { current: Math.min(doneSec, 5), target: 5 } },
-    // Initié
     { id: 'first_chapter', title: 'Premier chapitre terminé', description: 'Compléter toutes les sections d\'un chapitre', group: 'Initié', unlocked: completedChapters >= 1 },
     { id: 'streak_7', title: '7 jours consécutifs', description: 'Une semaine complète de travail', group: 'Initié', unlocked: streak.current >= 7, progress: { current: Math.min(streak.current, 7), target: 7 } },
     { id: 'sections_10', title: '10 sections validées', description: 'Valider 10 sections au total', group: 'Initié', unlocked: doneSec >= 10, progress: { current: Math.min(doneSec, 10), target: 10 } },
     { id: 'half_way', title: '50% du mémoire', description: 'Atteindre la moitié du chemin', group: 'Initié', unlocked: totalSec > 0 && doneSec / totalSec >= 0.5, progress: totalSec > 0 ? { current: doneSec, target: Math.ceil(totalSec / 2) } : undefined },
-    // Confirmé
     { id: 'chapters_3', title: '3 chapitres terminés', description: 'Compléter 3 chapitres entiers', group: 'Confirmé', unlocked: completedChapters >= 3, progress: { current: Math.min(completedChapters, 3), target: 3 } },
     { id: 'streak_14', title: '14 jours consécutifs', description: 'Deux semaines de travail sans interruption', group: 'Confirmé', unlocked: streak.current >= 14, progress: { current: Math.min(streak.current, 14), target: 14 } },
     { id: 'sections_20', title: '20 sections validées', description: 'Valider 20 sections au total', group: 'Confirmé', unlocked: doneSec >= 20, progress: { current: Math.min(doneSec, 20), target: 20 } },
-    // Diplômé
     { id: 'all_done', title: 'Mémoire terminé', description: 'Compléter 100% du mémoire', group: 'Diplômé', unlocked: totalSec > 0 && doneSec === totalSec, progress: totalSec > 0 ? { current: doneSec, target: totalSec } : undefined },
   ]
 }
 
-/* ─── Row component ──────────────────────────────────────── */
+/* ─── Card component ─────────────────────────────────────── */
 
-function AchievementRow({ a }: { a: Achievement }) {
-  const [hovered, setHovered] = useState(false)
+function AchievementCard({ a }: { a: Achievement }) {
   const pct = a.progress ? Math.round((a.progress.current / a.progress.target) * 100) : null
 
   return (
-    <div
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-      style={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: 12,
-        padding: '10px 14px',
-        borderRadius: 10,
-        background: hovered ? 'var(--mq-sidebar-bg)' : 'transparent',
-        transition: 'background 0.15s',
-        cursor: 'default',
-      }}
-    >
-      {/* Check / circle */}
+    <div style={{
+      display: 'flex', alignItems: 'center', gap: 10,
+      padding: '7px 10px',
+      borderRadius: 7,
+      background: a.unlocked ? 'rgba(255,255,255,0.05)' : 'transparent',
+    }}>
+      {/* Status circle */}
       <div style={{
-        width: 20, height: 20, borderRadius: '50%', flexShrink: 0,
+        width: 18, height: 18, borderRadius: '50%', flexShrink: 0,
         display: 'flex', alignItems: 'center', justifyContent: 'center',
-        border: `1.5px solid rgba(255,255,255,${a.unlocked ? '0.30' : '0.10'})`,
-        background: a.unlocked ? 'var(--mq-border)' : 'transparent',
+        background: a.unlocked ? 'rgba(255,255,255,0.12)' : 'transparent',
+        border: `1.5px solid rgba(255,255,255,${a.unlocked ? '0.25' : '0.07'})`,
       }}>
         {a.unlocked && (
-          <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.55)' }}>✓</span>
+          <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.70)', lineHeight: 1 }}>&#10003;</span>
         )}
       </div>
 
-      {/* Title + description on hover */}
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{
-          fontSize: 13, fontWeight: 500,
-          color: `rgba(255,255,255,${a.unlocked ? '0.80' : '0.35'})`,
-        }}>
-          {a.title}
-        </div>
-        {(hovered || (a.progress && !a.unlocked)) && (
-          <div style={{
-            fontSize: 11,
-            color: 'rgba(255,255,255,0.30)',
-            marginTop: 2,
-          }}>
-            {a.description}
-          </div>
-        )}
-      </div>
+      {/* Title */}
+      <span style={{
+        flex: 1, fontSize: 12, fontWeight: 500,
+        color: a.unlocked ? 'rgba(255,255,255,0.75)' : 'rgba(255,255,255,0.30)',
+        whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+      }}>
+        {a.title}
+      </span>
 
-      {/* Progress indicator */}
-      {a.progress && !a.unlocked && (
-        <div style={{
-          display: 'flex', alignItems: 'center', gap: 8,
-          flexShrink: 0,
-        }}>
+      {/* Progress bar */}
+      {!a.unlocked && a.progress && pct !== null && (
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
           <div style={{
-            width: 48, height: 3, borderRadius: 99,
-            background: 'var(--mq-stroke-soft)',
+            width: 32, height: 2, borderRadius: 99,
+            background: 'rgba(255,255,255,0.06)',
             overflow: 'hidden',
           }}>
             <div style={{
-              height: '100%',
-              width: `${pct}%`,
-              borderRadius: 99,
-              background: 'rgba(255,255,255,0.20)',
-              transition: 'width 0.5s ease',
+              height: '100%', width: `${pct}%`, borderRadius: 99,
+              background: 'rgba(255,255,255,0.22)',
             }} />
           </div>
-          <span style={{
-            fontSize: 10, fontWeight: 500,
-            color: 'rgba(255,255,255,0.30)',
-            minWidth: 28, textAlign: 'right',
-          }}>
+          <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.25)', minWidth: 22, textAlign: 'right' }}>
             {pct}%
           </span>
         </div>
@@ -141,13 +106,13 @@ export default function AchievementsView({ totalPoints, streak, questProgress, c
   const achievements = buildAchievements(totalPoints, streak, questProgress, chapters)
   const unlocked = achievements.filter(a => a.unlocked).length
   const total = achievements.length
+  const globalPct = Math.round((unlocked / total) * 100)
 
-  // Group achievements with descriptions
-  const groups: { label: string; desc: string }[] = [
-    { label: 'Débutant', desc: 'Les bases pour bien démarrer.' },
-    { label: 'Initié', desc: 'Tu prends le rythme.' },
-    { label: 'Confirmé', desc: 'Tu tiens la distance.' },
-    { label: 'Diplômé', desc: 'La ligne d\'arrivée.' },
+  const groups = [
+    { label: 'Débutant' },
+    { label: 'Initié' },
+    { label: 'Confirmé' },
+    { label: 'Diplômé' },
   ]
   const grouped = groups.map(g => ({
     ...g,
@@ -160,40 +125,72 @@ export default function AchievementsView({ totalPoints, streak, questProgress, c
       height: '100%', overflow: 'hidden',
     }}>
       {/* Header */}
-      <div style={{ flexShrink: 0, marginBottom: 28 }}>
-        <h1 style={{
-          fontSize: 24, fontWeight: 700, letterSpacing: '-0.5px', margin: 0,
-          color: 'var(--mq-text-primary)',
-        }}>Progression</h1>
-        <p style={{ fontSize: 13, color: 'var(--mq-text-muted)', marginTop: 6 }}>
-          {unlocked} sur {total}
-        </p>
+      <div style={{ flexShrink: 0, marginBottom: 20 }}>
+        <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between' }}>
+          <h1 style={{
+            fontSize: 20, fontWeight: 600, letterSpacing: '-0.3px', margin: 0,
+            color: 'rgba(255,255,255,0.88)',
+          }}>Progression</h1>
+          <span style={{ fontSize: 12, fontWeight: 500, color: 'rgba(255,255,255,0.35)' }}>
+            {unlocked} sur {total}
+          </span>
+        </div>
+
+        {/* Global progress bar */}
+        <div style={{
+          marginTop: 12, width: '100%', height: 3, borderRadius: 99,
+          background: 'rgba(255,255,255,0.05)',
+          overflow: 'hidden',
+        }}>
+          <div style={{
+            height: '100%', width: `${globalPct}%`, borderRadius: 99,
+            background: 'rgba(255,255,255,0.28)',
+            transition: 'width 0.6s ease',
+          }} />
+        </div>
       </div>
 
-      {/* List */}
-      <div style={{ flex: 1, overflowY: 'auto', paddingRight: 4 }}>
-        {grouped.map(({ label, desc, items }) => (
-          <div key={label} style={{ marginBottom: 28 }}>
-            {/* Group label + description */}
-            <div style={{ padding: '0 14px', marginBottom: 10 }}>
-              <div style={{
-                fontSize: 13, fontWeight: 600,
-                letterSpacing: '0.3px',
-                color: 'rgba(255,255,255,0.55)',
-              }}>{label}</div>
-              <div style={{
-                fontSize: 11,
-                color: 'rgba(255,255,255,0.30)',
-                marginTop: 3,
-              }}>{desc}</div>
-            </div>
+      {/* Grid 2x2 */}
+      <div style={{
+        flex: 1,
+        display: 'grid',
+        gridTemplateColumns: '1fr 1fr',
+        gap: 14,
+        alignContent: 'start',
+      }}>
+        {grouped.map(({ label, items }) => {
+          const groupUnlocked = items.filter(i => i.unlocked).length
+          const groupTotal = items.length
 
-            {/* Items */}
-            {items.map(a => (
-              <AchievementRow key={a.id} a={a} />
-            ))}
-          </div>
-        ))}
+          return (
+            <div key={label} style={{
+              background: 'rgba(255,255,255,0.02)',
+              border: '1px solid rgba(255,255,255,0.05)',
+              borderRadius: 10,
+              padding: 12,
+              display: 'flex', flexDirection: 'column', gap: 4,
+            }}>
+              {/* Group header */}
+              <div style={{
+                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                marginBottom: 4, padding: '0 2px',
+              }}>
+                <span style={{
+                  fontSize: 12, fontWeight: 600, letterSpacing: '0.2px',
+                  color: 'rgba(255,255,255,0.50)',
+                }}>{label}</span>
+                <span style={{
+                  fontSize: 10, color: 'rgba(255,255,255,0.22)',
+                }}>{groupUnlocked}/{groupTotal}</span>
+              </div>
+
+              {/* Achievements */}
+              {items.map(a => (
+                <AchievementCard key={a.id} a={a} />
+              ))}
+            </div>
+          )
+        })}
       </div>
     </div>
   )
