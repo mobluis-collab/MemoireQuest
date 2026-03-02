@@ -34,7 +34,7 @@ export default function MemoireView({ chapters, questProgress, loadingKey, onQue
   const globalPct = totalSec > 0 ? Math.round((doneSec / totalSec) * 100) : 0
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 16, height: '100%', overflow: 'hidden' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 16, height: '100%', overflow: 'auto' }}>
 
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0, marginBottom: 12 }}>
@@ -88,7 +88,7 @@ export default function MemoireView({ chapters, questProgress, loadingKey, onQue
                 }}>
                 {/* Num */}
                 <span style={{
-                  fontSize: 10, color: 'rgba(255,255,255,0.35)', fontWeight: 600,
+                  fontSize: 11, color: 'rgba(255,255,255,0.45)', fontWeight: 600,
                   whiteSpace: 'nowrap', maxWidth: 52, overflow: 'hidden', textOverflow: 'ellipsis',
                   flexShrink: 0,
                 }}>{ch.num}</span>
@@ -97,10 +97,10 @@ export default function MemoireView({ chapters, questProgress, loadingKey, onQue
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{
                     fontSize: 14, fontWeight: 500,
-                    color: done ? 'rgba(255,255,255,0.50)' : 'rgba(255,255,255,0.85)',
+                    color: done ? 'rgba(255,255,255,0.55)' : 'rgba(255,255,255,0.90)',
                     whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
                   }}>{ch.title}{done && <span style={{ marginLeft: 6, fontSize: 11, color: 'rgba(255,255,255,0.50)' }}>✓</span>}</div>
-                  <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)', marginTop: 2 }}>
+                  <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.40)', marginTop: 2 }}>
                     {ch.done}/{ch.sections} sections
                   </div>
                 </div>
@@ -108,10 +108,10 @@ export default function MemoireView({ chapters, questProgress, loadingKey, onQue
                 {/* Progress */}
                 <div style={{ width: 100, flexShrink: 0 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-                    <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.40)' }}>
+                    <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.45)' }}>
                       {done ? 'Terminé' : wip ? 'En cours' : 'À faire'}
                     </span>
-                    <span style={{ fontSize: 10, fontWeight: 600, color: 'rgba(255,255,255,0.60)' }}>{pct}%</span>
+                    <span style={{ fontSize: 10, fontWeight: 600, color: 'rgba(255,255,255,0.65)' }}>{pct}%</span>
                   </div>
                   <div style={{ height: 3, borderRadius: 99, background: 'rgba(255,255,255,0.08)', overflow: 'hidden' }}>
                     <div style={{
@@ -172,15 +172,15 @@ export default function MemoireView({ chapters, questProgress, loadingKey, onQue
                         <div style={{ flex: 1 }}>
                           <div style={{
                             fontSize: 13, fontWeight: isNext ? 600 : 400,
-                            color: isDone ? 'rgba(255,255,255,0.45)' : isNext ? 'rgba(255,255,255,0.90)' : 'rgba(255,255,255,0.60)',
+                            color: isDone ? 'rgba(255,255,255,0.50)' : isNext ? 'rgba(255,255,255,0.90)' : 'rgba(255,255,255,0.65)',
                           }}>{sec.text}</div>
                           {isNext && !isLoading && (
-                            <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.40)', marginTop: 2 }}>
+                            <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.45)', marginTop: 2 }}>
                               Cliquer pour valider
                             </div>
                           )}
                           {isDone && (
-                            <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.25)', marginTop: 2 }}>
+                            <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.30)', marginTop: 2 }}>
                               Cliquer pour annuler
                             </div>
                           )}
@@ -190,8 +190,8 @@ export default function MemoireView({ chapters, questProgress, loadingKey, onQue
                         <span style={{
                           fontSize: 9, fontWeight: 600, flexShrink: 0,
                           padding: '2px 7px', borderRadius: 99,
-                          background: 'rgba(255,255,255,0.05)',
-                          color: 'rgba(255,255,255,0.35)',
+                          background: 'rgba(255,255,255,0.06)',
+                          color: 'rgba(255,255,255,0.40)',
                         }}>
                           {sec.difficulty === 'hard' ? 'difficile' : sec.difficulty === 'medium' ? 'moyen' : 'facile'}
                         </span>
