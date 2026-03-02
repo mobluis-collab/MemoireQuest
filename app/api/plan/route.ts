@@ -120,74 +120,112 @@ export async function POST(request: Request) {
   const buffer = await file.arrayBuffer()
   const base64 = Buffer.from(buffer).toString('base64')
 
-  let message
-  try {
-    message = await anthropic.messages.create({
-      model: 'claude-sonnet-4-5-20250929',
-      max_tokens: 8192,
-      system: SYSTEM_PROMPT,
-      messages: [
-        {
-          role: 'user',
-          content: [
+  // Use streaming to keep the connection alive and avoid Vercel 10s hobby timeout.
+  // We stream the Anthropic response, accumulate it, validate, save, then send the
+  // final JSON result to the client as the last SSE chunk.
+  const encoder = new TextEncoder()
+
+  const stream = new ReadableStream({
+    async start(controller) {
+      const sendEvent = (data: string) => {
+        controller.enqueue(encoder.encode(`data: ${data}\n\n`))
+      }
+
+      try {
+        // Start streaming from Anthropic
+        let fullText = ''
+        let stopReason = ''
+
+        const anthropicStream = anthropic.messages.stream({
+          model: 'claude-sonnet-4-5-20250929',
+          max_tokens: 8192,
+          system: SYSTEM_PROMPT,
+          messages: [
             {
-              type: 'document',
-              source: {
-                type: 'base64',
-                media_type: 'application/pdf',
-                data: base64,
-              },
-            },
-            {
-              type: 'text',
-              text: 'Génère le plan de mémoire en JSON.',
+              role: 'user',
+              content: [
+                {
+                  type: 'document',
+                  source: {
+                    type: 'base64',
+                    media_type: 'application/pdf',
+                    data: base64,
+                  },
+                },
+                {
+                  type: 'text',
+                  text: 'Génère le plan de mémoire en JSON.',
+                },
+              ],
             },
           ],
-        },
-      ],
-    })
-  } catch (err) {
-    console.error('[plan] Anthropic API error:', err)
-    return NextResponse.json(
-      { error: 'Erreur lors de la génération du plan. Réessaie dans quelques instants.', remaining: rateLimit.remaining },
-      { status: 502 },
-    )
-  }
+        })
 
-  const content = message.content[0]
-  if (content.type !== 'text') {
-    return NextResponse.json({ error: 'Réponse inattendue de l\'IA.', remaining: rateLimit.remaining }, { status: 500 })
-  }
+        // Send keepalive pings every few chunks so the connection stays open
+        let chunkCount = 0
+        anthropicStream.on('text', (text) => {
+          fullText += text
+          chunkCount++
+          if (chunkCount % 20 === 0) {
+            sendEvent(JSON.stringify({ type: 'progress', chars: fullText.length }))
+          }
+        })
 
-  if (message.stop_reason === 'max_tokens') {
-    console.error('[plan] Response truncated (max_tokens reached). Length:', content.text.length)
-    return NextResponse.json(
-      { error: 'Le plan généré était trop long et a été tronqué. Réessaie.', remaining: rateLimit.remaining },
-      { status: 500 },
-    )
-  }
+        const finalMessage = await anthropicStream.finalMessage()
+        stopReason = finalMessage.stop_reason ?? ''
 
-  const jsonMatch = content.text.match(/\{[\s\S]*\}/)
-  if (!jsonMatch) {
-    console.error('[plan] No JSON in response. Text start:', content.text.slice(0, 200))
-    return NextResponse.json({ error: 'Impossible d\'extraire le plan. Réessaie.', remaining: rateLimit.remaining }, { status: 500 })
-  }
+        if (stopReason === 'max_tokens') {
+          console.error('[plan] Response truncated. Length:', fullText.length)
+          sendEvent(JSON.stringify({ type: 'error', error: 'Le plan généré était trop long. Réessaie.' }))
+          controller.close()
+          return
+        }
 
-  let parsed
-  try {
-    parsed = MemoirePlanSchema.safeParse(JSON.parse(jsonMatch[0]))
-  } catch (err) {
-    console.error('[plan] JSON parse error:', err)
-    return NextResponse.json({ error: 'Le plan généré contenait du JSON invalide. Réessaie.', remaining: rateLimit.remaining }, { status: 500 })
-  }
+        // Extract and validate JSON
+        const jsonMatch = fullText.match(/\{[\s\S]*\}/)
+        if (!jsonMatch) {
+          console.error('[plan] No JSON in response. Start:', fullText.slice(0, 200))
+          sendEvent(JSON.stringify({ type: 'error', error: 'Impossible d\'extraire le plan. Réessaie.' }))
+          controller.close()
+          return
+        }
 
-  if (!parsed.success) {
-    console.error('[plan] Zod validation error:', JSON.stringify(parsed.error.flatten()))
-    return NextResponse.json({ error: 'Structure du plan invalide. Réessaie.', remaining: rateLimit.remaining }, { status: 500 })
-  }
+        let parsed
+        try {
+          parsed = MemoirePlanSchema.safeParse(JSON.parse(jsonMatch[0]))
+        } catch {
+          console.error('[plan] JSON parse error')
+          sendEvent(JSON.stringify({ type: 'error', error: 'Le plan généré contenait du JSON invalide. Réessaie.' }))
+          controller.close()
+          return
+        }
 
-  const plan = parsed.data
-  await savePlan(user.id, plan.title, plan)
+        if (!parsed.success) {
+          console.error('[plan] Zod error:', JSON.stringify(parsed.error.flatten()))
+          sendEvent(JSON.stringify({ type: 'error', error: 'Structure du plan invalide. Réessaie.' }))
+          controller.close()
+          return
+        }
 
-  return NextResponse.json({ plan, remaining: rateLimit.remaining })
+        const plan = parsed.data
+        await savePlan(user.id, plan.title, plan)
+
+        // Send the final result
+        sendEvent(JSON.stringify({ type: 'done', plan, remaining: rateLimit.remaining }))
+        controller.close()
+      } catch (err) {
+        console.error('[plan] Stream error:', err)
+        sendEvent(JSON.stringify({ type: 'error', error: 'Erreur lors de la génération du plan. Réessaie.' }))
+        controller.close()
+      }
+    },
+  })
+
+  return new Response(stream, {
+    headers: {
+      'Content-Type': 'text/event-stream',
+      'Cache-Control': 'no-cache',
+      'Connection': 'keep-alive',
+    },
+  })
 }

@@ -81,13 +81,50 @@ export default function DashboardContent({
       const formData = new FormData()
       formData.append('file', file)
       const res = await fetch('/api/plan', { method: 'POST', body: formData })
-      if (!res.ok) {
-        const { error: msg } = await res.json().catch(() => ({}))
-        throw new Error(msg ?? 'Erreur lors de la génération du plan.')
+
+      // Non-streaming error responses (rate limit, validation, auth)
+      const ct = res.headers.get('content-type') ?? ''
+      if (ct.includes('application/json')) {
+        const data = await res.json()
+        if (!res.ok) throw new Error(data.error ?? 'Erreur lors de la génération du plan.')
+        // Fallback: if server somehow responds with plain JSON
+        setPlan(data.plan)
+        if (data.remaining !== undefined) setPlanRemaining(data.remaining)
+        return
       }
-      const data = await res.json() as { plan: MemoirePlan; remaining?: number }
-      setPlan(data.plan)
-      if (data.remaining !== undefined) setPlanRemaining(data.remaining)
+
+      // SSE streaming response
+      if (!res.body) throw new Error('Pas de réponse du serveur.')
+      const reader = res.body.getReader()
+      const decoder = new TextDecoder()
+      let buffer = ''
+
+      while (true) {
+        const { done, value } = await reader.read()
+        if (done) break
+        buffer += decoder.decode(value, { stream: true })
+
+        // Process complete SSE messages
+        const lines = buffer.split('\n\n')
+        buffer = lines.pop() ?? ''
+
+        for (const line of lines) {
+          const match = line.match(/^data:\s*(.+)$/m)
+          if (!match) continue
+          try {
+            const msg = JSON.parse(match[1])
+            if (msg.type === 'done') {
+              setPlan(msg.plan)
+              if (msg.remaining !== undefined) setPlanRemaining(msg.remaining)
+            } else if (msg.type === 'error') {
+              throw new Error(msg.error)
+            }
+            // 'progress' events are ignored (keepalive only)
+          } catch (parseErr) {
+            if (parseErr instanceof Error && parseErr.message !== match[1]) throw parseErr
+          }
+        }
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Une erreur est survenue.')
     } finally {
