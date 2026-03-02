@@ -437,6 +437,98 @@ function ConfettiBurst({ title, onDone }: { title: string; onDone: () => void })
 }
 
 /* ─── Onboarding screen ───────────────────────────────────────── */
+/* ─── Re-upload overlay ─────────────────────────────────────── */
+const REUPLOAD_STEPS = [
+  { label: 'Lecture du PDF…', pct: 15 },
+  { label: 'Identification du type de mémoire…', pct: 32 },
+  { label: 'Analyse du cahier des charges…', pct: 55 },
+  { label: 'Extraction des contraintes…', pct: 72 },
+  { label: 'Génération du plan et des conseils…', pct: 88 },
+  { label: 'Structuration finale…', pct: 96 },
+]
+
+function ReuploadOverlay() {
+  const [stepIndex, setStepIndex] = useState(0)
+
+  useEffect(() => {
+    const delays = [0, 2500, 5000, 8500, 13000, 17000]
+    const timers = delays.map((delay, i) =>
+      setTimeout(() => setStepIndex(i), delay)
+    )
+    return () => timers.forEach(clearTimeout)
+  }, [])
+
+  const current = REUPLOAD_STEPS[stepIndex]
+
+  return (
+    <div style={{
+      position: 'fixed', inset: 0, zIndex: 9999,
+      background: 'rgba(4,3,14,0.85)',
+      backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)',
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      animation: 'mq-overlay-in 0.3s ease',
+    }}>
+      <div style={{
+        width: 400, padding: '40px 36px',
+        borderRadius: 20,
+        background: 'rgba(255,255,255,0.04)',
+        border: '1px solid rgba(255,255,255,0.10)',
+        display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 24,
+      }}>
+        {/* Spinner */}
+        <div style={{
+          width: 40, height: 40, borderRadius: '50%',
+          border: '2.5px solid rgba(255,255,255,0.10)',
+          borderTopColor: 'rgba(255,255,255,0.6)',
+          animation: 'mq-spin 0.8s linear infinite',
+        }} />
+
+        {/* Titre */}
+        <div style={{ textAlign: 'center' }}>
+          <div style={{ fontSize: 16, fontWeight: 700, color: 'rgba(255,255,255,0.88)', marginBottom: 4 }}>
+            Analyse en cours
+          </div>
+          <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.40)' }}>
+            Régénération du plan avec conseils…
+          </div>
+        </div>
+
+        {/* Progress bar */}
+        <div style={{ width: '100%' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
+            <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.45)' }}>{current.label}</span>
+            <span style={{ fontSize: 11, fontWeight: 700, color: 'rgba(255,255,255,0.75)' }}>{current.pct}%</span>
+          </div>
+          <div style={{
+            height: 5, borderRadius: 99,
+            background: 'rgba(255,255,255,0.08)', overflow: 'hidden',
+          }}>
+            <div style={{
+              height: '100%', borderRadius: 99,
+              background: 'rgba(255,255,255,0.50)',
+              width: `${current.pct}%`,
+              transition: 'width 1s ease-out',
+            }} />
+          </div>
+        </div>
+
+        {/* Completed steps */}
+        <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 6 }}>
+          {REUPLOAD_STEPS.slice(0, stepIndex).map((s) => (
+            <div key={s.label} style={{
+              display: 'flex', alignItems: 'center', gap: 8,
+              fontSize: 11, color: 'rgba(255,255,255,0.30)',
+            }}>
+              <span style={{ color: 'rgba(255,255,255,0.50)', fontSize: 10 }}>✓</span>
+              {s.label}
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  )
+}
+
 function OnboardingScreen({ firstName, onUpload, isLoading }: {
   firstName: string
   onUpload: (file: File) => Promise<void>
@@ -606,6 +698,7 @@ export default function NewDashboard({
           to   { transform: translateX(0);    opacity: 1; }
         }
         @keyframes mq-overlay-in { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes mq-spin { to { transform: rotate(360deg); } }
         @keyframes mq-confetti-fall {
           0%   { opacity: 1; transform: translateY(0) rotate(0deg) scale(1); }
           80%  { opacity: 0.8; }
@@ -1046,6 +1139,9 @@ export default function NewDashboard({
           onSectionComplete={(sectionIndex) => handleSectionComplete(selectedCh.num, sectionIndex)}
         />
       )}
+
+      {/* Re-upload loading overlay */}
+      {isLoading && plan && <ReuploadOverlay />}
     </div>
   )
 }
