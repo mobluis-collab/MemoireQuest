@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo, useEffect, useRef, useCallback, CSSProperties } from 'react'
+import { useState, useMemo, useEffect, useRef, useCallback, CSSProperties, ChangeEvent } from 'react'
 import type { MemoirePlan, QuestProgress, StreakData } from '@/types/memoir'
 import { getLevelProgress } from '@/lib/xp/levels'
 import UploadZone from '@/components/dashboard/UploadZone'
@@ -492,6 +492,7 @@ export default function NewDashboard({
   const [selectedCh, setSelectedCh] = useState<ChapterData | null>(null)
   const [celebratingChapter, setCelebratingChapter] = useState<string | null>(null)
   const prevChaptersRef = useRef<ChapterData[]>([])
+  const reuploadRef = useRef<HTMLInputElement>(null)
 
   const today = new Date()
   const firstName = user.user_metadata?.full_name?.split(' ')[0] ?? user.email.split('@')[0]
@@ -565,6 +566,15 @@ export default function NewDashboard({
     await signOutFn()
     window.location.href = '/'
   }
+
+  /* ── Re-upload ── */
+  const handleReupload = useCallback((e: ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (file) {
+      onUpload(file)
+      if (reuploadRef.current) reuploadRef.current.value = ''
+    }
+  }, [onUpload])
 
   /* ── Quest complete ── */
   const handleSectionComplete = async (chapterNumber: string, sectionIndex: number) => {
@@ -712,9 +722,31 @@ export default function NewDashboard({
           })}
         </nav>
 
-        {/* Footer — sign out */}
-        <div style={{ padding: '8px 7px', borderTop: '1px solid rgba(255,255,255,0.07)' }}>
-          {/* FIX: was 0.65 → 0.85 */}
+        {/* Re-upload + sign out */}
+        <div style={{ padding: '8px 7px', borderTop: '1px solid rgba(255,255,255,0.07)', display: 'flex', flexDirection: 'column', gap: 1 }}>
+          {plan && (
+            <>
+              <input
+                ref={reuploadRef}
+                type="file"
+                accept="application/pdf"
+                onChange={handleReupload}
+                style={{ display: 'none' }}
+              />
+              <button
+                onClick={() => reuploadRef.current?.click()}
+                disabled={isLoading}
+                style={{
+                  width: '100%', display: 'flex', alignItems: 'center', gap: 9,
+                  padding: '8px 11px', borderRadius: 9, border: 'none', cursor: isLoading ? 'wait' : 'pointer',
+                  background: 'transparent', color: 'rgba(255,255,255,0.50)', fontSize: 12, textAlign: 'left',
+                  opacity: isLoading ? 0.4 : 1,
+                  transition: 'opacity 0.15s',
+                }}>
+                <span style={{ fontSize: 11 }}>↑</span> {isLoading ? 'Analyse en cours…' : 'Ré-importer un PDF'}
+              </button>
+            </>
+          )}
           <button onClick={handleSignOut} style={{
             width: '100%', display: 'flex', alignItems: 'center', gap: 9,
             padding: '8px 11px', borderRadius: 9, border: 'none', cursor: 'pointer',
