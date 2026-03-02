@@ -73,7 +73,7 @@ const MAX_FILE_SIZE = 10 * 1024 * 1024 // 10 MB
 const SectionSchema = z.object({
   text: z.string(),
   difficulty: z.enum(['easy', 'medium', 'hard']),
-  hint: z.string().optional(),
+  hint: z.string().min(1),
 })
 
 const ChapterSchema = z.object({
@@ -154,7 +154,7 @@ export async function POST(request: Request) {
                 },
                 {
                   type: 'text',
-                  text: 'Génère le plan de mémoire en JSON.',
+                  text: 'Génère le plan de mémoire en JSON. IMPORTANT : chaque section DOIT obligatoirement inclure un champ "hint" avec un conseil concret et actionnable basé sur le contenu du document. Ne jamais omettre le hint.',
                 },
               ],
             },
