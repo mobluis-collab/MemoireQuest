@@ -160,12 +160,12 @@ export default function AchievementsView({ totalPoints, streak, questProgress, c
       height: '100%', overflow: 'hidden',
     }}>
       {/* Header */}
-      <div style={{ flexShrink: 0, marginBottom: 20 }}>
+      <div style={{ flexShrink: 0, marginBottom: 28 }}>
         <h1 style={{
-          fontSize: 22, fontWeight: 700, letterSpacing: '-0.5px', margin: 0,
-          color: 'rgba(255,255,255,0.85)',
+          fontSize: 24, fontWeight: 700, letterSpacing: '-0.5px', margin: 0,
+          color: 'rgba(255,255,255,0.90)',
         }}>Progression</h1>
-        <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.35)', marginTop: 4 }}>
+        <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.40)', marginTop: 6 }}>
           {unlocked} sur {total}
         </p>
       </div>
@@ -173,18 +173,18 @@ export default function AchievementsView({ totalPoints, streak, questProgress, c
       {/* List */}
       <div style={{ flex: 1, overflowY: 'auto', paddingRight: 4 }}>
         {grouped.map(({ label, desc, items }) => (
-          <div key={label} style={{ marginBottom: 20 }}>
+          <div key={label} style={{ marginBottom: 28 }}>
             {/* Group label + description */}
-            <div style={{ padding: '0 14px', marginBottom: 6 }}>
+            <div style={{ padding: '0 14px', marginBottom: 10 }}>
               <div style={{
-                fontSize: 10, fontWeight: 600,
-                textTransform: 'uppercase', letterSpacing: '0.6px',
-                color: 'rgba(255,255,255,0.20)',
+                fontSize: 13, fontWeight: 600,
+                letterSpacing: '0.3px',
+                color: 'rgba(255,255,255,0.55)',
               }}>{label}</div>
               <div style={{
                 fontSize: 11,
-                color: 'rgba(255,255,255,0.25)',
-                marginTop: 2,
+                color: 'rgba(255,255,255,0.30)',
+                marginTop: 3,
               }}>{desc}</div>
             </div>
 
