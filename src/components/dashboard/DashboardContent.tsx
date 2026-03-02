@@ -141,7 +141,10 @@ export default function DashboardContent({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ chapterNumber, sectionIndex, pointsEarned: 4 }),
       })
-      if (!res.ok) return
+      if (!res.ok) {
+        showToast('Erreur lors de la validation de la quête.', 'error')
+        return
+      }
       const data = await res.json() as {
         questProgress: QuestProgress
         totalPoints: number
@@ -176,6 +179,7 @@ export default function DashboardContent({
       const res = await fetch('/api/prestige', { method: 'POST' })
       if (!res.ok) {
         showToast('Erreur lors du prestige', 'error')
+        closePrestigeModal()
         return
       }
       const data = await res.json() as { prestigeCount: number }
