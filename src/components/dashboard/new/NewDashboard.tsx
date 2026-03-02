@@ -41,13 +41,9 @@ export interface NewDashboardProps {
 
 /* ─── Palette ─────────────────────────────────────────────────── */
 const C = {
-  indigo:   '#6366f1',
-  indigoDk: '#4338ca',
   sky:      '#38bdf8',
-  violet:   '#a78bfa',
   emerald:  '#34d399',
   amber:    '#fbbf24',
-  rose:     '#fb7185',
 }
 const FONT = "-apple-system,BlinkMacSystemFont,'SF Pro Display','Helvetica Neue',sans-serif"
 

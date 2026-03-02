@@ -40,10 +40,3 @@ export function getComboBonus(comboCount: number): number {
   return 0
 }
 
-/**
- * Vérifie si le combo est encore actif (< 2h depuis dernière quête)
- */
-export function isComboActive(state: ComboState): boolean {
-  if (!state.lastQuestTime) return false
-  return (Date.now() - state.lastQuestTime) <= COMBO_TIMEOUT
-}

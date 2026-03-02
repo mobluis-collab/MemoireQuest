@@ -49,8 +49,3 @@ export async function savePlan(userId: string, title: string, planData: MemoireP
   if (error) throw error
   return data
 }
-
-export async function deletePlan(userId: string) {
-  const supabase = await createClient()
-  await supabase.from('memoir_plans').delete().eq('user_id', userId)
-}
