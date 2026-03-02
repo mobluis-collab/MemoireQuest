@@ -2,10 +2,6 @@
 
 import { useState } from 'react'
 
-const C = {
-  indigo: '#6366f1', sky: '#38bdf8', violet: '#a78bfa',
-  emerald: '#34d399', amber: '#fbbf24', rose: '#fb7185',
-}
 const FONT = "-apple-system,BlinkMacSystemFont,'SF Pro Display','Helvetica Neue',sans-serif"
 
 interface Section {
@@ -29,15 +25,9 @@ interface MemoireViewProps {
   onQuestComplete: (chapterNumber: string, sectionIndex: number) => void
 }
 
-function diffColor(d: 'easy' | 'medium' | 'hard') {
-  return d === 'hard' ? C.rose : d === 'medium' ? C.amber : C.emerald
-}
-function diffLabel(d: 'easy' | 'medium' | 'hard') {
-  return d === 'hard' ? '🔥 Difficile' : d === 'medium' ? '⚡ Moyen' : '✦ Facile'
-}
-
 export default function MemoireView({ chapters, questProgress, loadingKey, onQuestComplete }: MemoireViewProps) {
   const [openChapter, setOpenChapter] = useState<string | null>(chapters[0]?.num ?? null)
+  const [hoveredChapter, setHoveredChapter] = useState<string | null>(null)
 
   const totalSec = chapters.reduce((a, c) => a + c.sections, 0)
   const doneSec  = chapters.reduce((a, c) => a + c.done, 0)
@@ -47,97 +37,86 @@ export default function MemoireView({ chapters, questProgress, loadingKey, onQue
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16, height: '100%', overflow: 'hidden' }}>
 
       {/* Header */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0, marginBottom: 12 }}>
         <div>
           <h1 style={{
-            fontSize: 24, fontWeight: 800, letterSpacing: '-0.5px', margin: 0,
-            background: 'linear-gradient(90deg, rgba(255,255,255,0.95), rgba(255,255,255,0.6))',
-            WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
+            fontSize: 24, fontWeight: 700, letterSpacing: '-0.5px', margin: 0,
+            color: 'rgba(255,255,255,0.90)',
           }}>Mon mémoire</h1>
-          <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)', marginTop: 3 }}>
-            {doneSec} / {totalSec} sections terminées · {globalPct}% complété
+          <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.40)', marginTop: 6 }}>
+            {doneSec} / {totalSec} sections · {globalPct}%
           </p>
         </div>
-        {/* Global progress bar */}
         <div style={{ width: 200 }}>
-          <div style={{ height: 6, borderRadius: 99, background: 'rgba(255,255,255,0.1)', overflow: 'hidden' }}>
+          <div style={{ height: 4, borderRadius: 99, background: 'rgba(255,255,255,0.08)', overflow: 'hidden' }}>
             <div style={{
               height: '100%', width: `${globalPct}%`, borderRadius: 99,
-              background: `linear-gradient(90deg, ${C.indigo}, ${C.sky})`,
-              boxShadow: `0 0 12px ${C.indigo}88`,
+              background: 'rgba(255,255,255,0.35)',
               transition: 'width 0.8s cubic-bezier(.4,0,.2,1)',
             }} />
-          </div>
-          <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.4)', marginTop: 4, textAlign: 'right' }}>
-            {globalPct}% global
           </div>
         </div>
       </div>
 
       {/* Chapters list */}
-      <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 8, paddingRight: 4 }}>
+      <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 6, paddingRight: 4 }}>
         {chapters.map(ch => {
           const isOpen = openChapter === ch.num
+          const isHovered = hoveredChapter === ch.num
           const pct = ch.sections > 0 ? Math.round((ch.done / ch.sections) * 100) : 0
           const done = pct === 100, wip = pct > 0 && !done
-          const statusColor = done ? C.emerald : wip ? C.sky : 'rgba(255,255,255,0.25)'
           const chProgress = questProgress[ch.num] ?? {}
 
           return (
             <div key={ch.num} style={{
-              borderRadius: 14,
-              border: `1px solid ${done ? 'rgba(52,211,153,0.35)' : wip ? 'rgba(56,189,248,0.28)' : 'rgba(255,255,255,0.1)'}`,
-              background: done ? 'rgba(52,211,153,0.04)' : wip ? 'rgba(56,189,248,0.04)' : 'rgba(255,255,255,0.025)',
-              backdropFilter: 'blur(16px)',
+              borderRadius: 12,
+              border: '1px solid rgba(255,255,255,0.08)',
+              background: 'rgba(255,255,255,0.02)',
               overflow: 'hidden',
               transition: 'border-color 0.2s',
             }}>
-              {/* Chapter header — clickable */}
+              {/* Chapter header */}
               <div
                 onClick={() => setOpenChapter(isOpen ? null : ch.num)}
+                onMouseEnter={() => setHoveredChapter(ch.num)}
+                onMouseLeave={() => setHoveredChapter(null)}
                 style={{
                   display: 'flex', alignItems: 'center', gap: 14,
                   padding: '14px 20px', cursor: 'pointer',
+                  background: isHovered ? 'rgba(255,255,255,0.03)' : 'transparent',
                   transition: 'background 0.15s',
                 }}>
-                {/* Num badge */}
-                <div style={{
-                  width: 32, height: 32, borderRadius: 9, flexShrink: 0,
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  background: done
-                    ? 'rgba(52,211,153,0.15)'
-                    : wip ? 'rgba(99,102,241,0.15)' : 'rgba(255,255,255,0.07)',
-                  border: `1px solid ${statusColor}44`,
-                  fontSize: 11, fontWeight: 800, color: statusColor, fontFamily: FONT,
-                }}>{ch.num}</div>
+                {/* Num */}
+                <span style={{
+                  fontSize: 10, color: 'rgba(255,255,255,0.35)', fontWeight: 600,
+                  whiteSpace: 'nowrap', maxWidth: 52, overflow: 'hidden', textOverflow: 'ellipsis',
+                  flexShrink: 0,
+                }}>{ch.num}</span>
 
-                {/* Title + objective */}
+                {/* Title */}
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{
-                    fontSize: 14, fontWeight: 600, color: done ? 'rgba(255,255,255,0.45)' : 'rgba(255,255,255,0.9)',
-                    textDecoration: done ? 'line-through' : 'none',
+                    fontSize: 14, fontWeight: 500,
+                    color: done ? 'rgba(255,255,255,0.50)' : 'rgba(255,255,255,0.85)',
                     whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
-                  }}>{ch.title}</div>
-                  <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)', marginTop: 2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                  }}>{ch.title}{done && <span style={{ marginLeft: 6, fontSize: 11, color: 'rgba(255,255,255,0.50)' }}>✓</span>}</div>
+                  <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)', marginTop: 2 }}>
                     {ch.done}/{ch.sections} sections
                   </div>
                 </div>
 
-                {/* Progress bar + status */}
-                <div style={{ width: 120, flexShrink: 0 }}>
+                {/* Progress */}
+                <div style={{ width: 100, flexShrink: 0 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-                    <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.45)' }}>
-                      {done ? '✓ Terminé' : wip ? 'En cours' : 'À faire'}
+                    <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.40)' }}>
+                      {done ? 'Terminé' : wip ? 'En cours' : 'À faire'}
                     </span>
-                    <span style={{ fontSize: 10, fontWeight: 700, color: statusColor }}>{pct}%</span>
+                    <span style={{ fontSize: 10, fontWeight: 600, color: 'rgba(255,255,255,0.60)' }}>{pct}%</span>
                   </div>
-                  <div style={{ height: 4, borderRadius: 99, background: 'rgba(255,255,255,0.1)', overflow: 'hidden' }}>
+                  <div style={{ height: 3, borderRadius: 99, background: 'rgba(255,255,255,0.08)', overflow: 'hidden' }}>
                     <div style={{
                       height: '100%', width: `${pct}%`, borderRadius: 99,
-                      background: done
-                        ? `linear-gradient(90deg, ${C.emerald}, rgba(52,211,153,0.7))`
-                        : `linear-gradient(90deg, ${C.indigo}, ${C.sky})`,
-                      boxShadow: `0 0 8px ${statusColor}66`,
+                      background: done ? 'rgba(255,255,255,0.45)' : 'rgba(255,255,255,0.25)',
                       transition: 'width 0.8s cubic-bezier(.4,0,.2,1)',
                     }} />
                   </div>
@@ -145,75 +124,76 @@ export default function MemoireView({ chapters, questProgress, loadingKey, onQue
 
                 {/* Chevron */}
                 <div style={{
-                  fontSize: 12, color: 'rgba(255,255,255,0.35)',
+                  fontSize: 14, color: 'rgba(255,255,255,0.35)',
                   transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)',
                   transition: 'transform 0.2s',
                   flexShrink: 0,
                 }}>▾</div>
               </div>
 
-              {/* Sections list — collapsible */}
+              {/* Sections */}
               {isOpen && (
                 <div style={{ padding: '0 20px 16px', display: 'flex', flexDirection: 'column', gap: 6 }}>
-                  <div style={{ height: 1, background: 'rgba(255,255,255,0.06)', marginBottom: 8 }} />
+                  <div style={{ height: 1, background: 'rgba(255,255,255,0.06)', marginBottom: 4 }} />
                   {ch.sectionList.map((sec, i) => {
                     const isDone = chProgress[String(i)] === 'done'
                     const isNext = !isDone && Array.from({ length: i }, (_, j) => chProgress[String(j)] === 'done').every(Boolean)
                     const isLoading = loadingKey === `${ch.num}:${i}`
+                    const isClickable = isDone || isNext
 
                     return (
                       <div
                         key={i}
-                        onClick={() => { if (isNext && !isLoading) onQuestComplete(ch.num, i) }}
+                        onClick={() => { if (isClickable && !isLoading) onQuestComplete(ch.num, i) }}
                         style={{
                           display: 'flex', alignItems: 'center', gap: 12,
-                          padding: '11px 16px', borderRadius: 11,
-                          background: isDone
-                            ? 'rgba(52,211,153,0.06)'
-                            : isNext ? 'rgba(99,102,241,0.12)' : 'rgba(255,255,255,0.03)',
-                          border: `1px solid ${isDone ? 'rgba(52,211,153,0.22)' : isNext ? 'rgba(99,102,241,0.3)' : 'rgba(255,255,255,0.07)'}`,
-                          cursor: isNext && !isLoading ? 'pointer' : 'default',
+                          padding: '11px 16px', borderRadius: 10,
+                          background: isNext ? 'rgba(255,255,255,0.05)' : 'rgba(255,255,255,0.02)',
+                          border: `1px solid ${isNext ? 'rgba(255,255,255,0.12)' : 'rgba(255,255,255,0.06)'}`,
+                          cursor: isClickable && !isLoading ? 'pointer' : 'default',
                           transition: 'all 0.15s',
-                          boxShadow: isNext ? '0 0 18px rgba(99,102,241,0.15)' : 'none',
-                          opacity: isLoading ? 0.6 : 1,
+                          opacity: isLoading ? 0.5 : 1,
                         }}>
                         {/* Status circle */}
                         <div style={{
-                          width: 22, height: 22, borderRadius: '50%', flexShrink: 0,
+                          width: 24, height: 24, borderRadius: '50%', flexShrink: 0,
                           display: 'flex', alignItems: 'center', justifyContent: 'center',
-                          background: isDone ? 'rgba(52,211,153,0.2)' : isNext ? 'rgba(99,102,241,0.25)' : 'rgba(255,255,255,0.06)',
-                          border: `1px solid ${isDone ? 'rgba(52,211,153,0.5)' : isNext ? 'rgba(99,102,241,0.6)' : 'rgba(255,255,255,0.12)'}`,
+                          background: isDone ? 'rgba(255,255,255,0.10)' : isNext ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.04)',
+                          border: `1.5px solid ${isDone ? 'rgba(255,255,255,0.25)' : isNext ? 'rgba(255,255,255,0.20)' : 'rgba(255,255,255,0.08)'}`,
                           fontSize: 10,
                         }}>
-                          {isLoading ? <span style={{ color: C.indigo, fontSize: 9 }}>…</span>
-                            : isDone ? <span style={{ color: C.emerald, fontSize: 11 }}>✓</span>
-                            : isNext ? <span style={{ color: C.indigo, fontWeight: 800, fontSize: 9 }}>▶</span>
-                            : <span style={{ color: 'rgba(255,255,255,0.3)', fontSize: 9 }}>{i + 1}</span>}
+                          {isLoading ? <span style={{ color: 'rgba(255,255,255,0.4)', fontSize: 9 }}>…</span>
+                            : isDone ? <span style={{ color: 'rgba(255,255,255,0.55)' }}>✓</span>
+                            : isNext ? <span style={{ color: 'rgba(255,255,255,0.6)', fontWeight: 800, fontSize: 9 }}>→</span>
+                            : <span style={{ color: 'rgba(255,255,255,0.20)', fontSize: 9 }}>{i + 1}</span>}
                         </div>
 
                         {/* Text */}
                         <div style={{ flex: 1 }}>
                           <div style={{
                             fontSize: 13, fontWeight: isNext ? 600 : 400,
-                            color: isDone ? 'rgba(255,255,255,0.38)' : isNext ? 'rgba(255,255,255,0.95)' : 'rgba(255,255,255,0.6)',
-                            textDecoration: isDone ? 'line-through' : 'none',
+                            color: isDone ? 'rgba(255,255,255,0.45)' : isNext ? 'rgba(255,255,255,0.90)' : 'rgba(255,255,255,0.60)',
                           }}>{sec.text}</div>
                           {isNext && !isLoading && (
-                            <div style={{ fontSize: 10, color: 'rgba(99,102,241,0.9)', marginTop: 2, fontWeight: 600 }}>
-                              Cliquer pour valider cette section ↗
+                            <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.40)', marginTop: 2 }}>
+                              Cliquer pour valider
+                            </div>
+                          )}
+                          {isDone && (
+                            <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.25)', marginTop: 2 }}>
+                              Cliquer pour annuler
                             </div>
                           )}
                         </div>
 
                         {/* Difficulty */}
                         <span style={{
-                          fontSize: 10, fontWeight: 600, flexShrink: 0,
-                          padding: '3px 8px', borderRadius: 99,
-                          background: `${diffColor(sec.difficulty)}15`,
-                          color: diffColor(sec.difficulty),
-                          border: `1px solid ${diffColor(sec.difficulty)}30`,
+                          fontSize: 9, fontWeight: 600, flexShrink: 0,
+                          padding: '2px 7px', borderRadius: 99,
+                          background: 'rgba(255,255,255,0.05)',
+                          color: 'rgba(255,255,255,0.35)',
                         }}>
-                          {diffLabel(sec.difficulty)}
+                          {sec.difficulty === 'hard' ? 'difficile' : sec.difficulty === 'medium' ? 'moyen' : 'facile'}
                         </span>
                       </div>
                     )
