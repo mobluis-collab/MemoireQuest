@@ -5,6 +5,8 @@ import Anthropic from '@anthropic-ai/sdk'
 import { NextResponse } from 'next/server'
 import { z } from 'zod'
 
+export const maxDuration = 60
+
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
 
 const PLAN_LIMIT = 3
@@ -118,44 +120,70 @@ export async function POST(request: Request) {
   const buffer = await file.arrayBuffer()
   const base64 = Buffer.from(buffer).toString('base64')
 
-  const message = await anthropic.messages.create({
-    model: 'claude-sonnet-4-5-20250929',
-    max_tokens: 4096,
-    system: SYSTEM_PROMPT,
-    messages: [
-      {
-        role: 'user',
-        content: [
-          {
-            type: 'document',
-            source: {
-              type: 'base64',
-              media_type: 'application/pdf',
-              data: base64,
+  let message
+  try {
+    message = await anthropic.messages.create({
+      model: 'claude-sonnet-4-5-20250929',
+      max_tokens: 8192,
+      system: SYSTEM_PROMPT,
+      messages: [
+        {
+          role: 'user',
+          content: [
+            {
+              type: 'document',
+              source: {
+                type: 'base64',
+                media_type: 'application/pdf',
+                data: base64,
+              },
             },
-          },
-          {
-            type: 'text',
-            text: 'Génère le plan de mémoire en JSON.',
-          },
-        ],
-      },
-    ],
-  })
+            {
+              type: 'text',
+              text: 'Génère le plan de mémoire en JSON.',
+            },
+          ],
+        },
+      ],
+    })
+  } catch (err) {
+    console.error('[plan] Anthropic API error:', err)
+    return NextResponse.json(
+      { error: 'Erreur lors de la génération du plan. Réessaie dans quelques instants.', remaining: rateLimit.remaining },
+      { status: 502 },
+    )
+  }
 
   const content = message.content[0]
   if (content.type !== 'text') {
-    return NextResponse.json({ error: 'Unexpected response from Claude', remaining: rateLimit.remaining }, { status: 500 })
+    return NextResponse.json({ error: 'Réponse inattendue de l\'IA.', remaining: rateLimit.remaining }, { status: 500 })
+  }
+
+  if (message.stop_reason === 'max_tokens') {
+    console.error('[plan] Response truncated (max_tokens reached). Length:', content.text.length)
+    return NextResponse.json(
+      { error: 'Le plan généré était trop long et a été tronqué. Réessaie.', remaining: rateLimit.remaining },
+      { status: 500 },
+    )
   }
 
   const jsonMatch = content.text.match(/\{[\s\S]*\}/)
   if (!jsonMatch) {
-    return NextResponse.json({ error: 'No JSON found in response', remaining: rateLimit.remaining }, { status: 500 })
+    console.error('[plan] No JSON in response. Text start:', content.text.slice(0, 200))
+    return NextResponse.json({ error: 'Impossible d\'extraire le plan. Réessaie.', remaining: rateLimit.remaining }, { status: 500 })
   }
 
-  const parsed = MemoirePlanSchema.safeParse(JSON.parse(jsonMatch[0]))
+  let parsed
+  try {
+    parsed = MemoirePlanSchema.safeParse(JSON.parse(jsonMatch[0]))
+  } catch (err) {
+    console.error('[plan] JSON parse error:', err)
+    return NextResponse.json({ error: 'Le plan généré contenait du JSON invalide. Réessaie.', remaining: rateLimit.remaining }, { status: 500 })
+  }
+
   if (!parsed.success) {
-    return NextResponse.json({ error: 'Invalid plan structure', details: parsed.error.flatten(), remaining: rateLimit.remaining }, { status: 500 })
+    console.error('[plan] Zod validation error:', JSON.stringify(parsed.error.flatten()))
+    return NextResponse.json({ error: 'Structure du plan invalide. Réessaie.', remaining: rateLimit.remaining }, { status: 500 })
   }
 
   const plan = parsed.data
