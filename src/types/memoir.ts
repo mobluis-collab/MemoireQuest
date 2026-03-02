@@ -3,6 +3,7 @@ export type ChapterStatus = 'not_started' | 'in_progress' | 'done'
 export interface Section {
   text: string
   difficulty: 'easy' | 'medium' | 'hard'
+  hint?: string
 }
 
 export interface Chapter {

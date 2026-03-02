@@ -7,6 +7,7 @@ const FONT = "-apple-system,BlinkMacSystemFont,'SF Pro Display','Helvetica Neue'
 interface Section {
   text: string
   difficulty: 'easy' | 'medium' | 'hard'
+  hint?: string
 }
 
 interface ChapterData {
@@ -133,7 +134,7 @@ export default function MemoireView({ chapters, questProgress, loadingKey, onQue
 
               {/* Sections */}
               {isOpen && (
-                <div style={{ padding: '0 20px 16px', display: 'flex', flexDirection: 'column', gap: 6, maxHeight: 320, overflowY: 'auto' }}>
+                <div style={{ padding: '0 20px 16px', display: 'flex', flexDirection: 'column', gap: 6, maxHeight: 480, overflowY: 'auto' }}>
                   <div style={{ height: 1, background: 'rgba(255,255,255,0.06)', marginBottom: 4 }} />
                   {ch.sectionList.map((sec, i) => {
                     const isDone = chProgress[String(i)] === 'done'
@@ -146,7 +147,7 @@ export default function MemoireView({ chapters, questProgress, loadingKey, onQue
                         key={i}
                         onClick={() => { if (isClickable && !isLoading) onQuestComplete(ch.num, i) }}
                         style={{
-                          display: 'flex', alignItems: 'center', gap: 12,
+                          display: 'flex', alignItems: sec.hint ? 'flex-start' : 'center', gap: 12,
                           padding: '11px 16px', borderRadius: 10,
                           background: isNext ? 'rgba(255,255,255,0.05)' : 'rgba(255,255,255,0.02)',
                           border: `1px solid ${isNext ? 'rgba(255,255,255,0.12)' : 'rgba(255,255,255,0.06)'}`,
@@ -174,6 +175,14 @@ export default function MemoireView({ chapters, questProgress, loadingKey, onQue
                             fontSize: 13, fontWeight: isNext ? 600 : 400,
                             color: isDone ? 'rgba(255,255,255,0.50)' : isNext ? 'rgba(255,255,255,0.90)' : 'rgba(255,255,255,0.65)',
                           }}>{sec.text}</div>
+                          {sec.hint && (
+                            <div style={{
+                              fontSize: 11, color: 'rgba(255,255,255,0.35)', marginTop: 4,
+                              lineHeight: 1.45, fontStyle: 'italic',
+                            }}>
+                              {sec.hint}
+                            </div>
+                          )}
                           {isNext && !isLoading && (
                             <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.45)', marginTop: 2 }}>
                               Cliquer pour valider

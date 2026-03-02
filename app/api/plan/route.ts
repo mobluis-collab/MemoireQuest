@@ -24,6 +24,13 @@ INSTRUCTIONS :
 - Respecte la structure attendue par l'établissement si elle est précisée dans le document. Sinon, propose une structure académique standard adaptée au type de mémoire.
 - Les tips doivent être concrets et utiles (ex: "Commence par une revue de littérature sur 3-4 sources clés avant de rédiger ta problématique").
 
+CONSEILS PAR SECTION (hint) :
+- Chaque section doit contenir un champ "hint" : un conseil court (1-2 phrases max) et actionnable pour l'étudiant.
+- Le hint doit être STRICTEMENT basé sur le contenu du cahier des charges fourni. NE JAMAIS inventer de méthodologies, outils ou exigences non mentionnés dans le document.
+- Si le cahier des charges mentionne des attentes spécifiques pour une section (ex: "réaliser un SWOT", "faire un benchmark"), le hint DOIT les reprendre.
+- Si le cahier des charges ne donne pas de consigne spécifique pour une section, formuler un conseil générique lié au titre de la section sans inventer de contenu.
+- Les hints doivent aider l'étudiant à comprendre concrètement ce qui est attendu dans chaque section.
+
 ATTRIBUTION DE DIFFICULTÉ ET XP :
 - Chaque section doit avoir une difficulté : "easy", "medium", ou "hard"
 - Équilibre cible : ~40% easy, 40% medium, 20% hard
@@ -44,7 +51,8 @@ Réponds UNIQUEMENT en JSON valide selon ce schéma exact :
       "sections": [
         {
           "text": "string",
-          "difficulty": "easy" | "medium" | "hard"
+          "difficulty": "easy" | "medium" | "hard",
+          "hint": "string (conseil concret basé UNIQUEMENT sur le cahier des charges)"
         }
       ],
       "tips": "string"
@@ -63,6 +71,7 @@ const MAX_FILE_SIZE = 10 * 1024 * 1024 // 10 MB
 const SectionSchema = z.object({
   text: z.string(),
   difficulty: z.enum(['easy', 'medium', 'hard']),
+  hint: z.string().optional(),
 })
 
 const ChapterSchema = z.object({

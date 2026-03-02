@@ -21,7 +21,7 @@ interface ChapterData {
   objective: string
   sections: number
   done: number
-  sectionList: Array<{ text: string; difficulty: 'easy' | 'medium' | 'hard' }>
+  sectionList: Array<{ text: string; difficulty: 'easy' | 'medium' | 'hard'; hint?: string }>
 }
 
 export interface NewDashboardProps {
