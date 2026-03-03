@@ -67,7 +67,7 @@ function AchievementRow({ a }: { a: Achievement }) {
         gap: 12,
         padding: '10px 14px',
         borderRadius: 10,
-        background: hovered ? 'rgba(255,255,255,0.03)' : 'transparent',
+        background: hovered ? 'var(--mq-sidebar-bg)' : 'transparent',
         transition: 'background 0.15s',
         cursor: 'default',
       }}
@@ -77,7 +77,7 @@ function AchievementRow({ a }: { a: Achievement }) {
         width: 20, height: 20, borderRadius: '50%', flexShrink: 0,
         display: 'flex', alignItems: 'center', justifyContent: 'center',
         border: `1.5px solid rgba(255,255,255,${a.unlocked ? '0.30' : '0.10'})`,
-        background: a.unlocked ? 'rgba(255,255,255,0.08)' : 'transparent',
+        background: a.unlocked ? 'var(--mq-border)' : 'transparent',
       }}>
         {a.unlocked && (
           <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.55)' }}>✓</span>
@@ -111,7 +111,7 @@ function AchievementRow({ a }: { a: Achievement }) {
         }}>
           <div style={{
             width: 48, height: 3, borderRadius: 99,
-            background: 'rgba(255,255,255,0.06)',
+            background: 'var(--mq-stroke-soft)',
             overflow: 'hidden',
           }}>
             <div style={{
@@ -163,9 +163,9 @@ export default function AchievementsView({ totalPoints, streak, questProgress, c
       <div style={{ flexShrink: 0, marginBottom: 28 }}>
         <h1 style={{
           fontSize: 24, fontWeight: 700, letterSpacing: '-0.5px', margin: 0,
-          color: 'rgba(255,255,255,0.90)',
+          color: 'var(--mq-text-primary)',
         }}>Progression</h1>
-        <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.40)', marginTop: 6 }}>
+        <p style={{ fontSize: 13, color: 'var(--mq-text-muted)', marginTop: 6 }}>
           {unlocked} sur {total}
         </p>
       </div>

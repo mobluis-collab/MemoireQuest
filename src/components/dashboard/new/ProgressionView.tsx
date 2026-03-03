@@ -24,12 +24,12 @@ function StatPill({ label, value, sub }: { label: string; value: string; sub?: s
   return (
     <div style={{
       flex: 1, padding: '14px 16px', borderRadius: 14,
-      background: 'rgba(255,255,255,0.02)',
-      border: '1px solid rgba(255,255,255,0.08)',
+      background: 'var(--mq-card-bg)',
+      border: '1px solid var(--mq-border)',
       textAlign: 'center',
     }}>
-      <div style={{ fontSize: 9, color: 'rgba(255,255,255,0.40)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.8px', marginBottom: 4 }}>{label}</div>
-      <div style={{ fontSize: 28, fontWeight: 800, color: 'rgba(255,255,255,0.88)', letterSpacing: '-1px' }}>{value}</div>
+      <div style={{ fontSize: 9, color: 'var(--mq-text-muted)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.8px', marginBottom: 4 }}>{label}</div>
+      <div style={{ fontSize: 28, fontWeight: 800, color: 'var(--mq-text-primary)', letterSpacing: '-1px' }}>{value}</div>
       {sub && <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.35)', marginTop: 3 }}>{sub}</div>}
     </div>
   )
@@ -73,7 +73,7 @@ export default function ProgressionView({ chapters, totalPoints, streak, startDa
           fontSize: 24, fontWeight: 700, letterSpacing: '-0.5px', margin: 0,
           color: 'rgba(255,255,255,0.90)',
         }}>Progression</h1>
-        <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.40)', marginTop: 6 }}>
+        <p style={{ fontSize: 13, color: 'var(--mq-text-muted)', marginTop: 6 }}>
           Vue d&apos;ensemble de ton avancement
         </p>
       </div>
@@ -92,8 +92,8 @@ export default function ProgressionView({ chapters, totalPoints, streak, startDa
         {estimatedDate && (
           <div style={{
             padding: '14px 20px', borderRadius: 12,
-            background: 'rgba(255,255,255,0.02)',
-            border: '1px solid rgba(255,255,255,0.08)',
+            background: 'var(--mq-card-bg)',
+            border: '1px solid var(--mq-border)',
             display: 'flex', alignItems: 'center', gap: 14,
           }}>
             <div style={{ fontSize: 13, fontWeight: 500, color: 'rgba(255,255,255,0.70)' }}>
@@ -110,8 +110,8 @@ export default function ProgressionView({ chapters, totalPoints, streak, startDa
         {/* Per-chapter progress */}
         <div style={{
           padding: '18px 20px', borderRadius: 12,
-          background: 'rgba(255,255,255,0.02)',
-          border: '1px solid rgba(255,255,255,0.08)',
+          background: 'var(--mq-card-bg)',
+          border: '1px solid var(--mq-border)',
         }}>
           <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.55)', fontWeight: 600, letterSpacing: '0.3px', marginBottom: 16 }}>
             Par chapitre
@@ -132,17 +132,17 @@ export default function ProgressionView({ chapters, totalPoints, streak, startDa
                         fontSize: 12, fontWeight: 500,
                         color: done ? 'rgba(255,255,255,0.45)' : 'rgba(255,255,255,0.75)',
                       }}>{ch.title}</span>
-                      {done && <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.40)' }}>✓</span>}
+                      {done && <span style={{ fontSize: 11, color: 'var(--mq-text-muted)' }}>✓</span>}
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                       <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)' }}>{ch.done}/{ch.sections}</span>
                       <span style={{ fontSize: 11, fontWeight: 600, color: 'rgba(255,255,255,0.55)', minWidth: 32, textAlign: 'right' }}>{pct}%</span>
                     </div>
                   </div>
-                  <div style={{ height: 4, borderRadius: 99, background: 'rgba(255,255,255,0.06)', overflow: 'hidden' }}>
+                  <div style={{ height: 4, borderRadius: 99, background: 'var(--mq-stroke-soft)', overflow: 'hidden' }}>
                     <div style={{
                       height: '100%', width: `${pct}%`, borderRadius: 99,
-                      background: done ? 'rgba(255,255,255,0.40)' : 'rgba(255,255,255,0.22)',
+                      background: done ? 'var(--mq-text-muted)' : 'rgba(255,255,255,0.22)',
                       transition: 'width 0.8s cubic-bezier(.4,0,.2,1)',
                     }} />
                   </div>
@@ -158,8 +158,8 @@ export default function ProgressionView({ chapters, totalPoints, streak, startDa
           {/* Difficulty */}
           <div style={{
             flex: 1, padding: '18px 20px', borderRadius: 12,
-            background: 'rgba(255,255,255,0.02)',
-            border: '1px solid rgba(255,255,255,0.08)',
+            background: 'var(--mq-card-bg)',
+            border: '1px solid var(--mq-border)',
           }}>
             <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.55)', fontWeight: 600, letterSpacing: '0.3px', marginBottom: 14 }}>
               Par difficulté
@@ -174,7 +174,7 @@ export default function ProgressionView({ chapters, totalPoints, streak, startDa
                   <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.50)' }}>{d.label}</span>
                   <span style={{ fontSize: 11, fontWeight: 600, color: 'rgba(255,255,255,0.60)' }}>{d.total}</span>
                 </div>
-                <div style={{ height: 4, borderRadius: 99, background: 'rgba(255,255,255,0.06)', overflow: 'hidden' }}>
+                <div style={{ height: 4, borderRadius: 99, background: 'var(--mq-stroke-soft)', overflow: 'hidden' }}>
                   <div style={{
                     height: '100%',
                     width: totalSec > 0 ? `${Math.round((d.total / totalSec) * 100)}%` : '0%',
@@ -189,8 +189,8 @@ export default function ProgressionView({ chapters, totalPoints, streak, startDa
           {/* Streak */}
           <div style={{
             flex: 1, padding: '18px 20px', borderRadius: 12,
-            background: 'rgba(255,255,255,0.02)',
-            border: '1px solid rgba(255,255,255,0.08)',
+            background: 'var(--mq-card-bg)',
+            border: '1px solid var(--mq-border)',
           }}>
             <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.55)', fontWeight: 600, letterSpacing: '0.3px', marginBottom: 14 }}>
               7 derniers jours
@@ -205,7 +205,7 @@ export default function ProgressionView({ chapters, totalPoints, streak, startDa
                       background: active
                         ? isToday ? 'rgba(255,255,255,0.35)' : 'rgba(255,255,255,0.15)'
                         : 'rgba(255,255,255,0.04)',
-                      border: `1px solid ${active ? 'rgba(255,255,255,0.20)' : 'rgba(255,255,255,0.06)'}`,
+                      border: `1px solid ${active ? 'rgba(255,255,255,0.20)' : 'var(--mq-stroke-soft)'}`,
                     }} />
                     <span style={{ fontSize: 9, color: 'rgba(255,255,255,0.30)', fontWeight: 500 }}>
                       {['L', 'M', 'M', 'J', 'V', 'S', 'D'][(new Date().getDay() + i - 6 + 7) % 7]}

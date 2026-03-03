@@ -42,14 +42,14 @@ export default function MemoireView({ chapters, questProgress, loadingKey, onQue
         <div>
           <h1 style={{
             fontSize: 24, fontWeight: 700, letterSpacing: '-0.5px', margin: 0,
-            color: 'rgba(255,255,255,0.90)',
+            color: 'var(--mq-text-primary)',
           }}>Mon mémoire</h1>
-          <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.40)', marginTop: 6 }}>
+          <p style={{ fontSize: 13, color: 'var(--mq-text-muted)', marginTop: 6 }}>
             {doneSec} / {totalSec} sections · {globalPct}%
           </p>
         </div>
         <div style={{ width: 200 }}>
-          <div style={{ height: 4, borderRadius: 99, background: 'rgba(255,255,255,0.08)', overflow: 'hidden' }}>
+          <div style={{ height: 4, borderRadius: 99, background: 'var(--mq-border)', overflow: 'hidden' }}>
             <div style={{
               height: '100%', width: `${globalPct}%`, borderRadius: 99,
               background: 'rgba(255,255,255,0.35)',
@@ -71,7 +71,7 @@ export default function MemoireView({ chapters, questProgress, loadingKey, onQue
           return (
             <div key={ch.num} style={{
               borderRadius: 12,
-              border: '1px solid rgba(255,255,255,0.08)',
+              border: '1px solid var(--mq-border)',
               background: 'rgba(255,255,255,0.02)',
               overflow: 'hidden',
               transition: 'border-color 0.2s',
@@ -101,7 +101,7 @@ export default function MemoireView({ chapters, questProgress, loadingKey, onQue
                     color: done ? 'rgba(255,255,255,0.55)' : 'rgba(255,255,255,0.90)',
                     whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
                   }}>{ch.title}{done && <span style={{ marginLeft: 6, fontSize: 11, color: 'rgba(255,255,255,0.50)' }}>✓</span>}</div>
-                  <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.40)', marginTop: 2 }}>
+                  <div style={{ fontSize: 11, color: 'var(--mq-text-muted)', marginTop: 2 }}>
                     {ch.done}/{ch.sections} sections
                   </div>
                 </div>
@@ -114,7 +114,7 @@ export default function MemoireView({ chapters, questProgress, loadingKey, onQue
                     </span>
                     <span style={{ fontSize: 10, fontWeight: 600, color: 'rgba(255,255,255,0.65)' }}>{pct}%</span>
                   </div>
-                  <div style={{ height: 3, borderRadius: 99, background: 'rgba(255,255,255,0.08)', overflow: 'hidden' }}>
+                  <div style={{ height: 3, borderRadius: 99, background: 'var(--mq-border)', overflow: 'hidden' }}>
                     <div style={{
                       height: '100%', width: `${pct}%`, borderRadius: 99,
                       background: done ? 'rgba(255,255,255,0.45)' : 'rgba(255,255,255,0.25)',
@@ -135,7 +135,7 @@ export default function MemoireView({ chapters, questProgress, loadingKey, onQue
               {/* Sections */}
               {isOpen && (
                 <div style={{ padding: '0 20px 16px', display: 'flex', flexDirection: 'column', gap: 6, maxHeight: 480, overflowY: 'auto' }}>
-                  <div style={{ height: 1, background: 'rgba(255,255,255,0.06)', marginBottom: 4 }} />
+                  <div style={{ height: 1, background: 'var(--mq-stroke-soft)', marginBottom: 4 }} />
                   {ch.sectionList.map((sec, i) => {
                     const isDone = chProgress[String(i)] === 'done'
                     const isNext = !isDone && Array.from({ length: i }, (_, j) => chProgress[String(j)] === 'done').every(Boolean)
@@ -150,7 +150,7 @@ export default function MemoireView({ chapters, questProgress, loadingKey, onQue
                           display: 'flex', alignItems: sec.hint ? 'flex-start' : 'center', gap: 12,
                           padding: '11px 16px', borderRadius: 10,
                           background: isNext ? 'rgba(255,255,255,0.05)' : 'rgba(255,255,255,0.02)',
-                          border: `1px solid ${isNext ? 'rgba(255,255,255,0.12)' : 'rgba(255,255,255,0.06)'}`,
+                          border: `1px solid ${isNext ? 'rgba(255,255,255,0.12)' : 'var(--mq-stroke-soft)'}`,
                           cursor: isClickable && !isLoading ? 'pointer' : 'default',
                           transition: 'all 0.15s',
                           opacity: isLoading ? 0.5 : 1,
@@ -159,8 +159,8 @@ export default function MemoireView({ chapters, questProgress, loadingKey, onQue
                         <div style={{
                           width: 24, height: 24, borderRadius: '50%', flexShrink: 0,
                           display: 'flex', alignItems: 'center', justifyContent: 'center',
-                          background: isDone ? 'rgba(255,255,255,0.10)' : isNext ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.04)',
-                          border: `1.5px solid ${isDone ? 'rgba(255,255,255,0.25)' : isNext ? 'rgba(255,255,255,0.20)' : 'rgba(255,255,255,0.08)'}`,
+                          background: isDone ? 'rgba(255,255,255,0.10)' : isNext ? 'var(--mq-border)' : 'var(--mq-card-bg)',
+                          border: `1.5px solid ${isDone ? 'rgba(255,255,255,0.25)' : isNext ? 'rgba(255,255,255,0.20)' : 'var(--mq-border)'}`,
                           fontSize: 10,
                         }}>
                           {isLoading ? <span style={{ color: 'rgba(255,255,255,0.4)', fontSize: 9 }}>…</span>
@@ -199,8 +199,8 @@ export default function MemoireView({ chapters, questProgress, loadingKey, onQue
                         <span style={{
                           fontSize: 9, fontWeight: 600, flexShrink: 0,
                           padding: '2px 7px', borderRadius: 99,
-                          background: 'rgba(255,255,255,0.06)',
-                          color: 'rgba(255,255,255,0.40)',
+                          background: 'var(--mq-stroke-soft)',
+                          color: 'var(--mq-text-muted)',
                         }}>
                           {sec.difficulty === 'hard' ? 'difficile' : sec.difficulty === 'medium' ? 'moyen' : 'facile'}
                         </span>

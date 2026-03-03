@@ -41,7 +41,7 @@ export default function HowItWorks() {
     >
       <h2
         id="how-it-works-title"
-        className="text-center text-2xl font-bold tracking-tight mb-10 text-white"
+        className="text-center text-2xl font-bold tracking-tight mb-10 text-white dark:text-zinc-100"
       >
         Comment ça marche ?
       </h2>
@@ -50,7 +50,7 @@ export default function HowItWorks() {
         {STEPS.map((step) => (
           <article
             key={step.number}
-            className="p-6 rounded-2xl bg-zinc-900 border border-zinc-800 hover:-translate-y-1 transition-all duration-300"
+            className="p-6 rounded-2xl bg-zinc-900 dark:bg-zinc-900 border border-zinc-800 dark:border-zinc-700 hover:-translate-y-1 transition-all duration-300"
           >
             <div className="flex items-center gap-3 mb-4">
               <div className="w-10 h-10 rounded-xl bg-indigo-500/10 flex items-center justify-center text-indigo-400 shrink-0">
@@ -60,8 +60,8 @@ export default function HowItWorks() {
                 {step.number}
               </span>
             </div>
-            <h3 className="text-sm font-semibold text-white tracking-tight mb-2">{step.title}</h3>
-            <p className="text-[13px] leading-relaxed text-zinc-400">{step.desc}</p>
+            <h3 className="text-sm font-semibold text-white dark:text-zinc-100 tracking-tight mb-2">{step.title}</h3>
+            <p className="text-[13px] leading-relaxed text-zinc-400 dark:text-zinc-400">{step.desc}</p>
           </article>
         ))}
       </div>

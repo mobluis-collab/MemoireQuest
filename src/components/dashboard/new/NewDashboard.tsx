@@ -8,6 +8,7 @@ import RateLimitWarning from '@/components/ui/RateLimitWarning'
 import MemoireView from './MemoireView'
 import ProgressionView from './ProgressionView'
 import AchievementsView from './AchievementsView'
+import { useTheme as useThemeToggle } from '@/context/ThemeProvider'
 
 /* ─── Types ───────────────────────────────────────────────────── */
 interface User {
@@ -81,12 +82,12 @@ function Arc({ pct }: { pct: number }) {
   return (
     <svg width={C2 * 2} height={C2 * 2} viewBox={`0 0 ${C2 * 2} ${C2 * 2}`}
       style={{ overflow: 'visible', flexShrink: 0 }}>
-      <circle cx={C2} cy={C2} r={R} fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth={SW} />
+      <circle cx={C2} cy={C2} r={R} fill="none" stroke="var(--mq-stroke-soft)" strokeWidth={SW} />
       <circle cx={C2} cy={C2} r={R} fill="none"
-        stroke="rgba(255,255,255,0.40)" strokeWidth={SW} strokeLinecap="round"
+        stroke="var(--mq-text-muted)" strokeWidth={SW} strokeLinecap="round"
         strokeDasharray={`${dash} ${circ}`} strokeDashoffset={circ * 0.25}
         style={{ animation: 'mq-arc-in 1.2s cubic-bezier(.4,0,.2,1) both' }} />
-      <text x={C2} y={C2 - 10} textAnchor="middle" fill="rgba(255,255,255,0.88)"
+      <text x={C2} y={C2 - 10} textAnchor="middle" fill="var(--mq-text-primary)"
         fontSize="34" fontWeight="800" fontFamily={FONT} letterSpacing="-1.5">{pct}</text>
       <text x={C2} y={C2 + 14} textAnchor="middle" fill="rgba(255,255,255,0.35)"
         fontSize="12" fontFamily={FONT} fontWeight="500">% terminé</text>
@@ -115,7 +116,7 @@ function DotGrid({ start, deadline }: { start: Date; deadline: Date }) {
                 background: isToday ? 'rgba(255,255,255,0.8)'
                   : isElapsed
                     ? `rgba(255,255,255,${0.12 + (i / elapsed) * 0.25})`
-                    : 'rgba(255,255,255,0.06)',
+                    : 'var(--mq-stroke-soft)',
                 animation: 'none',
                 transition: 'background 0.3s',
               }} />
@@ -141,8 +142,8 @@ function ChapterCard({ ch, onClick }: { ch: ChapterData; onClick: () => void }) 
       style={{
         position: 'relative', overflow: 'hidden',
         borderRadius: 12,
-        background: hovered ? 'rgba(255,255,255,0.07)' : 'rgba(255,255,255,0.03)',
-        border: '1px solid rgba(255,255,255,0.08)',
+        background: hovered ? 'var(--mq-card-hover)' : 'rgba(255,255,255,0.03)',
+        border: '1px solid var(--mq-border)',
         padding: '12px 16px',
         display: 'flex', alignItems: 'center',
         transition: 'all 0.15s',
@@ -155,7 +156,7 @@ function ChapterCard({ ch, onClick }: { ch: ChapterData; onClick: () => void }) 
       <div style={{
         position: 'absolute', left: 0, top: 0, bottom: 0,
         width: 2, borderRadius: '2px 0 0 2px',
-        background: done ? 'rgba(255,255,255,0.5)' : wip ? 'rgba(255,255,255,0.25)' : 'rgba(255,255,255,0.08)',
+        background: done ? 'rgba(255,255,255,0.5)' : wip ? 'rgba(255,255,255,0.25)' : 'var(--mq-border)',
       }} />
       {/* Content */}
       <div style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: 10, width: '100%', paddingLeft: 8 }}>
@@ -207,7 +208,7 @@ function SidePanel({
     <>
       <div onClick={onClose} style={{
         position: 'fixed', inset: 0, zIndex: 50,
-        background: 'rgba(4,3,14,0.55)',
+        background: 'var(--mq-bg-overlay)',
         backdropFilter: 'blur(4px)',
         animation: 'mq-overlay-in 0.25s ease both',
         cursor: 'pointer',
@@ -218,12 +219,12 @@ function SidePanel({
         display: 'flex', flexDirection: 'column',
         background: 'rgba(10,9,28,0.92)',
         backdropFilter: 'blur(40px) saturate(180%)',
-        borderLeft: '1px solid rgba(255,255,255,0.08)',
+        borderLeft: '1px solid var(--mq-border)',
         animation: 'mq-panel-in 0.3s cubic-bezier(.4,0,.2,1) both',
         boxShadow: '-20px 0 60px rgba(0,0,0,0.4)',
       }}>
         {/* Header */}
-        <div style={{ padding: '24px 24px 20px', borderBottom: '1px solid rgba(255,255,255,0.08)', flexShrink: 0 }}>
+        <div style={{ padding: '24px 24px 20px', borderBottom: '1px solid var(--mq-border)', flexShrink: 0 }}>
           <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 }}>
             <div>
               <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.5)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '1px', marginBottom: 6 }}>
@@ -244,8 +245,8 @@ function SidePanel({
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginTop: 16 }}>
             <svg width={70} height={70} viewBox="0 0 70 70" style={{ flexShrink: 0, overflow: 'visible' }}>
-              <circle cx={35} cy={35} r={R} fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth={SW} />
-              <circle cx={35} cy={35} r={R} fill="none" stroke="rgba(255,255,255,0.40)" strokeWidth={SW}
+              <circle cx={35} cy={35} r={R} fill="none" stroke="var(--mq-stroke-soft)" strokeWidth={SW} />
+              <circle cx={35} cy={35} r={R} fill="none" stroke="var(--mq-text-muted)" strokeWidth={SW}
                 strokeLinecap="round"
                 strokeDasharray={`${dash} ${circ}`}
                 strokeDashoffset={circ * 0.25} />
@@ -298,8 +299,8 @@ function SidePanel({
                   style={{
                     display: 'flex', alignItems: 'center', gap: 12,
                     padding: '12px 16px', borderRadius: 11,
-                    background: isDone ? 'rgba(255,255,255,0.04)' : isNext ? 'rgba(255,255,255,0.06)' : 'rgba(255,255,255,0.02)',
-                    border: `1px solid ${isNext ? 'rgba(255,255,255,0.15)' : 'rgba(255,255,255,0.06)'}`,
+                    background: isDone ? 'var(--mq-card-bg)' : isNext ? 'var(--mq-stroke-soft)' : 'rgba(255,255,255,0.02)',
+                    border: `1px solid ${isNext ? 'var(--mq-border-hover)' : 'var(--mq-stroke-soft)'}`,
                     transition: 'all 0.15s',
                     cursor: isClickable ? 'pointer' : 'default',
                     boxShadow: 'none',
@@ -353,7 +354,7 @@ function SidePanel({
         </div>
 
         {/* FIX: footer hint 0.4 → 0.60 */}
-        <div style={{ padding: '16px 20px', borderTop: '1px solid rgba(255,255,255,0.08)', flexShrink: 0 }}>
+        <div style={{ padding: '16px 20px', borderTop: '1px solid var(--mq-border)', flexShrink: 0 }}>
           <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.60)', textAlign: 'center' }}>
             Clique sur la prochaine section pour la valider
           </div>
@@ -392,7 +393,7 @@ function ConfettiBurst({ title, onDone }: { title: string; onDone: () => void })
       {/* Backdrop */}
       <div style={{
         position: 'absolute', inset: 0,
-        background: 'rgba(4,3,14,0.55)',
+        background: 'var(--mq-bg-overlay)',
         backdropFilter: 'blur(2px)',
         animation: 'mq-overlay-in 0.2s ease both',
       }} />
@@ -471,7 +472,7 @@ function ReuploadOverlay() {
       <div style={{
         width: 400, padding: '40px 36px',
         borderRadius: 20,
-        background: 'rgba(255,255,255,0.04)',
+        background: 'var(--mq-card-bg)',
         border: '1px solid rgba(255,255,255,0.10)',
         display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 24,
       }}>
@@ -485,10 +486,10 @@ function ReuploadOverlay() {
 
         {/* Titre */}
         <div style={{ textAlign: 'center' }}>
-          <div style={{ fontSize: 16, fontWeight: 700, color: 'rgba(255,255,255,0.88)', marginBottom: 4 }}>
+          <div style={{ fontSize: 16, fontWeight: 700, color: 'var(--mq-text-primary)', marginBottom: 4 }}>
             Analyse en cours
           </div>
-          <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.40)' }}>
+          <div style={{ fontSize: 12, color: 'var(--mq-text-muted)' }}>
             Régénération du plan avec conseils…
           </div>
         </div>
@@ -501,7 +502,7 @@ function ReuploadOverlay() {
           </div>
           <div style={{
             height: 5, borderRadius: 99,
-            background: 'rgba(255,255,255,0.08)', overflow: 'hidden',
+            background: 'var(--mq-border)', overflow: 'hidden',
           }}>
             <div style={{
               height: '100%', borderRadius: 99,
@@ -545,7 +546,7 @@ function OnboardingScreen({ firstName, onUpload, isLoading }: {
         margin: '0 0 10px', textAlign: 'center', lineHeight: 1.15,
       }}>Importe ton cahier des charges.</h1>
       <p style={{
-        fontSize: 16, color: 'rgba(255,255,255,0.40)',
+        fontSize: 16, color: 'var(--mq-text-muted)',
         margin: '0 0 40px', textAlign: 'center',
         fontWeight: 400,
       }}>On s&#39;occupe du reste.</p>
@@ -673,8 +674,10 @@ export default function NewDashboard({
     await onQuestComplete(chapterNumber, sectionIndex)
   }
 
+  const { isDark, toggle } = useThemeToggle()
+
   return (
-    <div style={{ fontFamily: FONT, height: '100vh', overflow: 'hidden', position: 'relative', display: 'flex', background: '#04030e' }}>
+    <div style={{ fontFamily: FONT, height: '100vh', overflow: 'hidden', position: 'relative', display: 'flex', background: 'var(--mq-bg)' }}>
 
       {/* ── CSS animations ── */}
       <style>{`
@@ -711,7 +714,7 @@ export default function NewDashboard({
         }
         ::-webkit-scrollbar { width: 4px; }
         ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 99px; }
+        ::-webkit-scrollbar-thumb { background: var(--mq-border-hover); border-radius: 99px; }
       `}</style>
 
       {/* ── Grain ── */}
@@ -742,13 +745,13 @@ export default function NewDashboard({
         width: 216, flexShrink: 0, height: '100vh',
         position: 'relative', zIndex: 10,
         display: 'flex', flexDirection: 'column',
-        background: 'rgba(255,255,255,0.027)',
+        background: 'var(--mq-sidebar-bg)',
         backdropFilter: 'blur(32px) saturate(180%)',
         WebkitBackdropFilter: 'blur(32px) saturate(180%)',
-        borderRight: '1px solid rgba(255,255,255,0.08)',
+        borderRight: '1px solid var(--mq-border)',
       }}>
         {/* Logo */}
-        <div style={{ padding: '24px 18px 16px', borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
+        <div style={{ padding: '24px 18px 16px', borderBottom: '1px solid var(--mq-card-hover)' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
             <div style={{
               width: 30, height: 30, borderRadius: 9,
@@ -766,14 +769,14 @@ export default function NewDashboard({
         </div>
 
         {/* Avatar */}
-        <div style={{ padding: '14px 14px 12px', borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
+        <div style={{ padding: '14px 14px 12px', borderBottom: '1px solid var(--mq-card-hover)' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
             <div style={{
               width: 34, height: 34, borderRadius: '50%', flexShrink: 0,
               background: 'rgba(255,255,255,0.1)',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               color: 'rgba(255,255,255,0.8)', fontSize: 14, fontWeight: 800,
-              border: '1px solid rgba(255,255,255,0.15)',
+              border: '1px solid var(--mq-border-hover)',
             }}>{firstInitial}</div>
             <div>
               <div style={{ fontSize: 13, fontWeight: 600, color: 'rgba(255,255,255,0.92)' }}>{firstName}</div>
@@ -783,13 +786,13 @@ export default function NewDashboard({
               </div>
             </div>
           </div>
-          <div style={{ height: 4, borderRadius: 99, background: 'rgba(255,255,255,0.08)', overflow: 'hidden', marginBottom: 4 }}>
+          <div style={{ height: 4, borderRadius: 99, background: 'var(--mq-border)', overflow: 'hidden', marginBottom: 4 }}>
             <div style={{
               height: '100%', width: `${xpPct}%`, borderRadius: 99,
               background: 'rgba(255,255,255,0.35)',
             }} />
           </div>
-          <div style={{ fontSize: 9, color: 'rgba(255,255,255,0.40)' }}>
+          <div style={{ fontSize: 9, color: 'var(--mq-text-muted)' }}>
             {totalPoints} XP{levelInfo.isMaxLevel ? '' : ` · encore ${xpToNext} avant le niv. ${currentLevel + 1}`}
           </div>
         </div>
@@ -802,7 +805,7 @@ export default function NewDashboard({
               <button key={i} onClick={() => setActiveView(item.view)} style={{
                 width: '100%', display: 'flex', alignItems: 'center', gap: 9,
                 padding: '8px 11px 8px 13px', borderRadius: 9, border: 'none', cursor: 'pointer',
-                background: active ? 'rgba(255,255,255,0.06)' : 'transparent',
+                background: active ? 'var(--mq-stroke-soft)' : 'transparent',
                 color: active ? 'rgba(255,255,255,0.90)' : 'rgba(255,255,255,0.45)',
                 fontSize: 13, fontWeight: active ? 600 : 400,
                 textAlign: 'left', transition: 'all 0.15s', marginBottom: 1,
@@ -816,7 +819,7 @@ export default function NewDashboard({
         </nav>
 
         {/* Re-upload + sign out */}
-        <div style={{ padding: '8px 7px', borderTop: '1px solid rgba(255,255,255,0.07)', display: 'flex', flexDirection: 'column', gap: 1 }}>
+        <div style={{ padding: '8px 7px', borderTop: '1px solid var(--mq-card-hover)', display: 'flex', flexDirection: 'column', gap: 1 }}>
           {plan && (
             <>
               <input
@@ -840,6 +843,16 @@ export default function NewDashboard({
               </button>
             </>
           )}
+          {/* Theme toggle */}
+          <button onClick={toggle} style={{
+            width: '100%', display: 'flex', alignItems: 'center', gap: 9,
+            padding: '8px 11px', borderRadius: 9, border: 'none', cursor: 'pointer',
+            background: 'transparent', color: 'var(--mq-text-secondary)', fontSize: 12, textAlign: 'left',
+            transition: 'color 0.15s',
+          }}>
+            <span style={{ fontSize: 13 }}>{isDark ? '☀' : '☽'}</span>
+            {isDark ? 'Mode clair' : 'Mode sombre'}
+          </button>
           <button onClick={handleSignOut} style={{
             width: '100%', display: 'flex', alignItems: 'center', gap: 9,
             padding: '8px 11px', borderRadius: 9, border: 'none', cursor: 'pointer',
@@ -919,9 +932,9 @@ export default function NewDashboard({
               <div>
                 <h1 style={{
                   fontSize: 24, fontWeight: 700, letterSpacing: '-0.5px', margin: 0,
-                  color: 'rgba(255,255,255,0.88)',
+                  color: 'var(--mq-text-primary)',
                 }}>Bonjour, {firstName}.</h1>
-                <p style={{ fontSize: 12.5, color: 'rgba(255,255,255,0.40)', marginTop: 3 }}>
+                <p style={{ fontSize: 12.5, color: 'var(--mq-text-muted)', marginTop: 3 }}>
                   {isAhead
                     ? `En avance de ${delta}% sur le planning.`
                     : `${delta}% de retard — une section à la fois.`}
@@ -952,7 +965,7 @@ export default function NewDashboard({
               {/* HERO: countdown + dot grid */}
               <div style={{
                 borderRadius: 18,
-                border: '1px solid rgba(255,255,255,0.08)',
+                border: '1px solid var(--mq-border)',
                 background: 'rgba(255,255,255,0.02)',
               }}>
                 <div style={{
@@ -986,7 +999,7 @@ export default function NewDashboard({
                   {/* Timeline bar */}
                   <div>
                     {/* FIX: track was 0.06 → 0.14 */}
-                    <div style={{ height: 2, borderRadius: 99, background: 'rgba(255,255,255,0.08)', overflow: 'visible', position: 'relative', marginBottom: 7 }}>
+                    <div style={{ height: 2, borderRadius: 99, background: 'var(--mq-border)', overflow: 'visible', position: 'relative', marginBottom: 7 }}>
                       <div style={{ height: '100%', width: `${timePct}%`, borderRadius: 99, background: 'rgba(255,255,255,0.30)' }} />
                       <div style={{ position: 'absolute', left: `${timePct}%`, top: '50%', transform: 'translate(-50%,-50%)', width: 6, height: 6, borderRadius: '50%', background: 'rgba(255,255,255,0.6)' }} />
                     </div>
@@ -1003,7 +1016,7 @@ export default function NewDashboard({
               {/* ARC progress */}
               <div style={{
                 borderRadius: 18,
-                border: '1px solid rgba(255,255,255,0.08)',
+                border: '1px solid var(--mq-border)',
                 background: 'rgba(255,255,255,0.02)',
               }}>
                 <div style={{
@@ -1023,7 +1036,7 @@ export default function NewDashboard({
                     ].map(s => (
                       <div key={s.label} style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 9 }}>
                         <span style={{ fontSize: 11.5, color: 'rgba(255,255,255,0.50)' }}>{s.label}</span>
-                        <div style={{ flex: 1, borderBottom: '1px dashed rgba(255,255,255,0.06)', marginBottom: 2 }} />
+                        <div style={{ flex: 1, borderBottom: '1px dashed var(--mq-stroke-soft)', marginBottom: 2 }} />
                         <span style={{ fontSize: 11.5, fontWeight: 600, color: 'rgba(255,255,255,0.80)' }}>{s.val}</span>
                       </div>
                     ))}
@@ -1035,7 +1048,7 @@ export default function NewDashboard({
               <div style={{
                 gridColumn: '1/3',
                 borderRadius: 18,
-                border: '1px solid rgba(255,255,255,0.08)',
+                border: '1px solid var(--mq-border)',
                 background: 'rgba(255,255,255,0.02)',
               }}>
                 <div style={{
@@ -1062,13 +1075,13 @@ export default function NewDashboard({
                   ].map((s, i) => (
                     <div key={i} style={{
                       flex: 1, textAlign: 'center',
-                      borderRight: i < 2 ? '1px solid rgba(255,255,255,0.06)' : 'none',
+                      borderRight: i < 2 ? '1px solid var(--mq-stroke-soft)' : 'none',
                       padding: '0 24px',
                     }}>
-                      <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.40)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.8px', marginBottom: 4 }}>
+                      <div style={{ fontSize: 10, color: 'var(--mq-text-muted)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.8px', marginBottom: 4 }}>
                         {s.label}
                       </div>
-                      <div style={{ fontSize: 32, fontWeight: 800, letterSpacing: '-1px', lineHeight: 1, color: 'rgba(255,255,255,0.88)', marginBottom: 4 }}>
+                      <div style={{ fontSize: 32, fontWeight: 800, letterSpacing: '-1px', lineHeight: 1, color: 'var(--mq-text-primary)', marginBottom: 4 }}>
                         {s.val}
                       </div>
                       <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)' }}>{s.sub}</div>

@@ -43,7 +43,7 @@ export function CookieBanner({ onAccept, onRefuse }: CookieBannerProps = {}) {
       />
 
       {/* Modal */}
-      <div className="relative bg-zinc-950 border border-zinc-700 rounded-2xl p-6 max-w-md w-full shadow-2xl shadow-black/80">
+      <div className="relative bg-zinc-950 dark:bg-zinc-950 border border-zinc-700 dark:border-zinc-700 rounded-2xl p-6 max-w-md w-full shadow-2xl shadow-black/80">
         <div
           className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-zinc-500/30 to-transparent rounded-t-2xl"
           aria-hidden="true"
