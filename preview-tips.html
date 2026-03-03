@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MemoireQuest — Preview Tips</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #04030e;
+    color: rgba(255,255,255,0.85);
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Helvetica Neue', sans-serif;
+    display: flex;
+    height: 100vh;
+  }
+
+  /* Sidebar */
+  .sidebar {
+    width: 210px;
+    border-right: 1px solid rgba(255,255,255,0.08);
+    padding: 24px 16px;
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+  }
+  .sidebar .logo { font-size: 15px; font-weight: 700; margin-bottom: 4px; }
+  .sidebar .version { font-size: 11px; color: rgba(255,255,255,0.35); margin-bottom: 28px; }
+  .sidebar .user { font-size: 14px; font-weight: 600; margin-bottom: 2px; }
+  .sidebar .level { font-size: 11px; color: rgba(255,255,255,0.45); margin-bottom: 24px; }
+  .sidebar nav a {
+    display: block; padding: 8px 12px; border-radius: 8px;
+    color: rgba(255,255,255,0.55); font-size: 13px; text-decoration: none;
+    margin-bottom: 2px;
+  }
+  .sidebar nav a.active {
+    background: rgba(255,255,255,0.06);
+    color: rgba(255,255,255,0.90);
+  }
+
+  /* Main */
+  main {
+    flex: 1;
+    height: 100vh;
+    overflow: auto;
+    padding: 24px 36px 40px;
+  }
+
+  /* Header */
+  .header { margin-bottom: 20px; }
+  .header h1 { font-size: 24px; font-weight: 700; letter-spacing: -0.5px; }
+  .header .sub { font-size: 13px; color: rgba(255,255,255,0.45); margin-top: 6px; }
+
+  /* Chapter card */
+  .chapter {
+    border-radius: 12px;
+    border: 1px solid rgba(255,255,255,0.08);
+    background: rgba(255,255,255,0.02);
+    margin-bottom: 6px;
+    overflow: hidden;
+  }
+  .chapter-header {
+    display: flex; align-items: center; gap: 14px;
+    padding: 14px 20px; cursor: pointer;
+    transition: background 0.15s;
+  }
+  .chapter-header:hover { background: rgba(255,255,255,0.03); }
+  .chapter-num {
+    font-size: 11px; color: rgba(255,255,255,0.45);
+    font-weight: 600; flex-shrink: 0; width: 20px;
+  }
+  .chapter-title { flex: 1; }
+  .chapter-title .name { font-size: 14px; font-weight: 500; }
+  .chapter-title .count { font-size: 11px; color: rgba(255,255,255,0.45); margin-top: 2px; }
+  .chapter-status { font-size: 10px; color: rgba(255,255,255,0.45); }
+  .chapter-pct { font-size: 10px; font-weight: 600; color: rgba(255,255,255,0.65); margin-left: 8px; }
+
+  /* Chapter tips — CE QUI MANQUE ACTUELLEMENT */
+  .chapter-tips {
+    padding: 0 20px;
+    margin-bottom: 12px;
+  }
+  .chapter-tips-content {
+    padding: 10px 14px;
+    border-radius: 8px;
+    background: rgba(255,255,255,0.03);
+    border-left: 2px solid rgba(255,255,255,0.12);
+    font-size: 12px;
+    line-height: 1.55;
+    color: rgba(255,255,255,0.40);
+    font-style: italic;
+  }
+  .chapter-tips-label {
+    font-size: 10px;
+    color: rgba(255,255,255,0.25);
+    font-style: normal;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+    margin-bottom: 4px;
+  }
+
+  /* Sections */
+  .sections { padding: 0 20px 16px; display: flex; flex-direction: column; gap: 6px; }
+  .sections .sep { height: 1px; background: rgba(255,255,255,0.06); margin-bottom: 4px; }
+
+  .section-item {
+    display: flex; align-items: center; gap: 12px;
+    padding: 11px 16px; border-radius: 10px;
+    background: rgba(255,255,255,0.02);
+    border: 1px solid rgba(255,255,255,0.06);
+  }
+  .section-item.next {
+    background: rgba(255,255,255,0.05);
+    border-color: rgba(255,255,255,0.12);
+  }
+
+  .status-circle {
+    width: 24px; height: 24px; border-radius: 50%; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 10px;
+  }
+  .status-circle.done {
+    background: rgba(255,255,255,0.10);
+    border: 1.5px solid rgba(255,255,255,0.25);
+    color: rgba(255,255,255,0.55);
+  }
+  .status-circle.next {
+    background: rgba(255,255,255,0.08);
+    border: 1.5px solid rgba(255,255,255,0.20);
+    color: rgba(255,255,255,0.6);
+    font-weight: 800; font-size: 9px;
+  }
+  .status-circle.locked {
+    background: rgba(255,255,255,0.02);
+    border: 1.5px solid rgba(255,255,255,0.08);
+    color: rgba(255,255,255,0.20);
+  }
+
+  .section-text { flex: 1; }
+  .section-text .name {
+    font-size: 13px;
+    color: rgba(255,255,255,0.65);
+  }
+  .section-text .name.next-name { font-weight: 600; color: rgba(255,255,255,0.90); }
+  .section-text .name.done-name { color: rgba(255,255,255,0.50); }
+  .section-text .action { font-size: 10px; color: rgba(255,255,255,0.45); margin-top: 2px; }
+
+  .difficulty {
+    font-size: 9px; font-weight: 600; flex-shrink: 0;
+    padding: 2px 7px; border-radius: 99px;
+    background: rgba(255,255,255,0.06);
+    color: rgba(255,255,255,0.45);
+  }
+
+  .chevron {
+    font-size: 14px; color: rgba(255,255,255,0.35);
+    flex-shrink: 0; transition: transform 0.2s;
+  }
+  .chevron.open { transform: rotate(180deg); }
+
+  /* Annotation arrows */
+  .annotation {
+    position: fixed;
+    background: rgba(120, 200, 255, 0.15);
+    border: 1px solid rgba(120, 200, 255, 0.4);
+    border-radius: 8px;
+    padding: 8px 12px;
+    font-size: 12px;
+    color: rgba(120, 200, 255, 0.9);
+    font-weight: 500;
+    z-index: 100;
+    pointer-events: none;
+  }
+</style>
+</head>
+<body>
+
+<!-- Sidebar -->
+<div class="sidebar">
+  <div class="logo">MemoireQuest</div>
+  <div class="version">Thesis OS v1.0</div>
+  <div class="user">Louis</div>
+  <div class="level">Niv. 4 · Chercheur Jr.</div>
+  <nav>
+    <a href="#">Dashboard</a>
+    <a href="#" class="active">Mon memoire</a>
+    <a href="#">Progression</a>
+    <a href="#">Achievements</a>
+  </nav>
+</div>
+
+<!-- Main content -->
+<main>
+  <div class="header">
+    <h1>Mon memoire</h1>
+    <div class="sub">45 / 50 sections · 90%</div>
+  </div>
+
+  <!-- Chapter 1 — OPEN with tips -->
+  <div class="chapter">
+    <div class="chapter-header" onclick="this.parentElement.classList.toggle('collapsed')">
+      <span class="chapter-num">1</span>
+      <div class="chapter-title">
+        <div class="name">Introduction et contexte du projet</div>
+        <div class="count">3/5 sections</div>
+      </div>
+      <span class="chapter-status">En cours</span>
+      <span class="chapter-pct">60%</span>
+      <span class="chevron open">&#9662;</span>
+    </div>
+
+    <!-- TIPS DU CHAPITRE — NOUVEAU -->
+    <div class="chapter-tips">
+      <div class="chapter-tips-content">
+        <div class="chapter-tips-label">Conseils du cahier des charges</div>
+        Commence par decrire clairement qui est ton client (secteur, taille, positionnement actuel). Assure-toi d'avoir rencontre le client pour identifier ses besoins reels. Documente les echanges preliminaires pour justifier ton positionnement consultant/client.
+      </div>
+    </div>
+
+    <div class="sections">
+      <div class="sep"></div>
+      <!-- Section done -->
+      <div class="section-item">
+        <div class="status-circle done">&#10003;</div>
+        <div class="section-text">
+          <div class="name done-name">Presentation du projet pedagogique et de ses objectifs</div>
+          <div class="action">Cliquer pour annuler</div>
+        </div>
+        <span class="difficulty">facile</span>
+      </div>
+      <!-- Section done -->
+      <div class="section-item">
+        <div class="status-circle done">&#10003;</div>
+        <div class="section-text">
+          <div class="name done-name">Identification et presentation du client</div>
+          <div class="action">Cliquer pour annuler</div>
+        </div>
+        <span class="difficulty">facile</span>
+      </div>
+      <!-- Section done -->
+      <div class="section-item">
+        <div class="status-circle done">&#10003;</div>
+        <div class="section-text">
+          <div class="name done-name">Contexte et besoins en communication du client</div>
+          <div class="action">Cliquer pour annuler</div>
+        </div>
+        <span class="difficulty">moyen</span>
+      </div>
+      <!-- Section NEXT -->
+      <div class="section-item next">
+        <div class="status-circle next">&rarr;</div>
+        <div class="section-text">
+          <div class="name next-name">Enjeux de la communication responsable dans le projet</div>
+          <div class="action">Cliquer pour valider</div>
+        </div>
+        <span class="difficulty">moyen</span>
+      </div>
+      <!-- Section locked -->
+      <div class="section-item">
+        <div class="status-circle locked">5</div>
+        <div class="section-text">
+          <div class="name">Annonce du plan et de la methodologie adoptee</div>
+        </div>
+        <span class="difficulty">moyen</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Chapter 2 — CLOSED -->
+  <div class="chapter">
+    <div class="chapter-header">
+      <span class="chapter-num">2</span>
+      <div class="chapter-title">
+        <div class="name">Diagnostic et analyse strategique (Bloc 1)</div>
+        <div class="count">7/9 sections</div>
+      </div>
+      <span class="chapter-status">En cours</span>
+      <span class="chapter-pct">78%</span>
+      <span class="chevron">&#9662;</span>
+    </div>
+  </div>
+
+  <!-- Chapter 3 -->
+  <div class="chapter">
+    <div class="chapter-header">
+      <span class="chapter-num">3</span>
+      <div class="chapter-title">
+        <div class="name">Creation des contenus media et hors-media (Bloc 2)</div>
+        <div class="count">5/6 sections</div>
+      </div>
+      <span class="chapter-status">En cours</span>
+      <span class="chapter-pct">83%</span>
+      <span class="chevron">&#9662;</span>
+    </div>
+  </div>
+
+  <!-- Chapter 4 -->
+  <div class="chapter">
+    <div class="chapter-header">
+      <span class="chapter-num">4</span>
+      <div class="chapter-title">
+        <div class="name">Deploiement du plan de communication (Bloc 3) &#10003;</div>
+        <div class="count">7/7 sections</div>
+      </div>
+      <span class="chapter-status">Termine</span>
+      <span class="chapter-pct">100%</span>
+      <span class="chevron">&#9662;</span>
+    </div>
+  </div>
+
+  <!-- Chapter 5 -->
+  <div class="chapter">
+    <div class="chapter-header">
+      <span class="chapter-num">5</span>
+      <div class="chapter-title">
+        <div class="name">Gestion de projet et pilotage (Bloc 4) &#10003;</div>
+        <div class="count">7/7 sections</div>
+      </div>
+      <span class="chapter-status">Termine</span>
+      <span class="chapter-pct">100%</span>
+      <span class="chevron">&#9662;</span>
+    </div>
+  </div>
+
+  <!-- Chapter 6 -->
+  <div class="chapter">
+    <div class="chapter-header">
+      <span class="chapter-num">6</span>
+      <div class="chapter-title">
+        <div class="name">Relation client et presentation de la proposition &#10003;</div>
+        <div class="count">6/6 sections</div>
+      </div>
+      <span class="chapter-status">Termine</span>
+      <span class="chapter-pct">100%</span>
+      <span class="chevron">&#9662;</span>
+    </div>
+  </div>
+
+  <!-- Chapter 7 -->
+  <div class="chapter">
+    <div class="chapter-header">
+      <span class="chapter-num">7</span>
+      <div class="chapter-title">
+        <div class="name">Reflexion critique et apprentissages &#10003;</div>
+        <div class="count">4/4 sections</div>
+      </div>
+      <span class="chapter-status">Termine</span>
+      <span class="chapter-pct">100%</span>
+      <span class="chevron">&#9662;</span>
+    </div>
+  </div>
+
+  <!-- Chapter 8 / Annexe -->
+  <div class="chapter">
+    <div class="chapter-header">
+      <span class="chapter-num" style="max-width: 52px; overflow: hidden; text-overflow: ellipsis;">Annexe 1</span>
+      <div class="chapter-title">
+        <div class="name">Annexe recherche : Communication, competences et nouvelles realites &#10003;</div>
+        <div class="count">6/6 sections</div>
+      </div>
+      <span class="chapter-status">Termine</span>
+      <span class="chapter-pct">100%</span>
+      <span class="chevron">&#9662;</span>
+    </div>
+  </div>
+
+  <div style="height: 40px;"></div>
+</main>
+
+</body>
+</html>
