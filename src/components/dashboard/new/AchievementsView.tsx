@@ -11,10 +11,12 @@ interface Achievement {
   group: string
 }
 
+import { SectionProgress } from '@/types/memoir'
+
 interface AchievementsViewProps {
   totalPoints: number
   streak: { current: number; jokers: number }
-  questProgress: Record<string, Record<string, 'done'>>
+  questProgress: Record<string, Record<string, SectionProgress>>
   chapters: Array<{ num: string; title: string; sections: number; done: number }>
 }
 
@@ -23,7 +25,7 @@ interface AchievementsViewProps {
 function buildAchievements(
   totalPoints: number,
   streak: { current: number },
-  questProgress: Record<string, Record<string, 'done'>>,
+  questProgress: Record<string, Record<string, SectionProgress>>,
   chapters: Array<{ num: string; sections: number; done: number }>,
 ): Achievement[] {
   const totalSec = chapters.reduce((a, c) => a + c.sections, 0)

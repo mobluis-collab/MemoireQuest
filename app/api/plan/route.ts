@@ -26,12 +26,13 @@ INSTRUCTIONS :
 - Respecte la structure attendue par l'établissement si elle est précisée dans le document. Sinon, propose une structure académique standard adaptée au type de mémoire.
 - Les tips doivent être concrets et utiles (ex: "Commence par une revue de littérature sur 3-4 sources clés avant de rédiger ta problématique").
 
-CONSEILS PAR SECTION (hint) :
-- Chaque section doit contenir un champ "hint" : un conseil court (1-2 phrases max) et actionnable pour l'étudiant.
-- Le hint doit être STRICTEMENT basé sur le contenu du cahier des charges fourni. NE JAMAIS inventer de méthodologies, outils ou exigences non mentionnés dans le document.
-- Si le cahier des charges mentionne des attentes spécifiques pour une section (ex: "réaliser un SWOT", "faire un benchmark"), le hint DOIT les reprendre.
-- Si le cahier des charges ne donne pas de consigne spécifique pour une section, formuler un conseil générique lié au titre de la section sans inventer de contenu.
-- Les hints doivent aider l'étudiant à comprendre concrètement ce qui est attendu dans chaque section.
+SOUS-TACHES PAR SECTION (tasks) :
+- Chaque section doit contenir un champ "tasks" : un tableau de 2 à 4 sous-tâches concrètes et actionnables.
+- Chaque sous-tâche est une action courte à la voix active (ex: "Réaliser le SWOT", "Identifier les 3 concurrents principaux", "Rédiger l'introduction du chapitre").
+- Les tasks doivent être STRICTEMENT basées sur le contenu du cahier des charges. NE JAMAIS inventer de méthodologies ou exigences non mentionnées dans le document.
+- Si le cahier des charges précise des attentes pour une section, les tasks DOIVENT les reprendre directement.
+- Si aucune précision dans le document, formuler des tasks génériques cohérentes avec le titre de la section.
+- Les tasks doivent être des étapes de travail réelles et distinctes, pas de simples paraphrases du titre de section.
 
 ATTRIBUTION DE DIFFICULTÉ ET XP :
 - Chaque section doit avoir une difficulté : "easy", "medium", ou "hard"
@@ -54,7 +55,7 @@ Réponds UNIQUEMENT en JSON valide selon ce schéma exact :
         {
           "text": "string",
           "difficulty": "easy" | "medium" | "hard",
-          "hint": "string (conseil concret basé UNIQUEMENT sur le cahier des charges)"
+          "tasks": ["string (sous-tâche 1)", "string (sous-tâche 2)", "string (sous-tâche 3)"]
         }
       ],
       "tips": "string"
@@ -73,7 +74,7 @@ const MAX_FILE_SIZE = 10 * 1024 * 1024 // 10 MB
 const SectionSchema = z.object({
   text: z.string(),
   difficulty: z.enum(['easy', 'medium', 'hard']),
-  hint: z.string().min(1),
+  tasks: z.array(z.string().min(1)).min(2).max(4),
 })
 
 const ChapterSchema = z.object({
@@ -154,7 +155,7 @@ export async function POST(request: Request) {
                 },
                 {
                   type: 'text',
-                  text: 'Génère le plan de mémoire en JSON. IMPORTANT : chaque section DOIT obligatoirement inclure un champ "hint" avec un conseil concret et actionnable basé sur le contenu du document. Ne jamais omettre le hint.',
+                  text: 'Génère le plan de mémoire en JSON. IMPORTANT : chaque section DOIT obligatoirement inclure un champ "tasks" avec un tableau de 2 à 4 sous-tâches concrètes et actionnables. Ne jamais omettre le tableau tasks.',
                 },
               ],
             },

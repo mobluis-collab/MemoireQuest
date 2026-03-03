@@ -4,6 +4,7 @@ export interface Section {
   text: string
   difficulty: 'easy' | 'medium' | 'hard'
   hint?: string
+  tasks?: string[]
 }
 
 export interface Chapter {
@@ -22,8 +23,16 @@ export interface MemoirePlan {
 
 export type ChapterProgress = Record<string, ChapterStatus>
 
-// Quest progress : chapterNumber -> sectionIndex -> 'done'
-export type QuestProgress = Record<string, Record<number, 'done'>>
+export type SectionProgress = 'done' | { tasks: boolean[] }
+
+export function isSectionDone(p: SectionProgress | undefined): boolean {
+  if (!p) return false
+  if (p === 'done') return true
+  return p.tasks.every(Boolean)
+}
+
+// Quest progress : chapterNumber -> sectionIndex -> SectionProgress (retro-compat: 'done' ou { tasks: boolean[] })
+export type QuestProgress = Record<string, Record<number, SectionProgress>>
 
 export interface StreakData {
   current: number

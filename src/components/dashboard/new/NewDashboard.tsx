@@ -1,7 +1,8 @@
 'use client'
 
 import { useState, useMemo, useEffect, useRef, useCallback, CSSProperties, ChangeEvent } from 'react'
-import type { MemoirePlan, QuestProgress, StreakData } from '@/types/memoir'
+import type { MemoirePlan, QuestProgress, StreakData, SectionProgress } from '@/types/memoir'
+import { isSectionDone } from '@/types/memoir'
 import { getLevelProgress } from '@/lib/xp/levels'
 import UploadZone from '@/components/dashboard/UploadZone'
 import RateLimitWarning from '@/components/ui/RateLimitWarning'
@@ -22,7 +23,8 @@ interface ChapterData {
   objective: string
   sections: number
   done: number
-  sectionList: Array<{ text: string; difficulty: 'easy' | 'medium' | 'hard'; hint?: string }>
+  tips?: string
+  sectionList: Array<{ text: string; difficulty: 'easy' | 'medium' | 'hard'; hint?: string; tasks?: string[] }>
 }
 
 export interface NewDashboardProps {
@@ -37,6 +39,7 @@ export interface NewDashboardProps {
   planCreatedAt?: string
   onUpload: (file: File) => Promise<void>
   onQuestComplete: (chapterNumber: string, sectionIndex: number) => Promise<void>
+  onSubtaskToggle: (chapterNumber: string, sectionIndex: number, taskIndex: number) => Promise<void>
   loadingKey: string | null
 }
 
@@ -195,7 +198,7 @@ function SidePanel({
   onSectionComplete,
 }: {
   ch: ChapterData
-  chapterProgress: Record<string, 'done'>
+  chapterProgress: Record<string, SectionProgress>
   loadingKey: string | null
   onClose: () => void
   onSectionComplete: (sectionIndex: number) => void
@@ -289,8 +292,8 @@ function SidePanel({
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
             {ch.sectionList.map((sec, i) => {
-              const isDone = chapterProgress[String(i)] === 'done'
-              const isNext = !isDone && ch.sectionList.slice(0, i).every((_, j) => chapterProgress[String(j)] === 'done')
+              const isDone = isSectionDone(chapterProgress[String(i)])
+              const isNext = !isDone && ch.sectionList.slice(0, i).every((_, j) => isSectionDone(chapterProgress[String(j)]))
               const isLoading = loadingKey === `${ch.num}:${i}`
               const isClickable = isDone || isNext
               return (
@@ -579,6 +582,7 @@ export default function NewDashboard({
   planCreatedAt,
   onUpload,
   onQuestComplete,
+  onSubtaskToggle,
   loadingKey,
 }: NewDashboardProps) {
   const [activeView, setActiveView] = useState<ActiveView>('dashboard')
@@ -615,8 +619,16 @@ export default function NewDashboard({
     if (!plan) return []
     return plan.chapters.map(ch => {
       const chP = questProgress[ch.number] ?? {}
-      const done = Object.values(chP).filter(v => v === 'done').length
-      return { num: ch.number, title: ch.title, objective: ch.objective ?? '', sections: ch.sections.length, done, sectionList: ch.sections }
+      const done = Object.values(chP).filter(v => isSectionDone(v as SectionProgress)).length
+      return {
+        num: ch.number,
+        title: ch.title,
+        objective: ch.objective ?? '',
+        sections: ch.sections.length,
+        done,
+        tips: ch.tips,
+        sectionList: ch.sections,
+      }
     })
   }, [plan, questProgress])
 
@@ -672,6 +684,10 @@ export default function NewDashboard({
   /* ── Quest complete ── */
   const handleSectionComplete = async (chapterNumber: string, sectionIndex: number) => {
     await onQuestComplete(chapterNumber, sectionIndex)
+  }
+
+  const handleSubtaskToggle = async (chapterNumber: string, sectionIndex: number, taskIndex: number) => {
+    await onSubtaskToggle(chapterNumber, sectionIndex, taskIndex)
   }
 
   const { isDark, toggle } = useThemeToggle()
@@ -895,7 +911,7 @@ export default function NewDashboard({
                     )
                   }
                   loadingKey={loadingKey}
-                  onQuestComplete={handleSectionComplete}
+                  onSubtaskToggle={handleSubtaskToggle}
                 />
               )}
               {activeView === 'progression' && (

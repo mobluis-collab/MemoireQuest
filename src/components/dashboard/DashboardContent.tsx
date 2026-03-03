@@ -1,7 +1,8 @@
 'use client'
 
 import { useState, useMemo } from 'react'
-import type { MemoirePlan, QuestProgress, StreakData } from '@/types/memoir'
+import type { MemoirePlan, QuestProgress, StreakData, SectionProgress } from '@/types/memoir'
+import { isSectionDone } from '@/types/memoir'
 import type { ComboState } from '@/lib/combo'
 import NewDashboard from './new/NewDashboard'
 import PrestigeModal from '@/components/prestige/PrestigeModal'
@@ -55,7 +56,7 @@ export default function DashboardContent({
     if (!plan) return { totalQuests: 0, completedQuests: 0 }
     const total = plan.chapters.reduce((acc, ch) => acc + ch.sections.length, 0)
     const completed = Object.values(questProgress).reduce((acc, chapterProgress) => {
-      return acc + Object.values(chapterProgress).filter(v => v === 'done').length
+      return acc + Object.values(chapterProgress).filter(v => isSectionDone(v as SectionProgress)).length
     }, 0)
     return { totalQuests: total, completedQuests: completed }
   }, [plan, questProgress])
@@ -172,6 +173,46 @@ export default function DashboardContent({
     }
   }
 
+  const handleSubtaskToggle = async (chapterNumber: string, sectionIndex: number, taskIndex: number) => {
+    const key = `${chapterNumber}:${sectionIndex}:${taskIndex}`
+    setLoadingKey(key)
+    try {
+      const res = await fetch('/api/quests/complete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ chapterNumber, sectionIndex, taskIndex }),
+      })
+      if (!res.ok) {
+        showToast('Erreur lors de la mise à jour de la sous-tâche.', 'error')
+        return
+      }
+      const data = await res.json() as {
+        questProgress: QuestProgress
+        totalPoints: number
+        streak: StreakData
+        comboState: ComboState
+      }
+
+      const oldLevel = calculateLevel(totalPoints)
+      const newLevel = calculateLevel(data.totalPoints)
+
+      setQuestProgress(data.questProgress)
+      setTotalPoints(data.totalPoints)
+      setStreak(data.streak)
+      setComboState(data.comboState)
+
+      if (newLevel > oldLevel) {
+        if (newLevel === MAX_LEVEL) {
+          showToast(`🏆 Niveau ${newLevel} atteint ! Niveau maximum !`, 'success')
+        } else {
+          showToast(`✨ Niveau ${newLevel} atteint !`, 'success')
+        }
+      }
+    } finally {
+      setLoadingKey(null)
+    }
+  }
+
   const handlePrestige = async () => {
     if (!isEligibleForPrestige || isPrestiging) return
     setIsPrestiging(true)
@@ -217,6 +258,7 @@ export default function DashboardContent({
         planCreatedAt={planCreatedAt}
         onUpload={handleUpload}
         onQuestComplete={handleQuestComplete}
+        onSubtaskToggle={handleSubtaskToggle}
         loadingKey={loadingKey}
       />
       {plan && (
