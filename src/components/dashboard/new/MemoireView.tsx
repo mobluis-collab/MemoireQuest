@@ -35,7 +35,7 @@ export default function MemoireView({ chapters, questProgress, loadingKey, onQue
   const globalPct = totalSec > 0 ? Math.round((doneSec / totalSec) * 100) : 0
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 16, height: '100%', overflow: 'auto' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
 
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0, marginBottom: 12 }}>
@@ -60,7 +60,7 @@ export default function MemoireView({ chapters, questProgress, loadingKey, onQue
       </div>
 
       {/* Chapters list */}
-      <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 6, paddingRight: 4 }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
         {chapters.map(ch => {
           const isOpen = openChapter === ch.num
           const isHovered = hoveredChapter === ch.num
