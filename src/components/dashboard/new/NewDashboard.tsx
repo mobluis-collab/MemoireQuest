@@ -865,7 +865,7 @@ export default function NewDashboard({
 
       {/* ── MAIN ── */}
       <main style={{
-        flex: 1, height: '100vh', overflow: 'hidden',
+        flex: 1, height: '100vh', overflow: 'auto',
         padding: '24px 36px 20px',
         position: 'relative', zIndex: 1,
         display: 'flex', flexDirection: 'column', gap: 10,
