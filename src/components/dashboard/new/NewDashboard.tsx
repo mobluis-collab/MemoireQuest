@@ -883,7 +883,7 @@ export default function NewDashboard({
           <>
           {/* ── Non-dashboard views ── */}
           {activeView !== 'dashboard' && (
-            <div style={{ flex: 1, minHeight: 0, overflow: 'hidden' }}>
+            <div style={{ flex: 1, minHeight: 0, overflow: 'auto' }}>
               {activeView === 'memoire' && (
                 <MemoireView
                   chapters={chapters}

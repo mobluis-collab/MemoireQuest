@@ -75,6 +75,7 @@ export default function MemoireView({ chapters, questProgress, loadingKey, onQue
               background: 'rgba(255,255,255,0.02)',
               overflow: 'hidden',
               transition: 'border-color 0.2s',
+              flexShrink: 0,
             }}>
               {/* Chapter header */}
               <div
@@ -134,7 +135,7 @@ export default function MemoireView({ chapters, questProgress, loadingKey, onQue
 
               {/* Sections */}
               {isOpen && (
-                <div style={{ padding: '0 20px 16px', display: 'flex', flexDirection: 'column', gap: 6, maxHeight: 480, overflowY: 'auto' }}>
+                <div style={{ padding: '0 20px 16px', display: 'flex', flexDirection: 'column', gap: 6 }}>
                   <div style={{ height: 1, background: 'var(--mq-stroke-soft)', marginBottom: 4 }} />
                   {ch.sectionList.map((sec, i) => {
                     const isDone = chProgress[String(i)] === 'done'
