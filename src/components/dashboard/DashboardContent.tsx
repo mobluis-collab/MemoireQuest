@@ -99,6 +99,7 @@ export default function DashboardContent({
       const reader = res.body.getReader()
       const decoder = new TextDecoder()
       let buffer = ''
+      let planReceived = false
 
       while (true) {
         const { done, value } = await reader.read()
@@ -117,6 +118,7 @@ export default function DashboardContent({
             if (msg.type === 'done') {
               setPlan(msg.plan)
               if (msg.remaining !== undefined) setPlanRemaining(msg.remaining)
+              planReceived = true
             } else if (msg.type === 'error') {
               throw new Error(msg.error)
             }
@@ -126,6 +128,7 @@ export default function DashboardContent({
           }
         }
       }
+      if (!planReceived) throw new Error('Le plan n\'a pas pu être généré. Réessaie dans quelques instants.')
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Une erreur est survenue.')
     } finally {

@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
+import type { SupabaseClient } from '@supabase/supabase-js'
 import type { ChapterProgress, MemoirePlan, QuestProgress, StreakData } from '@/types/memoir'
 import type { ComboState } from '@/lib/combo'
 
@@ -28,8 +29,8 @@ export async function getUserPlan(userId: string): Promise<PlanRow | null> {
   return data ?? null
 }
 
-export async function savePlan(userId: string, title: string, planData: MemoirePlan) {
-  const supabase = await createClient()
+export async function savePlan(client: SupabaseClient, userId: string, title: string, planData: MemoirePlan) {
+  const supabase = client
   // Upsert : supprime l'ancien plan et insère le nouveau
   await supabase.from('memoir_plans').delete().eq('user_id', userId)
   const { data, error } = await supabase

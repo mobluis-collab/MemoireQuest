@@ -209,7 +209,7 @@ export async function POST(request: Request) {
         }
 
         const plan = parsed.data
-        await savePlan(user.id, plan.title, plan)
+        await savePlan(supabase, user.id, plan.title, plan)
 
         // Send the final result
         sendEvent(JSON.stringify({ type: 'done', plan, remaining: rateLimit.remaining }))
