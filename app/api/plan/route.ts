@@ -172,7 +172,26 @@ export async function POST(request: Request) {
           }
         })
 
-        const finalMessage = await anthropicStream.finalMessage()
+        const SAFETY_TIMEOUT = 55_000 // 55s — close cleanly before Vercel's 60s kill
+        const timeoutPromise = new Promise<never>((_, reject) =>
+          setTimeout(() => reject(new Error('TIMEOUT')), SAFETY_TIMEOUT)
+        )
+
+        let finalMessage
+        try {
+          finalMessage = await Promise.race([
+            anthropicStream.finalMessage(),
+            timeoutPromise,
+          ])
+        } catch (raceErr) {
+          if (raceErr instanceof Error && raceErr.message === 'TIMEOUT') {
+            console.error('[plan] Anthropic timeout after 55s. Chars received:', fullText.length)
+            sendEvent(JSON.stringify({ type: 'error', error: 'La génération a pris trop de temps. Réessaie avec un PDF plus court.' }))
+            controller.close()
+            return
+          }
+          throw raceErr
+        }
         stopReason = finalMessage.stop_reason ?? ''
 
         if (stopReason === 'max_tokens') {
