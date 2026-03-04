@@ -4,7 +4,6 @@ import { checkAndIncrement } from '@/lib/rate-limit'
 import Anthropic from '@anthropic-ai/sdk'
 import { NextResponse } from 'next/server'
 import { z } from 'zod'
-import { extractText } from 'unpdf'
 
 export const maxDuration = 300
 
@@ -120,26 +119,8 @@ export async function POST(request: Request) {
   }
 
   const buffer = await file.arrayBuffer()
+  const base64 = Buffer.from(buffer).toString('base64')
 
-  // Extract text from PDF server-side — sending plain text to Claude is
-  // much faster than sending a base64 document (no PDF parsing on Claude's side).
-  let pdfText: string
-  try {
-    const pdfData = await extractText(new Uint8Array(buffer))
-    pdfText = (pdfData.text ?? []).join('\n').trim()
-  } catch {
-    return NextResponse.json({ error: 'Impossible de lire le PDF. Vérifie que le fichier n\'est pas protégé.' }, { status: 400 })
-  }
-
-  if (!pdfText || pdfText.length < 50) {
-    return NextResponse.json({ error: 'Le PDF semble vide ou illisible. Réessaie avec un autre fichier.' }, { status: 400 })
-  }
-
-  // Truncate to ~30k chars to keep prompt reasonable (~8k tokens)
-  const MAX_TEXT_CHARS = 30_000
-  const truncatedText = pdfText.length > MAX_TEXT_CHARS
-    ? pdfText.slice(0, MAX_TEXT_CHARS) + '\n\n[... document tronqué pour performance ...]'
-    : pdfText
   const encoder = new TextEncoder()
 
   const stream = new ReadableStream({
@@ -160,7 +141,20 @@ export async function POST(request: Request) {
           messages: [
             {
               role: 'user',
-              content: `Voici le contenu du cahier des charges de l'étudiant :\n\n---\n${truncatedText}\n---\n\nGénère le plan de mémoire en JSON. IMPORTANT : chaque section DOIT obligatoirement inclure un champ "tasks" avec un tableau de 2 à 4 sous-tâches concrètes et actionnables. Ne jamais omettre le tableau tasks.`,
+              content: [
+                {
+                  type: 'document',
+                  source: {
+                    type: 'base64',
+                    media_type: 'application/pdf',
+                    data: base64,
+                  },
+                },
+                {
+                  type: 'text',
+                  text: 'Génère le plan de mémoire en JSON. IMPORTANT : chaque section DOIT obligatoirement inclure un champ "tasks" avec un tableau de 2 à 4 sous-tâches concrètes et actionnables. Ne jamais omettre le tableau tasks.',
+                },
+              ],
             },
           ],
         })
