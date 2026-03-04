@@ -269,7 +269,7 @@ export default function MemoireView({ chapters, questProgress, loadingKey, onSub
                             {isAnyTaskLoading
                               ? <span style={{ color: tw(0.4, textIntensity, isDark), fontSize: 9 }}>...</span>
                               : isDone
-                                ? <span style={{ color: '#fff' }}>✓</span>
+                                ? <span style={{ color: tw(0.92, textIntensity, isDark) }}>✓</span>
                                 : <span style={{ color: tw(0.45, textIntensity, isDark), fontSize: 9 }}>{i + 1}</span>}
                           </div>
 
@@ -360,7 +360,7 @@ export default function MemoireView({ chapters, questProgress, loadingKey, onSub
                                     transform: isBouncing ? 'scale(1.3)' : 'scale(1)',
                                     transition: 'transform 0.3s cubic-bezier(.175,.885,.32,1.275), border-color 0.2s cubic-bezier(.4,0,.2,1), background 0.2s cubic-bezier(.4,0,.2,1)',
                                   }}>
-                                    {isChecked && <span style={{ color: '#fff', lineHeight: 1 }}>✓</span>}
+                                    {isChecked && <span style={{ color: tw(0.92, textIntensity, isDark), lineHeight: 1 }}>✓</span>}
                                   </div>
 
                                   {/* Task text */}

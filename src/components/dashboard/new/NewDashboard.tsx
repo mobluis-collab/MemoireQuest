@@ -231,7 +231,7 @@ function SidePanel({
         position: 'fixed', top: 0, right: 0, bottom: 0,
         width: 400, zIndex: 51,
         display: 'flex', flexDirection: 'column',
-        background: 'rgba(10,9,28,0.92)',
+        background: isDark ? 'rgba(10,9,28,0.92)' : 'rgba(255,255,255,0.95)',
         backdropFilter: 'blur(40px) saturate(180%)',
         borderLeft: '1px solid var(--mq-border)',
         animation: 'mq-panel-in 0.3s cubic-bezier(.4,0,.2,1) both',
@@ -244,7 +244,7 @@ function SidePanel({
               <div style={{ fontSize: 11, color: tw(0.5, textIntensity, isDark), fontWeight: 700, textTransform: 'uppercase', letterSpacing: '1px', marginBottom: 6 }}>
                 Chapitre {ch.num}
               </div>
-              <h2 style={{ fontSize: 20, fontWeight: 800, letterSpacing: '-0.5px', color: '#fff', lineHeight: 1.2 }}>
+              <h2 style={{ fontSize: 20, fontWeight: 800, letterSpacing: '-0.5px', color: tw(0.92, textIntensity, isDark), lineHeight: 1.2 }}>
                 {ch.title}
               </h2>
             </div>
@@ -264,7 +264,7 @@ function SidePanel({
                 strokeLinecap="round"
                 strokeDasharray={`${dash} ${circ}`}
                 strokeDashoffset={circ * 0.25} />
-              <text x={35} y={38} textAnchor="middle" fill="white" fontSize="13" fontWeight="800" fontFamily={FONT}>
+              <text x={35} y={38} textAnchor="middle" fill={isDark ? 'white' : 'black'} fontSize="13" fontWeight="800" fontFamily={FONT}>
                 {pct}%
               </text>
             </svg>
@@ -380,13 +380,16 @@ function SidePanel({
 }
 
 /* ─── Confetti burst ──────────────────────────────────────────── */
-const CONFETTI_COLORS = ['#6366f1', '#34d399', '#fbbf24', '#fb7185', '#38bdf8', '#a78bfa', '#fff']
+function getConfettiColors(isDark: boolean) {
+  return ['#6366f1', '#34d399', '#fbbf24', '#fb7185', '#38bdf8', '#a78bfa', isDark ? '#fff' : '#000']
+}
 
 function ConfettiBurst({ title, onDone, textIntensity = 1.0, isDark = true }: { title: string; onDone: () => void; textIntensity?: number; isDark?: boolean }) {
+  const confettiColors = getConfettiColors(isDark)
   const particles = useRef(
     Array.from({ length: 60 }, (_, i) => ({
       id: i,
-      color: CONFETTI_COLORS[i % CONFETTI_COLORS.length],
+      color: confettiColors[i % confettiColors.length],
       left: 5 + Math.random() * 90,
       delay: Math.random() * 0.6,
       dur: 1.4 + Math.random() * 1.2,
@@ -479,7 +482,7 @@ function ReuploadOverlay({ accentColor, textIntensity = 1.0, isDark = true }: { 
   return (
     <div style={{
       position: 'fixed', inset: 0, zIndex: 9999,
-      background: 'rgba(4,3,14,0.85)',
+      background: isDark ? 'rgba(4,3,14,0.85)' : 'rgba(245,245,247,0.92)',
       backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)',
       display: 'flex', alignItems: 'center', justifyContent: 'center',
       animation: 'mq-overlay-in 0.3s ease',

@@ -20,7 +20,7 @@ const LOADING_STEPS = [
 
 const UploadIcon = () => (
   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-    <path d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zm-1 7V3.5L18.5 9H13zM12 18l-4-4h2.5v-3h3v3H16l-4 4z" fill="currentColor" className="text-zinc-400" />
+    <path d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zm-1 7V3.5L18.5 9H13zM12 18l-4-4h2.5v-3h3v3H16l-4 4z" fill="currentColor" className="text-zinc-500 dark:text-zinc-400" />
   </svg>
 )
 
@@ -44,10 +44,10 @@ function LoadingState() {
       {/* Barre de progression */}
       <div className="w-full max-w-xs">
         <div className="flex justify-between mb-1.5">
-          <span className="text-xs text-zinc-500">Analyse en cours</span>
+          <span className="text-xs text-zinc-400 dark:text-zinc-500">Analyse en cours</span>
           <span className="text-xs font-medium text-indigo-400">{current.pct}%</span>
         </div>
-        <div className="h-1.5 bg-zinc-800 rounded-full overflow-hidden">
+        <div className="h-1.5 bg-zinc-200 dark:bg-zinc-800 rounded-full overflow-hidden">
           <div
             className="h-full bg-indigo-500 rounded-full transition-all duration-1000 ease-out"
             style={{ width: `${current.pct}%` }}
@@ -56,12 +56,12 @@ function LoadingState() {
       </div>
 
       {/* Étape courante */}
-      <p className="text-sm text-zinc-400 text-center min-h-[20px] transition-all duration-500">
+      <p className="text-sm text-zinc-500 dark:text-zinc-400 text-center min-h-[20px] transition-all duration-500">
         {current.label}
       </p>
 
       {/* Étapes passées */}
-      <ul className="text-xs text-zinc-600 space-y-1 text-center">
+      <ul className="text-xs text-zinc-400 dark:text-zinc-600 space-y-1 text-center">
         {LOADING_STEPS.slice(0, stepIndex).map((s) => (
           <li key={s.label} className="flex items-center justify-center gap-1.5">
             <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
@@ -105,7 +105,7 @@ export default function UploadZone({ onUpload, isLoading }: UploadZoneProps) {
     if (file) handleFile(file)
   }
 
-  const borderClass = isDragging ? 'border-indigo-500 bg-indigo-500/5' : 'border-zinc-700 hover:border-zinc-600'
+  const borderClass = isDragging ? 'border-indigo-500 bg-indigo-500/5' : 'border-zinc-300 dark:border-zinc-700 hover:border-zinc-400 dark:hover:border-zinc-600'
 
   return (
     <div className="max-w-xl mx-auto mt-16 px-4">
@@ -119,9 +119,9 @@ export default function UploadZone({ onUpload, isLoading }: UploadZoneProps) {
           <LoadingState />
         ) : (
           <>
-            <div className="w-12 h-12 rounded-xl bg-zinc-800 flex items-center justify-center mx-auto mb-4"><UploadIcon /></div>
-            <p className="text-sm font-medium text-zinc-300 mb-1">Glisse ton PDF ici</p>
-            <p className="text-xs text-zinc-600 mb-5">PDF uniquement · max {MAX_MB} MB</p>
+            <div className="w-12 h-12 rounded-xl bg-zinc-200 dark:bg-zinc-800 flex items-center justify-center mx-auto mb-4"><UploadIcon /></div>
+            <p className="text-sm font-medium text-zinc-600 dark:text-zinc-300 mb-1">Glisse ton PDF ici</p>
+            <p className="text-xs text-zinc-400 dark:text-zinc-600 mb-5">PDF uniquement · max {MAX_MB} MB</p>
             <button
               onClick={() => inputRef.current?.click()}
               className="h-9 px-5 rounded-xl text-sm font-medium bg-indigo-600 text-white hover:bg-indigo-500 transition-all cursor-pointer"
@@ -136,7 +136,7 @@ export default function UploadZone({ onUpload, isLoading }: UploadZoneProps) {
       {error && <p role="alert" className="mt-3 text-sm text-red-400 text-center">{error}</p>}
 
       {/* Disclaimer */}
-      <p className="mt-5 text-xs text-zinc-600 text-center leading-relaxed max-w-sm mx-auto">
+      <p className="mt-5 text-xs text-zinc-400 dark:text-zinc-600 text-center leading-relaxed max-w-sm mx-auto">
         L&apos;IA peut faire des erreurs et ses suggestions restent indicatives. Elle ne produit aucun contenu à ta place — son rôle est uniquement de t&apos;aider à structurer ta méthode de travail. La rédaction du mémoire t&apos;appartient entièrement.
       </p>
     </div>
