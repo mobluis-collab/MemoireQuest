@@ -159,8 +159,6 @@ export default function MemoireView({ chapters, questProgress, loadingKey, onSub
                   {ch.sectionList.map((sec, i) => {
                     const secProgress = chProgress[String(i)]
                     const isDone = isSectionDone(secProgress)
-                    const isNext = !isDone && Array.from({ length: i }, (_, j) => isSectionDone(chProgress[String(j)])).every(Boolean)
-                    const isLocked = !isDone && !isNext
                     const isAnyTaskLoading = loadingKey?.startsWith(`${ch.num}:${i}:`) ?? false
 
                     const hasTasks = Array.isArray(sec.tasks) && sec.tasks.length > 0
@@ -182,8 +180,8 @@ export default function MemoireView({ chapters, questProgress, loadingKey, onSub
                     return (
                       <div key={i} style={{
                         borderRadius: 10,
-                        border: `1px solid ${isNext ? 'rgba(255,255,255,0.12)' : 'rgba(255,255,255,0.06)'}`,
-                        background: isNext ? 'rgba(255,255,255,0.04)' : 'rgba(255,255,255,0.02)',
+                        border: `1px solid ${isDone ? 'rgba(255,255,255,0.06)' : 'rgba(255,255,255,0.12)'}`,
+                        background: isDone ? 'rgba(255,255,255,0.02)' : 'rgba(255,255,255,0.04)',
                         overflow: 'hidden',
                         opacity: isAnyTaskLoading ? 0.6 : 1,
                         transition: 'all 0.15s',
@@ -197,24 +195,22 @@ export default function MemoireView({ chapters, questProgress, loadingKey, onSub
                           <div style={{
                             width: 24, height: 24, borderRadius: '50%', flexShrink: 0,
                             display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            background: isDone ? 'rgba(255,255,255,0.10)' : isNext ? 'var(--mq-border)' : 'var(--mq-card-bg)',
-                            border: `1.5px solid ${isDone ? 'rgba(255,255,255,0.25)' : isNext ? 'rgba(255,255,255,0.20)' : 'var(--mq-border)'}`,
+                            background: isDone ? 'rgba(255,255,255,0.10)' : 'var(--mq-border)',
+                            border: `1.5px solid ${isDone ? 'rgba(255,255,255,0.25)' : 'rgba(255,255,255,0.20)'}`,
                             fontSize: 10,
                           }}>
                             {isAnyTaskLoading
                               ? <span style={{ color: 'rgba(255,255,255,0.4)', fontSize: 9 }}>…</span>
                               : isDone
                                 ? <span style={{ color: 'rgba(255,255,255,0.55)' }}>✓</span>
-                                : isNext
-                                  ? <span style={{ color: 'rgba(255,255,255,0.6)', fontWeight: 800, fontSize: 9 }}>→</span>
-                                  : <span style={{ color: 'rgba(255,255,255,0.20)', fontSize: 9 }}>{i + 1}</span>}
+                                : <span style={{ color: 'rgba(255,255,255,0.45)', fontSize: 9 }}>{i + 1}</span>}
                           </div>
 
                           {/* Text + sous-taches count */}
                           <div style={{ flex: 1 }}>
                             <div style={{
-                              fontSize: 13, fontWeight: isNext ? 600 : 400,
-                              color: isDone ? 'rgba(255,255,255,0.50)' : isNext ? 'rgba(255,255,255,0.90)' : 'rgba(255,255,255,0.65)',
+                              fontSize: 13, fontWeight: isDone ? 400 : 500,
+                              color: isDone ? 'rgba(255,255,255,0.50)' : 'rgba(255,255,255,0.85)',
                             }}>{sec.text}</div>
                             {hasTasks && (
                               <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.35)', marginTop: 2 }}>
@@ -234,8 +230,8 @@ export default function MemoireView({ chapters, questProgress, loadingKey, onSub
                           </span>
                         </div>
 
-                        {/* Mini progress bar — only for active section with tasks */}
-                        {isNext && hasTasks && (
+                        {/* Mini progress bar — for any incomplete section with tasks */}
+                        {!isDone && hasTasks && (
                           <div style={{
                             height: 2, borderRadius: 99,
                             background: 'rgba(255,255,255,0.06)',
@@ -251,8 +247,8 @@ export default function MemoireView({ chapters, questProgress, loadingKey, onSub
                           </div>
                         )}
 
-                        {/* Subtasks — visible for done and active sections */}
-                        {hasTasks && !isLocked && (
+                        {/* Subtasks — always visible */}
+                        {hasTasks && (
                           <div style={{
                             padding: '0 16px 12px 52px',
                             display: 'flex', flexDirection: 'column',
