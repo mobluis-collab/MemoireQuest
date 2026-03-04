@@ -377,79 +377,68 @@ function SidePanel({
   )
 }
 
-/* ─── Confetti burst ──────────────────────────────────────────── */
-function getConfettiColors(isDark: boolean) {
-  return ['#6366f1', '#34d399', '#fbbf24', '#fb7185', '#38bdf8', '#a78bfa', isDark ? '#fff' : '#000']
-}
-
-function ConfettiBurst({ title, onDone, textIntensity = 1.0, isDark = true }: { title: string; onDone: () => void; textIntensity?: number; isDark?: boolean }) {
-  const confettiColors = getConfettiColors(isDark)
-  const particles = useRef(
-    Array.from({ length: 60 }, (_, i) => ({
-      id: i,
-      color: confettiColors[i % confettiColors.length],
-      left: 5 + Math.random() * 90,
-      delay: Math.random() * 0.6,
-      dur: 1.4 + Math.random() * 1.2,
-      size: 5 + Math.random() * 7,
-      isCircle: Math.random() > 0.5,
-      rotEnd: 180 + Math.random() * 540,
-    }))
-  ).current
-
+/* ─── Chapter complete ────────────────────────────────────────── */
+function ChapterComplete({ title, onDone, textIntensity = 1.0, isDark = true }: {
+  title: string; onDone: () => void; textIntensity?: number; isDark?: boolean
+}) {
   useEffect(() => {
-    const t = setTimeout(onDone, 3500)
+    const t = setTimeout(onDone, 2500)
     return () => clearTimeout(t)
   }, [onDone])
 
   return (
-    <div style={{
-      position: 'fixed', inset: 0, zIndex: 200, pointerEvents: 'none', overflow: 'hidden',
-    }}>
-      {/* Backdrop */}
+    <>
+      <style>{`
+        @keyframes mq-glow-pulse {
+          0%, 100% { box-shadow: none; }
+          50% { box-shadow: 0 0 40px 15px ${tw(0.12, 1, isDark)}; }
+        }
+        @keyframes mq-check-in {
+          from { opacity: 0; transform: scale(0.8); }
+          to { opacity: 1; transform: scale(1); }
+        }
+        @keyframes mq-text-in {
+          from { opacity: 0; transform: translateY(8px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+      `}</style>
       <div style={{
-        position: 'absolute', inset: 0,
+        position: 'fixed', inset: 0, zIndex: 9999,
         background: 'var(--mq-bg-overlay)',
         backdropFilter: 'blur(2px)',
-        animation: 'mq-overlay-in 0.2s ease both',
-      }} />
-      {/* Banner */}
-      <div style={{
-        position: 'absolute', top: '50%', left: '50%',
-        transform: 'translate(-50%, -50%)',
-        textAlign: 'center',
-        animation: 'mq-celebrate-in 0.5s cubic-bezier(.34,1.56,.64,1) both',
-        zIndex: 201,
+        display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+        animation: 'mq-check-in 0.2s ease-out both',
       }}>
-        <div style={{ fontSize: 72, marginBottom: 12, lineHeight: 1 }}>🎉</div>
         <div style={{
-          fontSize: 28, fontWeight: 900, letterSpacing: '-0.5px',
-          background: `linear-gradient(90deg, ${C.emerald}, ${C.sky})`,
-          WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
-          marginBottom: 6,
-        }}>Chapitre terminé !</div>
-        <div style={{
-          fontSize: 15, color: tw(0.75, textIntensity, isDark),
-          maxWidth: 300, lineHeight: 1.4,
-        }}>{title}</div>
-        <div style={{ marginTop: 16, fontSize: 13, color: tw(0.45, textIntensity, isDark) }}>
-          +XP accordé 🚀
+          width: 80, height: 80, borderRadius: '50%',
+          border: `2px solid ${tw(0.25, textIntensity, isDark)}`,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          animation: 'mq-glow-pulse 1.5s ease-in-out 2',
+        }}>
+          <span style={{
+            fontSize: 32, fontWeight: 300,
+            color: tw(0.88, textIntensity, isDark),
+            animation: 'mq-check-in 0.4s ease-out 0.3s both',
+          }}>{'✓'}</span>
         </div>
+        <div style={{
+          marginTop: 24, fontSize: 24, fontWeight: 800,
+          letterSpacing: '-0.5px',
+          color: tw(0.92, textIntensity, isDark),
+          animation: 'mq-text-in 0.5s ease-out 0.5s both',
+        }}>Chapitre validé</div>
+        <div style={{
+          fontSize: 14, color: tw(0.50, textIntensity, isDark),
+          maxWidth: 280, lineHeight: 1.4, marginTop: 8, textAlign: 'center',
+          animation: 'mq-text-in 0.5s ease-out 0.6s both',
+        }}>{title}</div>
+        <div style={{
+          fontSize: 12, color: tw(0.35, textIntensity, isDark),
+          marginTop: 16,
+          animation: 'mq-text-in 0.5s ease-out 0.7s both',
+        }}>+XP accordé</div>
       </div>
-      {/* Particles */}
-      {particles.map(p => (
-        <div key={p.id} style={{
-          position: 'absolute',
-          left: `${p.left}%`,
-          top: '-12px',
-          width: p.size, height: p.size,
-          background: p.color,
-          borderRadius: p.isCircle ? '50%' : '2px',
-          opacity: 0,
-          animation: `mq-confetti-fall ${p.dur}s ease-in ${p.delay}s both`,
-        }} />
-      ))}
-    </div>
+    </>
   )
 }
 
@@ -760,16 +749,6 @@ export default function NewDashboard({
         }
         @keyframes mq-overlay-in { from { opacity: 0; } to { opacity: 1; } }
         @keyframes mq-spin { to { transform: rotate(360deg); } }
-        @keyframes mq-confetti-fall {
-          0%   { opacity: 1; transform: translateY(0) rotate(0deg) scale(1); }
-          80%  { opacity: 0.8; }
-          100% { opacity: 0; transform: translateY(105vh) rotate(720deg) scale(0.5); }
-        }
-        @keyframes mq-celebrate-in {
-          0%   { opacity: 0; transform: translate(-50%,-50%) scale(0.4); }
-          70%  { opacity: 1; transform: translate(-50%,-50%) scale(1.05); }
-          100% { opacity: 1; transform: translate(-50%,-50%) scale(1); }
-        }
       `}</style>
 
       <ScrollbarStyle isDark={isDark} />
@@ -1281,9 +1260,9 @@ export default function NewDashboard({
         )}
       </main>
 
-      {/* Confetti celebration */}
+      {/* Chapter complete celebration */}
       {celebratingChapter && (
-        <ConfettiBurst
+        <ChapterComplete
           title={chapters.find(c => c.num === celebratingChapter)?.title ?? ''}
           onDone={handleCelebrationDone}
           textIntensity={textIntensity}
