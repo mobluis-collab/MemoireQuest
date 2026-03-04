@@ -1,5 +1,7 @@
 'use client'
 
+import { tw } from '@/lib/color-utils'
+
 /* ─── Types ─────────────────────────────────────────────── */
 
 interface Achievement {
@@ -12,7 +14,6 @@ interface Achievement {
 }
 
 import { SectionProgress } from '@/types/memoir'
-import { hexToRgba } from '@/lib/color-utils'
 
 interface AchievementsViewProps {
   totalPoints: number
@@ -20,6 +21,7 @@ interface AchievementsViewProps {
   questProgress: Record<string, Record<string, SectionProgress>>
   chapters: Array<{ num: string; title: string; sections: number; done: number }>
   accentColor?: string
+  textIntensity?: number
 }
 
 /* ─── Build achievements ─────────────────────────────────── */
@@ -51,7 +53,7 @@ function buildAchievements(
 
 /* ─── Card component ─────────────────────────────────────── */
 
-function AchievementCard({ a, accentColor }: { a: Achievement; accentColor: string }) {
+function AchievementCard({ a, accentColor, textIntensity = 1.0 }: { a: Achievement; accentColor: string; textIntensity?: number }) {
   const pct = a.progress ? Math.round((a.progress.current / a.progress.target) * 100) : null
 
   return (
@@ -59,24 +61,24 @@ function AchievementCard({ a, accentColor }: { a: Achievement; accentColor: stri
       display: 'flex', alignItems: 'center', gap: 10,
       padding: '7px 10px',
       borderRadius: 7,
-      background: a.unlocked ? hexToRgba(accentColor, 0.08) : 'transparent',
+      background: a.unlocked ? 'rgba(255,255,255,0.05)' : 'transparent',
     }}>
       {/* Status circle */}
       <div style={{
         width: 18, height: 18, borderRadius: '50%', flexShrink: 0,
         display: 'flex', alignItems: 'center', justifyContent: 'center',
-        background: a.unlocked ? hexToRgba(accentColor, 0.2) : 'transparent',
-        border: `1.5px solid ${a.unlocked ? hexToRgba(accentColor, 0.3) : 'rgba(255,255,255,0.07)'}`,
+        background: a.unlocked ? 'rgba(255,255,255,0.10)' : 'transparent',
+        border: `1.5px solid ${a.unlocked ? 'rgba(255,255,255,0.15)' : 'rgba(255,255,255,0.07)'}`,
       }}>
         {a.unlocked && (
-          <span style={{ fontSize: 10, color: accentColor, lineHeight: 1 }}>&#10003;</span>
+          <span style={{ fontSize: 10, color: tw(0.60, textIntensity), lineHeight: 1 }}>&#10003;</span>
         )}
       </div>
 
       {/* Title */}
       <span style={{
         flex: 1, fontSize: 12, fontWeight: 500,
-        color: a.unlocked ? 'rgba(255,255,255,0.75)' : 'rgba(255,255,255,0.30)',
+        color: a.unlocked ? tw(0.75, textIntensity) : tw(0.30, textIntensity),
         whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
       }}>
         {a.title}
@@ -87,7 +89,7 @@ function AchievementCard({ a, accentColor }: { a: Achievement; accentColor: stri
         <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
           <div style={{
             width: 32, height: 2, borderRadius: 99,
-            background: hexToRgba(accentColor, 0.08),
+            background: 'rgba(255,255,255,0.06)',
             overflow: 'hidden',
           }}>
             <div style={{
@@ -96,7 +98,7 @@ function AchievementCard({ a, accentColor }: { a: Achievement; accentColor: stri
               transition: 'width 0.6s cubic-bezier(.4,0,.2,1)',
             }} />
           </div>
-          <span style={{ fontSize: 10, color: accentColor, minWidth: 22, textAlign: 'right' }}>
+          <span style={{ fontSize: 10, color: tw(0.50, textIntensity), minWidth: 22, textAlign: 'right' }}>
             {pct}%
           </span>
         </div>
@@ -107,7 +109,7 @@ function AchievementCard({ a, accentColor }: { a: Achievement; accentColor: stri
 
 /* ─── Main component ─────────────────────────────────────── */
 
-export default function AchievementsView({ totalPoints, streak, questProgress, chapters, accentColor = '#6366f1' }: AchievementsViewProps) {
+export default function AchievementsView({ totalPoints, streak, questProgress, chapters, accentColor = '#6366f1', textIntensity = 1.0 }: AchievementsViewProps) {
   const achievements = buildAchievements(totalPoints, streak, questProgress, chapters)
   const unlocked = achievements.filter(a => a.unlocked).length
   const total = achievements.length
@@ -134,9 +136,9 @@ export default function AchievementsView({ totalPoints, streak, questProgress, c
         <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between' }}>
           <h1 style={{
             fontSize: 20, fontWeight: 600, letterSpacing: '-0.3px', margin: 0,
-            color: 'rgba(255,255,255,0.88)',
+            color: tw(0.88, textIntensity),
           }}>Progression</h1>
-          <span style={{ fontSize: 12, fontWeight: 500, color: 'rgba(255,255,255,0.35)' }}>
+          <span style={{ fontSize: 12, fontWeight: 500, color: tw(0.35, textIntensity) }}>
             {unlocked} sur {total}
           </span>
         </div>
@@ -144,7 +146,7 @@ export default function AchievementsView({ totalPoints, streak, questProgress, c
         {/* Global progress bar */}
         <div style={{
           marginTop: 12, width: '100%', height: 3, borderRadius: 99,
-          background: hexToRgba(accentColor, 0.08),
+          background: 'rgba(255,255,255,0.06)',
           overflow: 'hidden',
         }}>
           <div style={{
@@ -182,16 +184,16 @@ export default function AchievementsView({ totalPoints, streak, questProgress, c
               }}>
                 <span style={{
                   fontSize: 12, fontWeight: 600, letterSpacing: '0.2px',
-                  color: 'rgba(255,255,255,0.50)',
+                  color: tw(0.50, textIntensity),
                 }}>{label}</span>
                 <span style={{
-                  fontSize: 10, color: 'rgba(255,255,255,0.22)',
+                  fontSize: 10, color: tw(0.22, textIntensity),
                 }}>{groupUnlocked}/{groupTotal}</span>
               </div>
 
               {/* Achievements */}
               {items.map(a => (
-                <AchievementCard key={a.id} a={a} accentColor={accentColor} />
+                <AchievementCard key={a.id} a={a} accentColor={accentColor} textIntensity={textIntensity} />
               ))}
             </div>
           )

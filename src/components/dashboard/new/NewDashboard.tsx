@@ -11,7 +11,7 @@ import ProgressionView from './ProgressionView'
 import AchievementsView from './AchievementsView'
 import ColorPicker from './ColorPicker'
 import { useTheme as useThemeToggle } from '@/context/ThemeProvider'
-import { hexToRgba } from '@/lib/color-utils'
+import { hexToRgba, tw } from '@/lib/color-utils'
 
 /* ─── Types ───────────────────────────────────────────────────── */
 interface User {
@@ -45,6 +45,8 @@ export interface NewDashboardProps {
   loadingKey: string | null
   accentColor: string
   onAccentChange: (color: string) => void
+  textIntensity: number
+  onTextIntensityChange: (intensity: number) => void
 }
 
 /* ─── Palette ─────────────────────────────────────────────────── */
@@ -83,7 +85,7 @@ function GBorder({
 }
 
 /* ─── Arc SVG ─────────────────────────────────────────────────── */
-function Arc({ pct, accentColor }: { pct: number; accentColor?: string }) {
+function Arc({ pct, textIntensity = 1.0 }: { pct: number; textIntensity?: number }) {
   const R = 68, SW = 6, C2 = 86, circ = 2 * Math.PI * R
   const dash = (pct / 100) * circ
   return (
@@ -91,12 +93,12 @@ function Arc({ pct, accentColor }: { pct: number; accentColor?: string }) {
       style={{ overflow: 'visible', flexShrink: 0 }}>
       <circle cx={C2} cy={C2} r={R} fill="none" stroke="var(--mq-stroke-soft)" strokeWidth={SW} />
       <circle cx={C2} cy={C2} r={R} fill="none"
-        stroke={accentColor ?? 'var(--mq-text-muted)'} strokeWidth={SW} strokeLinecap="round"
+        stroke={'rgba(255,255,255,0.60)'} strokeWidth={SW} strokeLinecap="round"
         strokeDasharray={`${dash} ${circ}`} strokeDashoffset={circ * 0.25}
         style={{ animation: 'mq-arc-in 1.2s cubic-bezier(.4,0,.2,1) both' }} />
-      <text x={C2} y={C2 - 10} textAnchor="middle" fill={accentColor ?? 'var(--mq-text-primary)'}
+      <text x={C2} y={C2 - 10} textAnchor="middle" fill={tw(0.88, textIntensity)}
         fontSize="34" fontWeight="800" fontFamily={FONT} letterSpacing="-1.5">{pct}</text>
-      <text x={C2} y={C2 + 14} textAnchor="middle" fill="rgba(255,255,255,0.35)"
+      <text x={C2} y={C2 + 14} textAnchor="middle" fill={tw(0.35, textIntensity)}
         fontSize="12" fontFamily={FONT} fontWeight="500">% terminé</text>
     </svg>
   )
@@ -136,7 +138,7 @@ function DotGrid({ start, deadline, accentColor }: { start: Date; deadline: Date
 }
 
 /* ─── Chapter card ────────────────────────────────────────────── */
-function ChapterCard({ ch, onClick }: { ch: ChapterData; onClick: () => void }) {
+function ChapterCard({ ch, onClick, textIntensity = 1.0 }: { ch: ChapterData; onClick: () => void; textIntensity?: number }) {
   const [hovered, setHovered] = useState(false)
   const pct  = ch.sections > 0 ? Math.round((ch.done / ch.sections) * 100) : 0
   const done = pct === 100, wip = pct > 0 && !done
@@ -167,13 +169,13 @@ function ChapterCard({ ch, onClick }: { ch: ChapterData; onClick: () => void }) 
       }} />
       {/* Content */}
       <div style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: 10, width: '100%', paddingLeft: 8 }}>
-        <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.35)', fontWeight: 600, flexShrink: 0, letterSpacing: '0.2px', whiteSpace: 'nowrap', maxWidth: 60, overflow: 'hidden', textOverflow: 'ellipsis' }}>
+        <span style={{ fontSize: 10, color: tw(0.35, textIntensity), fontWeight: 600, flexShrink: 0, letterSpacing: '0.2px', whiteSpace: 'nowrap', maxWidth: 60, overflow: 'hidden', textOverflow: 'ellipsis' }}>
           {ch.num}
         </span>
         <span style={{
           flex: 1, fontSize: 13,
           fontWeight: 500,
-          color: done ? 'rgba(255,255,255,0.50)' : wip ? 'rgba(255,255,255,0.85)' : 'rgba(255,255,255,0.65)',
+          color: done ? tw(0.50, textIntensity) : wip ? tw(0.85, textIntensity) : tw(0.65, textIntensity),
           display: '-webkit-box',
           WebkitLineClamp: 2,
           WebkitBoxOrient: 'vertical',
@@ -184,7 +186,7 @@ function ChapterCard({ ch, onClick }: { ch: ChapterData; onClick: () => void }) 
         {/* Status */}
         <span style={{
           flexShrink: 0, fontSize: 11, fontWeight: 600,
-          color: done ? 'rgba(255,255,255,0.50)' : wip ? 'rgba(255,255,255,0.60)' : 'rgba(255,255,255,0.25)',
+          color: done ? tw(0.50, textIntensity) : wip ? tw(0.60, textIntensity) : tw(0.25, textIntensity),
         }}>
           {done ? '✓' : wip ? `${ch.done}/${ch.sections}` : '—'}
         </span>
@@ -201,6 +203,7 @@ function SidePanel({
   onClose,
   onSectionComplete,
   accentColor,
+  textIntensity = 1.0,
 }: {
   ch: ChapterData
   chapterProgress: Record<string, SectionProgress>
@@ -208,6 +211,7 @@ function SidePanel({
   onClose: () => void
   onSectionComplete: (sectionIndex: number) => void
   accentColor: string
+  textIntensity?: number
 }) {
   const pct  = ch.sections > 0 ? Math.round((ch.done / ch.sections) * 100) : 0
   const R = 28, SW = 5, circ = 2 * Math.PI * R
@@ -236,7 +240,7 @@ function SidePanel({
         <div style={{ padding: '24px 24px 20px', borderBottom: '1px solid var(--mq-border)', flexShrink: 0 }}>
           <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 }}>
             <div>
-              <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.5)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '1px', marginBottom: 6 }}>
+              <div style={{ fontSize: 11, color: tw(0.5, textIntensity), fontWeight: 700, textTransform: 'uppercase', letterSpacing: '1px', marginBottom: 6 }}>
                 Chapitre {ch.num}
               </div>
               <h2 style={{ fontSize: 20, fontWeight: 800, letterSpacing: '-0.5px', color: '#fff', lineHeight: 1.2 }}>
@@ -247,7 +251,7 @@ function SidePanel({
             <button onClick={onClose} style={{
               width: 36, height: 36, borderRadius: '50%',
               border: '1px solid rgba(255,255,255,0.2)',
-              background: 'rgba(255,255,255,0.09)', color: 'rgba(255,255,255,0.9)',
+              background: 'rgba(255,255,255,0.09)', color: tw(0.9, textIntensity),
               fontSize: 14, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
               flexShrink: 0, marginTop: 2, transition: 'all 0.15s cubic-bezier(.4,0,.2,1)',
             }}>✕</button>
@@ -266,10 +270,10 @@ function SidePanel({
             <div style={{ flex: 1 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
                 {/* FIX: 0.55 → 0.75 */}
-                <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.75)' }}>Sections terminées</span>
-                <span style={{ fontSize: 12, fontWeight: 700, color: 'rgba(255,255,255,0.80)' }}>{ch.done}/{ch.sections}</span>
+                <span style={{ fontSize: 12, color: tw(0.75, textIntensity) }}>Sections terminées</span>
+                <span style={{ fontSize: 12, fontWeight: 700, color: tw(0.80, textIntensity) }}>{ch.done}/{ch.sections}</span>
               </div>
-              <div style={{ height: 5, borderRadius: 99, background: hexToRgba(accentColor, 0.08), overflow: 'hidden' }}>
+              <div style={{ height: 5, borderRadius: 99, background: 'rgba(255,255,255,0.06)', overflow: 'hidden' }}>
                 <div style={{
                   height: '100%', width: `${pct}%`, borderRadius: 99,
                   background: accentColor,
@@ -277,7 +281,7 @@ function SidePanel({
                 }} />
               </div>
               {/* FIX: 0.45 → 0.68 */}
-              <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.68)', marginTop: 5 }}>
+              <div style={{ fontSize: 11, color: tw(0.68, textIntensity), marginTop: 5 }}>
                 {pct === 100 ? '✓ Chapitre terminé'
                   : pct === 0 ? 'Pas encore commencé'
                   : `${ch.sections - ch.done} section${ch.sections - ch.done > 1 ? 's' : ''} restante${ch.sections - ch.done > 1 ? 's' : ''}`}
@@ -290,10 +294,10 @@ function SidePanel({
         <div style={{ flex: 1, overflowY: 'auto', padding: '16px 20px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
             {/* FIX: sections label 0.45 → 0.72, hint 0.3 → 0.55 */}
-            <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.72)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '1px' }}>
+            <div style={{ fontSize: 10, color: tw(0.72, textIntensity), fontWeight: 700, textTransform: 'uppercase', letterSpacing: '1px' }}>
               Sections
             </div>
-            <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.55)' }}>
+            <div style={{ fontSize: 10, color: tw(0.55, textIntensity) }}>
               Clique sur ✓ pour décocher
             </div>
           </div>
@@ -326,26 +330,26 @@ function SidePanel({
                     transition: 'all 0.15s cubic-bezier(.4,0,.2,1)',
                   }}>
                     {isLoading
-                      ? <span style={{ color: 'rgba(255,255,255,0.5)', fontSize: 8 }}>…</span>
+                      ? <span style={{ color: tw(0.5, textIntensity), fontSize: 8 }}>…</span>
                       : isDone
-                        ? <span style={{ color: 'rgba(255,255,255,0.6)' }}>✓</span>
+                        ? <span style={{ color: tw(0.6, textIntensity) }}>✓</span>
                         : isNext
-                          ? <span style={{ color: 'rgba(255,255,255,0.7)', fontWeight: 800, fontSize: 8 }}>→</span>
-                          : <span style={{ color: 'rgba(255,255,255,0.25)', fontSize: 9 }}>{i + 1}</span>}
+                          ? <span style={{ color: tw(0.7, textIntensity), fontWeight: 800, fontSize: 8 }}>→</span>
+                          : <span style={{ color: tw(0.25, textIntensity), fontSize: 9 }}>{i + 1}</span>}
                   </div>
                   <div style={{ flex: 1 }}>
                     <div style={{
                       fontSize: 13, fontWeight: isNext ? 600 : 400,
                       /* FIX: locked sections 0.55 → 0.72 */
-                      color: isDone ? 'rgba(255,255,255,0.65)' : isNext ? 'rgba(255,255,255,0.95)' : 'rgba(255,255,255,0.72)',
+                      color: isDone ? tw(0.65, textIntensity) : isNext ? tw(0.95, textIntensity) : tw(0.72, textIntensity),
                     }}>{sec.text}</div>
                     {isNext && (
-                      <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.45)', marginTop: 2, fontWeight: 500 }}>
+                      <div style={{ fontSize: 10, color: tw(0.45, textIntensity), marginTop: 2, fontWeight: 500 }}>
                         Cliquer pour valider
                       </div>
                     )}
                     {isDone && (
-                      <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.30)', marginTop: 2 }}>
+                      <div style={{ fontSize: 10, color: tw(0.30, textIntensity), marginTop: 2 }}>
                         Cliquer pour annuler
                       </div>
                     )}
@@ -353,7 +357,7 @@ function SidePanel({
                   <span style={{
                     fontSize: 9, fontWeight: 600, flexShrink: 0, padding: '2px 6px', borderRadius: 99,
                     background: 'rgba(255,255,255,0.05)',
-                    color: 'rgba(255,255,255,0.35)',
+                    color: tw(0.35, textIntensity),
                   }}>
                     {sec.difficulty === 'hard' ? 'difficile' : sec.difficulty === 'medium' ? 'moyen' : 'facile'}
                   </span>
@@ -365,7 +369,7 @@ function SidePanel({
 
         {/* FIX: footer hint 0.4 → 0.60 */}
         <div style={{ padding: '16px 20px', borderTop: '1px solid var(--mq-border)', flexShrink: 0 }}>
-          <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.60)', textAlign: 'center' }}>
+          <div style={{ fontSize: 11, color: tw(0.60, textIntensity), textAlign: 'center' }}>
             Clique sur la prochaine section pour la valider
           </div>
         </div>
@@ -377,7 +381,7 @@ function SidePanel({
 /* ─── Confetti burst ──────────────────────────────────────────── */
 const CONFETTI_COLORS = ['#6366f1', '#34d399', '#fbbf24', '#fb7185', '#38bdf8', '#a78bfa', '#fff']
 
-function ConfettiBurst({ title, onDone }: { title: string; onDone: () => void }) {
+function ConfettiBurst({ title, onDone, textIntensity = 1.0 }: { title: string; onDone: () => void; textIntensity?: number }) {
   const particles = useRef(
     Array.from({ length: 60 }, (_, i) => ({
       id: i,
@@ -423,10 +427,10 @@ function ConfettiBurst({ title, onDone }: { title: string; onDone: () => void })
           marginBottom: 6,
         }}>Chapitre terminé !</div>
         <div style={{
-          fontSize: 15, color: 'rgba(255,255,255,0.75)',
+          fontSize: 15, color: tw(0.75, textIntensity),
           maxWidth: 300, lineHeight: 1.4,
         }}>{title}</div>
-        <div style={{ marginTop: 16, fontSize: 13, color: 'rgba(255,255,255,0.45)' }}>
+        <div style={{ marginTop: 16, fontSize: 13, color: tw(0.45, textIntensity) }}>
           +XP accordé 🚀
         </div>
       </div>
@@ -458,7 +462,7 @@ const REUPLOAD_STEPS = [
   { label: 'Structuration finale…', pct: 96 },
 ]
 
-function ReuploadOverlay({ accentColor }: { accentColor: string }) {
+function ReuploadOverlay({ accentColor, textIntensity = 1.0 }: { accentColor: string; textIntensity?: number }) {
   const [stepIndex, setStepIndex] = useState(0)
 
   useEffect(() => {
@@ -507,12 +511,12 @@ function ReuploadOverlay({ accentColor }: { accentColor: string }) {
         {/* Progress bar */}
         <div style={{ width: '100%' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
-            <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.45)' }}>{current.label}</span>
-            <span style={{ fontSize: 11, fontWeight: 700, color: 'rgba(255,255,255,0.75)' }}>{current.pct}%</span>
+            <span style={{ fontSize: 11, color: tw(0.45, textIntensity) }}>{current.label}</span>
+            <span style={{ fontSize: 11, fontWeight: 700, color: tw(0.75, textIntensity) }}>{current.pct}%</span>
           </div>
           <div style={{
             height: 5, borderRadius: 99,
-            background: hexToRgba(accentColor, 0.08), overflow: 'hidden',
+            background: 'rgba(255,255,255,0.06)', overflow: 'hidden',
           }}>
             <div style={{
               height: '100%', borderRadius: 99,
@@ -528,9 +532,9 @@ function ReuploadOverlay({ accentColor }: { accentColor: string }) {
           {REUPLOAD_STEPS.slice(0, stepIndex).map((s) => (
             <div key={s.label} style={{
               display: 'flex', alignItems: 'center', gap: 8,
-              fontSize: 11, color: 'rgba(255,255,255,0.30)',
+              fontSize: 11, color: tw(0.30, textIntensity),
             }}>
-              <span style={{ color: 'rgba(255,255,255,0.50)', fontSize: 10 }}>✓</span>
+              <span style={{ color: tw(0.50, textIntensity), fontSize: 10 }}>✓</span>
               {s.label}
             </div>
           ))}
@@ -540,10 +544,11 @@ function ReuploadOverlay({ accentColor }: { accentColor: string }) {
   )
 }
 
-function OnboardingScreen({ firstName, onUpload, isLoading }: {
+function OnboardingScreen({ firstName, onUpload, isLoading, textIntensity = 1.0 }: {
   firstName: string
   onUpload: (file: File) => Promise<void>
   isLoading: boolean
+  textIntensity?: number
 }) {
   return (
     <div style={{
@@ -552,7 +557,7 @@ function OnboardingScreen({ firstName, onUpload, isLoading }: {
     }}>
       <h1 style={{
         fontSize: 42, fontWeight: 800, letterSpacing: '-1.5px',
-        color: 'rgba(255,255,255,0.92)',
+        color: tw(0.92, textIntensity),
         margin: '0 0 10px', textAlign: 'center', lineHeight: 1.15,
       }}>Importe ton cahier des charges.</h1>
       <p style={{
@@ -605,6 +610,8 @@ export default function NewDashboard({
   loadingKey,
   accentColor,
   onAccentChange,
+  textIntensity,
+  onTextIntensityChange,
 }: NewDashboardProps) {
   const [activeView, setActiveView] = useState<ActiveView>('dashboard')
   const [showColorPicker, setShowColorPicker] = useState(false)
@@ -805,13 +812,13 @@ export default function NewDashboard({
               width: 30, height: 30, borderRadius: 9,
               background: 'rgba(255,255,255,0.1)',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              color: 'rgba(255,255,255,0.8)', fontSize: 13, fontWeight: 800,
+              color: tw(0.8, textIntensity), fontSize: 13, fontWeight: 800,
               border: '1px solid rgba(255,255,255,0.12)',
             }}>M</div>
             <div>
-              <div style={{ fontSize: 13, fontWeight: 700, letterSpacing: '-0.3px', color: 'rgba(255,255,255,0.92)' }}>MemoireQuest</div>
+              <div style={{ fontSize: 13, fontWeight: 700, letterSpacing: '-0.3px', color: tw(0.92, textIntensity) }}>MemoireQuest</div>
               {/* FIX: was 0.25 → 0.5 */}
-              <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.5)', letterSpacing: '0.3px' }}>Thesis OS v1.0</div>
+              <div style={{ fontSize: 10, color: tw(0.5, textIntensity), letterSpacing: '0.3px' }}>Thesis OS v1.0</div>
             </div>
           </div>
         </div>
@@ -823,25 +830,25 @@ export default function NewDashboard({
               width: 34, height: 34, borderRadius: '50%', flexShrink: 0,
               background: 'rgba(255,255,255,0.1)',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              color: 'rgba(255,255,255,0.8)', fontSize: 14, fontWeight: 800,
+              color: tw(0.8, textIntensity), fontSize: 14, fontWeight: 800,
               border: '1px solid var(--mq-border-hover)',
             }}>{firstInitial}</div>
             <div>
-              <div style={{ fontSize: 13, fontWeight: 600, color: 'rgba(255,255,255,0.92)' }}>{firstName}</div>
+              <div style={{ fontSize: 13, fontWeight: 600, color: tw(0.92, textIntensity) }}>{firstName}</div>
               {/* FIX: was 0.32 → 0.55 */}
-              <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.55)', marginTop: 1 }}>
+              <div style={{ fontSize: 11, color: tw(0.55, textIntensity), marginTop: 1 }}>
                 Niv. {currentLevel} · {levelTitle}
               </div>
             </div>
           </div>
-          <div style={{ height: 4, borderRadius: 99, background: hexToRgba(accentColor, 0.08), overflow: 'hidden', marginBottom: 4 }}>
+          <div style={{ height: 4, borderRadius: 99, background: 'rgba(255,255,255,0.06)', overflow: 'hidden', marginBottom: 4 }}>
             <div style={{
               height: '100%', width: `${xpPct}%`, borderRadius: 99,
               background: accentColor,
               transition: 'width 0.6s cubic-bezier(.4,0,.2,1)',
             }} />
           </div>
-          <div style={{ fontSize: 9, color: hexToRgba(accentColor, 0.40) }}>
+          <div style={{ fontSize: 9, color: tw(0.35, textIntensity) }}>
             {totalPoints} XP{levelInfo.isMaxLevel ? '' : ` · encore ${xpToNext} avant le niv. ${currentLevel + 1}`}
           </div>
         </div>
@@ -854,17 +861,17 @@ export default function NewDashboard({
               <button key={i} onClick={() => handleViewChange(item.view)} style={{
                 width: '100%', display: 'flex', alignItems: 'center', gap: 9,
                 padding: '8px 11px 8px 13px', borderRadius: 9, border: 'none', cursor: 'pointer',
-                background: active ? hexToRgba(accentColor, 0.12) : 'transparent',
-                color: active ? 'rgba(255,255,255,0.90)' : 'rgba(255,255,255,0.45)',
+                background: active ? 'rgba(255,255,255,0.06)' : 'transparent',
+                color: active ? tw(0.90, textIntensity) : tw(0.45, textIntensity),
                 fontSize: 13, fontWeight: active ? 600 : 400,
                 textAlign: 'left',
                 transition: 'all 0.3s cubic-bezier(.4,0,.2,1)',
                 marginBottom: 1,
-                borderLeft: active ? `2px solid ${hexToRgba(accentColor, 0.20)}` : '2px solid transparent',
+                borderLeft: active ? '2px solid rgba(255,255,255,0.12)' : '2px solid transparent',
               }}>
                 <span style={{
                   fontSize: 11,
-                  color: active ? hexToRgba(accentColor, 0.50) : hexToRgba(accentColor, 0.20),
+                  color: active ? tw(0.60, textIntensity) : tw(0.25, textIntensity),
                   transition: 'color 0.3s cubic-bezier(.4,0,.2,1)',
                 }}>{item.icon}</span>
                 {item.label}
@@ -877,16 +884,16 @@ export default function NewDashboard({
             style={{
               width: '100%', display: 'flex', alignItems: 'center', gap: 9,
               padding: '8px 11px 8px 13px', borderRadius: 9, border: 'none', cursor: 'pointer',
-              background: showColorPicker ? hexToRgba(accentColor, 0.12) : 'transparent',
-              color: showColorPicker ? 'rgba(255,255,255,0.90)' : 'rgba(255,255,255,0.45)',
+              background: showColorPicker ? 'rgba(255,255,255,0.06)' : 'transparent',
+              color: showColorPicker ? tw(0.90, textIntensity) : tw(0.45, textIntensity),
               fontSize: 13, fontWeight: showColorPicker ? 600 : 400,
               textAlign: 'left' as const,
               transition: 'all 0.3s cubic-bezier(.4,0,.2,1)',
               marginBottom: 1,
-              borderLeft: showColorPicker ? `2px solid ${hexToRgba(accentColor, 0.20)}` : '2px solid transparent',
+              borderLeft: showColorPicker ? '2px solid rgba(255,255,255,0.12)' : '2px solid transparent',
             }}
           >
-            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" style={{ color: showColorPicker ? hexToRgba(accentColor, 0.50) : hexToRgba(accentColor, 0.20), transition: 'color 0.3s cubic-bezier(.4,0,.2,1)' }}>
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" style={{ color: showColorPicker ? tw(0.60, textIntensity) : tw(0.25, textIntensity), transition: 'color 0.3s cubic-bezier(.4,0,.2,1)' }}>
               <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" />
               <circle cx="12" cy="6" r="2.5" fill="#EF4444" />
               <circle cx="17.2" cy="9.5" r="2.5" fill="#F59E0B" />
@@ -905,6 +912,52 @@ export default function NewDashboard({
           }}>
             <div style={{ padding: '4px 6px 8px' }}>
               <ColorPicker currentColor={accentColor} onColorChange={onAccentChange} />
+              {/* Intensite du texte */}
+              <div style={{ padding: '8px 0' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                  <span style={{ fontSize: 11, color: tw(0.45, textIntensity), fontWeight: 500 }}>Intensite</span>
+                  <span style={{ fontSize: 11, color: tw(0.60, textIntensity), fontWeight: 600 }}>{Math.round(textIntensity * 100)}%</span>
+                </div>
+                <style>{`
+                  .mq-intensity-slider {
+                    -webkit-appearance: none;
+                    appearance: none;
+                    width: 100%;
+                    height: 3px;
+                    border-radius: 99px;
+                    background: rgba(255,255,255,0.08);
+                    outline: none;
+                    cursor: pointer;
+                  }
+                  .mq-intensity-slider::-webkit-slider-thumb {
+                    -webkit-appearance: none;
+                    appearance: none;
+                    width: 14px;
+                    height: 14px;
+                    border-radius: 50%;
+                    background: rgba(255,255,255,0.80);
+                    border: none;
+                    cursor: pointer;
+                  }
+                  .mq-intensity-slider::-moz-range-thumb {
+                    width: 14px;
+                    height: 14px;
+                    border-radius: 50%;
+                    background: rgba(255,255,255,0.80);
+                    border: none;
+                    cursor: pointer;
+                  }
+                `}</style>
+                <input
+                  type="range"
+                  min={50}
+                  max={150}
+                  step={5}
+                  value={Math.round(textIntensity * 100)}
+                  onChange={(e) => onTextIntensityChange(Number(e.target.value) / 100)}
+                  className="mq-intensity-slider"
+                />
+              </div>
             </div>
           </div>
         </nav>
@@ -926,11 +979,11 @@ export default function NewDashboard({
                 style={{
                   width: '100%', display: 'flex', alignItems: 'center', gap: 9,
                   padding: '8px 11px', borderRadius: 9, border: 'none', cursor: isLoading ? 'wait' : 'pointer',
-                  background: 'transparent', color: 'rgba(255,255,255,0.50)', fontSize: 12, textAlign: 'left',
+                  background: 'transparent', color: tw(0.50, textIntensity), fontSize: 12, textAlign: 'left',
                   opacity: isLoading ? 0.4 : 1,
                   transition: 'opacity 0.15s cubic-bezier(.4,0,.2,1)',
                 }}>
-                <span style={{ fontSize: 11, color: hexToRgba(accentColor, 0.30) }}>↑</span> {isLoading ? 'Analyse en cours…' : 'Ré-importer un PDF'}
+                <span style={{ fontSize: 11, color: tw(0.25, textIntensity) }}>↑</span> {isLoading ? 'Analyse en cours…' : 'Ré-importer un PDF'}
               </button>
             </>
           )}
@@ -993,6 +1046,7 @@ export default function NewDashboard({
                   loadingKey={loadingKey}
                   onSubtaskToggle={handleSubtaskToggle}
                   accentColor={accentColor}
+                  textIntensity={textIntensity}
                 />
               )}
               {activeView === 'progression' && (
@@ -1003,6 +1057,7 @@ export default function NewDashboard({
                   startDate={startDate}
                   deadlineDate={deadlineDate}
                   accentColor={accentColor}
+                  textIntensity={textIntensity}
                 />
               )}
               {activeView === 'achievements' && (
@@ -1018,6 +1073,7 @@ export default function NewDashboard({
                   }
                   chapters={chapters}
                   accentColor={accentColor}
+                  textIntensity={textIntensity}
                 />
               )}
             </div>
@@ -1044,10 +1100,10 @@ export default function NewDashboard({
                 display: 'flex', alignItems: 'center', gap: 6, padding: '6px 14px',
                 borderRadius: 99,
                 background: 'rgba(255,255,255,0.05)',
-                border: `1px solid ${hexToRgba(accentColor, 0.50)}`,
+                border: '1px solid rgba(255,255,255,0.10)',
               }}>
-                <span style={{ fontSize: 14, fontWeight: 700, color: hexToRgba(accentColor, 0.50) }}>{streak.current}</span>
-                <span style={{ fontSize: 12, color: hexToRgba(accentColor, 0.50) }}>
+                <span style={{ fontSize: 14, fontWeight: 700, color: tw(0.45, textIntensity) }}>{streak.current}</span>
+                <span style={{ fontSize: 12, color: tw(0.35, textIntensity) }}>
                   jour{streak.current !== 1 ? 's' : ''} de suite
                 </span>
               </div>
@@ -1073,23 +1129,23 @@ export default function NewDashboard({
                   borderRadius: 17,
                 }}>
                   <div>
-                    <div style={{ fontSize: 10, color: hexToRgba(accentColor, 0.30), fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px', marginBottom: 10 }}>
+                    <div style={{ fontSize: 10, color: tw(0.25, textIntensity), fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px', marginBottom: 10 }}>
                       Soutenance dans
                     </div>
                     <div style={{ display: 'flex', alignItems: 'flex-end', gap: 10, marginBottom: 6 }}>
                       <span style={{
                         fontSize: 68, fontWeight: 900, letterSpacing: '-3px', lineHeight: 1,
-                        color: hexToRgba(accentColor, 0.80),
+                        color: tw(0.88, textIntensity),
                       }}>{remaining}</span>
                       <div style={{ paddingBottom: 8 }}>
-                        <div style={{ fontSize: 16, color: 'rgba(255,255,255,0.65)', fontWeight: 500 }}>jours</div>
+                        <div style={{ fontSize: 16, color: tw(0.65, textIntensity), fontWeight: 500 }}>jours</div>
                         {/* FIX: semaines was 0.22 → 0.5 */}
-                        <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.5)' }}>≈ {Math.round(remaining / 7)} semaines</div>
+                        <div style={{ fontSize: 11, color: tw(0.5, textIntensity) }}>≈ {Math.round(remaining / 7)} semaines</div>
                       </div>
                     </div>
                     {/* FIX: deadline was 0.25/0.5 → 0.5/0.75 */}
-                    <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.5)', letterSpacing: '0.2px' }}>
-                      Deadline · <span style={{ color: 'rgba(255,255,255,0.8)', fontWeight: 600 }}>{fmt(deadlineDate, 'long')} {deadlineDate.getFullYear()}</span>
+                    <div style={{ fontSize: 11, color: tw(0.5, textIntensity), letterSpacing: '0.2px' }}>
+                      Deadline · <span style={{ color: tw(0.8, textIntensity), fontWeight: 600 }}>{fmt(deadlineDate, 'long')} {deadlineDate.getFullYear()}</span>
                     </div>
                   </div>
                   <div style={{ padding: '4px 0' }}>
@@ -1098,15 +1154,15 @@ export default function NewDashboard({
                   {/* Timeline bar */}
                   <div>
                     {/* FIX: track was 0.06 → 0.14 */}
-                    <div style={{ height: 2, borderRadius: 99, background: hexToRgba(accentColor, 0.08), overflow: 'visible', position: 'relative', marginBottom: 7 }}>
+                    <div style={{ height: 2, borderRadius: 99, background: 'rgba(255,255,255,0.06)', overflow: 'visible', position: 'relative', marginBottom: 7 }}>
                       <div style={{ height: '100%', width: `${timePct}%`, borderRadius: 99, background: accentColor, transition: 'width 0.6s cubic-bezier(.4,0,.2,1)' }} />
                       <div style={{ position: 'absolute', left: `${timePct}%`, top: '50%', transform: 'translate(-50%,-50%)', width: 6, height: 6, borderRadius: '50%', background: 'rgba(255,255,255,0.6)' }} />
                     </div>
                     <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                       {/* FIX: dates were 0.2 → 0.5 */}
-                      <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.5)' }}>{fmt(startDate)}</span>
-                      <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.65)', fontWeight: 600 }}>{timePct}% du temps écoulé</span>
-                      <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.5)' }}>{fmt(deadlineDate)}</span>
+                      <span style={{ fontSize: 10, color: tw(0.5, textIntensity) }}>{fmt(startDate)}</span>
+                      <span style={{ fontSize: 10, color: tw(0.65, textIntensity), fontWeight: 600 }}>{timePct}% du temps écoulé</span>
+                      <span style={{ fontSize: 10, color: tw(0.5, textIntensity) }}>{fmt(deadlineDate)}</span>
                     </div>
                   </div>
                 </div>
@@ -1123,9 +1179,9 @@ export default function NewDashboard({
                   display: 'flex', alignItems: 'center', gap: 20,
                   borderRadius: 17,
                 }}>
-                  <Arc pct={pct} accentColor={accentColor} />
+                  <Arc pct={pct} textIntensity={textIntensity} />
                   <div style={{ flex: 1 }}>
-                    <div style={{ fontSize: 10, color: hexToRgba(accentColor, 0.30), fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.8px', marginBottom: 14 }}>
+                    <div style={{ fontSize: 10, color: tw(0.25, textIntensity), fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.8px', marginBottom: 14 }}>
                       Avancement
                     </div>
                     {[
@@ -1134,9 +1190,9 @@ export default function NewDashboard({
                       { label: 'En cours',          val: `${chapters.filter(c => c.done > 0 && c.done < c.sections).length} chap.` },
                     ].map(s => (
                       <div key={s.label} style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 9 }}>
-                        <span style={{ fontSize: 11.5, color: 'rgba(255,255,255,0.50)' }}>{s.label}</span>
+                        <span style={{ fontSize: 11.5, color: tw(0.50, textIntensity) }}>{s.label}</span>
                         <div style={{ flex: 1, borderBottom: '1px dashed var(--mq-stroke-soft)', marginBottom: 2 }} />
-                        <span style={{ fontSize: 11.5, fontWeight: 600, color: 'rgba(255,255,255,0.80)' }}>{s.val}</span>
+                        <span style={{ fontSize: 11.5, fontWeight: 600, color: tw(0.80, textIntensity) }}>{s.val}</span>
                       </div>
                     ))}
                   </div>
@@ -1177,13 +1233,13 @@ export default function NewDashboard({
                       borderRight: i < 2 ? '1px solid var(--mq-stroke-soft)' : 'none',
                       padding: '0 24px',
                     }}>
-                      <div style={{ fontSize: 10, color: hexToRgba(accentColor, 0.30), fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.8px', marginBottom: 4 }}>
+                      <div style={{ fontSize: 10, color: tw(0.25, textIntensity), fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.8px', marginBottom: 4 }}>
                         {s.label}
                       </div>
-                      <div style={{ fontSize: 32, fontWeight: 800, letterSpacing: '-1px', lineHeight: 1, color: 'var(--mq-text-primary)', marginBottom: 4, textShadow: `0 0 20px ${hexToRgba(accentColor, 0.25)}` }}>
+                      <div style={{ fontSize: 32, fontWeight: 800, letterSpacing: '-1px', lineHeight: 1, color: 'var(--mq-text-primary)', marginBottom: 4 }}>
                         {s.val}
                       </div>
-                      <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)' }}>{s.sub}</div>
+                      <div style={{ fontSize: 11, color: tw(0.35, textIntensity) }}>{s.sub}</div>
                     </div>
                   ))}
                 </div>
@@ -1193,10 +1249,10 @@ export default function NewDashboard({
               <div style={{ gridColumn: '1 / 3', display: 'flex', flexDirection: 'column', gap: 7, minHeight: 0 }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 }}>
                   {/* FIX: "Chapitres" label 0.5 → 0.75, count badge 0.35 → 0.60 */}
-                  <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.75)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '1px' }}>
+                  <div style={{ fontSize: 10, color: tw(0.75, textIntensity), fontWeight: 700, textTransform: 'uppercase', letterSpacing: '1px' }}>
                     Chapitres
                   </div>
-                  <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.60)' }}>
+                  <div style={{ fontSize: 10, color: tw(0.60, textIntensity) }}>
                     {chapters.length} chapitre{chapters.length > 1 ? 's' : ''}
                   </div>
                 </div>
@@ -1212,7 +1268,7 @@ export default function NewDashboard({
                   gap: 7,
                 }}>
                   {chapters.map(ch => (
-                    <ChapterCard key={ch.num} ch={ch} onClick={() => setSelectedCh(ch)} />
+                    <ChapterCard key={ch.num} ch={ch} onClick={() => setSelectedCh(ch)} textIntensity={textIntensity} />
                   ))}
                 </div>
               </div>
@@ -1225,6 +1281,7 @@ export default function NewDashboard({
             firstName={firstName}
             onUpload={onUpload}
             isLoading={isLoading}
+            textIntensity={textIntensity}
           />
         )}
       </main>
@@ -1234,6 +1291,7 @@ export default function NewDashboard({
         <ConfettiBurst
           title={chapters.find(c => c.num === celebratingChapter)?.title ?? ''}
           onDone={handleCelebrationDone}
+          textIntensity={textIntensity}
         />
       )}
 
@@ -1250,11 +1308,12 @@ export default function NewDashboard({
           onClose={() => setSelectedCh(null)}
           onSectionComplete={(sectionIndex) => handleSectionComplete(selectedCh.num, sectionIndex)}
           accentColor={accentColor}
+          textIntensity={textIntensity}
         />
       )}
 
       {/* Re-upload loading overlay */}
-      {isLoading && plan && <ReuploadOverlay accentColor={accentColor} />}
+      {isLoading && plan && <ReuploadOverlay accentColor={accentColor} textIntensity={textIntensity} />}
     </div>
   )
 }

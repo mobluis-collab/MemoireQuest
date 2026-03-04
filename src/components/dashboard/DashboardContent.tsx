@@ -5,6 +5,7 @@ import type { MemoirePlan, QuestProgress, StreakData, SectionProgress } from '@/
 import { isSectionDone } from '@/types/memoir'
 import type { ComboState } from '@/lib/combo'
 import NewDashboard from './new/NewDashboard'
+import { tw } from '@/lib/color-utils'
 import PrestigeModal from '@/components/prestige/PrestigeModal'
 import { useToast } from '@/hooks/useToast'
 import { usePrestigeMode } from '@/hooks/usePrestigeMode'
@@ -51,13 +52,15 @@ export default function DashboardContent({
     initialComboState || { count: 0, lastQuestTime: null }
   )
   const [accentColor, setAccentColor] = useState('#6366f1')
+  const [textIntensity, setTextIntensity] = useState(1.0)
 
-  // Load accent color from preferences API
+  // Load accent color and text intensity from preferences API
   useEffect(() => {
     fetch('/api/preferences')
       .then(res => res.json())
       .then(data => {
         if (data.accent_color) setAccentColor(data.accent_color)
+        if (data.text_intensity != null) setTextIntensity(data.text_intensity)
       })
       .catch(() => {}) // silently fallback to default
   }, [])
@@ -71,6 +74,25 @@ export default function DashboardContent({
       body: JSON.stringify({ accent_color: color }),
     }).catch(() => {}) // silently handle error
   }, [])
+
+  // Optimistic update for text intensity
+  const handleTextIntensityChange = useCallback((intensity: number) => {
+    setTextIntensity(intensity)
+    fetch('/api/preferences', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text_intensity: intensity }),
+    }).catch(() => {})
+  }, [])
+
+  // Update CSS variables when textIntensity changes
+  useEffect(() => {
+    const root = document.documentElement
+    root.style.setProperty('--mq-text-primary', tw(0.88, textIntensity))
+    root.style.setProperty('--mq-text-secondary', tw(0.60, textIntensity))
+    root.style.setProperty('--mq-text-muted', tw(0.40, textIntensity))
+    root.style.setProperty('--mq-text-subtle', tw(0.20, textIntensity))
+  }, [textIntensity])
 
   // Calculate total quests and completed quests for prestige
   const { totalQuests, completedQuests } = useMemo(() => {
@@ -286,6 +308,8 @@ export default function DashboardContent({
         loadingKey={loadingKey}
         accentColor={accentColor}
         onAccentChange={handleAccentChange}
+        textIntensity={textIntensity}
+        onTextIntensityChange={handleTextIntensityChange}
       />
       {plan && (
         <PrestigeModal
