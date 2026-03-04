@@ -103,7 +103,7 @@ function Arc({ pct, accentColor }: { pct: number; accentColor?: string }) {
 }
 
 /* ─── Dot grid ────────────────────────────────────────────────── */
-function DotGrid({ start, deadline }: { start: Date; deadline: Date }) {
+function DotGrid({ start, deadline, accentColor }: { start: Date; deadline: Date; accentColor: string }) {
   const today = new Date()
   const total   = daysBetween(start, deadline)
   const elapsed = Math.min(daysBetween(start, today), total)
@@ -120,9 +120,9 @@ function DotGrid({ start, deadline }: { start: Date; deadline: Date }) {
             return (
               <div key={c} title={fmt(addDays(start, i), 'long')} style={{
                 width: 5, height: 5, borderRadius: 1.5, flexShrink: 0,
-                background: isToday ? 'rgba(255,255,255,0.8)'
+                background: isToday ? hexToRgba(accentColor, 0.90)
                   : isElapsed
-                    ? `rgba(255,255,255,${0.12 + (i / elapsed) * 0.25})`
+                    ? hexToRgba(accentColor, 0.50)
                     : 'var(--mq-stroke-soft)',
                 animation: 'none',
                 transition: 'background 0.3s cubic-bezier(.4,0,.2,1)',
@@ -200,12 +200,14 @@ function SidePanel({
   loadingKey,
   onClose,
   onSectionComplete,
+  accentColor,
 }: {
   ch: ChapterData
   chapterProgress: Record<string, SectionProgress>
   loadingKey: string | null
   onClose: () => void
   onSectionComplete: (sectionIndex: number) => void
+  accentColor: string
 }) {
   const pct  = ch.sections > 0 ? Math.round((ch.done / ch.sections) * 100) : 0
   const R = 28, SW = 5, circ = 2 * Math.PI * R
@@ -267,10 +269,10 @@ function SidePanel({
                 <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.75)' }}>Sections terminées</span>
                 <span style={{ fontSize: 12, fontWeight: 700, color: 'rgba(255,255,255,0.80)' }}>{ch.done}/{ch.sections}</span>
               </div>
-              <div style={{ height: 5, borderRadius: 99, background: 'rgba(255,255,255,0.1)', overflow: 'hidden' }}>
+              <div style={{ height: 5, borderRadius: 99, background: hexToRgba(accentColor, 0.08), overflow: 'hidden' }}>
                 <div style={{
                   height: '100%', width: `${pct}%`, borderRadius: 99,
-                  background: 'rgba(255,255,255,0.35)',
+                  background: accentColor,
                   transition: 'width 0.6s cubic-bezier(.4,0,.2,1)',
                 }} />
               </div>
@@ -456,7 +458,7 @@ const REUPLOAD_STEPS = [
   { label: 'Structuration finale…', pct: 96 },
 ]
 
-function ReuploadOverlay() {
+function ReuploadOverlay({ accentColor }: { accentColor: string }) {
   const [stepIndex, setStepIndex] = useState(0)
 
   useEffect(() => {
@@ -510,13 +512,13 @@ function ReuploadOverlay() {
           </div>
           <div style={{
             height: 5, borderRadius: 99,
-            background: 'var(--mq-border)', overflow: 'hidden',
+            background: hexToRgba(accentColor, 0.08), overflow: 'hidden',
           }}>
             <div style={{
               height: '100%', borderRadius: 99,
-              background: 'rgba(255,255,255,0.50)',
+              background: accentColor,
               width: `${current.pct}%`,
-              transition: 'width 1s cubic-bezier(.4,0,.2,1)',
+              transition: 'width 0.6s cubic-bezier(.4,0,.2,1)',
             }} />
           </div>
         </div>
@@ -832,14 +834,14 @@ export default function NewDashboard({
               </div>
             </div>
           </div>
-          <div style={{ height: 4, borderRadius: 99, background: 'var(--mq-border)', overflow: 'hidden', marginBottom: 4 }}>
+          <div style={{ height: 4, borderRadius: 99, background: hexToRgba(accentColor, 0.08), overflow: 'hidden', marginBottom: 4 }}>
             <div style={{
               height: '100%', width: `${xpPct}%`, borderRadius: 99,
               background: accentColor,
               transition: 'width 0.6s cubic-bezier(.4,0,.2,1)',
             }} />
           </div>
-          <div style={{ fontSize: 9, color: 'var(--mq-text-muted)' }}>
+          <div style={{ fontSize: 9, color: hexToRgba(accentColor, 0.40) }}>
             {totalPoints} XP{levelInfo.isMaxLevel ? '' : ` · encore ${xpToNext} avant le niv. ${currentLevel + 1}`}
           </div>
         </div>
@@ -858,12 +860,12 @@ export default function NewDashboard({
                 textAlign: 'left',
                 transition: 'all 0.3s cubic-bezier(.4,0,.2,1)',
                 marginBottom: 1,
-                borderLeft: active ? `2px solid ${accentColor}` : '2px solid transparent',
+                borderLeft: active ? `2px solid ${hexToRgba(accentColor, 0.20)}` : '2px solid transparent',
               }}>
                 <span style={{
                   fontSize: 11,
-                  opacity: active ? 1 : 0.75,
-                  transition: 'opacity 0.3s cubic-bezier(.4,0,.2,1)',
+                  color: active ? hexToRgba(accentColor, 0.50) : hexToRgba(accentColor, 0.20),
+                  transition: 'color 0.3s cubic-bezier(.4,0,.2,1)',
                 }}>{item.icon}</span>
                 {item.label}
               </button>
@@ -875,16 +877,16 @@ export default function NewDashboard({
             style={{
               width: '100%', display: 'flex', alignItems: 'center', gap: 9,
               padding: '8px 11px 8px 13px', borderRadius: 9, border: 'none', cursor: 'pointer',
-              background: showColorPicker ? 'var(--mq-stroke-soft)' : 'transparent',
+              background: showColorPicker ? hexToRgba(accentColor, 0.12) : 'transparent',
               color: showColorPicker ? 'rgba(255,255,255,0.90)' : 'rgba(255,255,255,0.45)',
               fontSize: 13, fontWeight: showColorPicker ? 600 : 400,
               textAlign: 'left' as const,
               transition: 'all 0.3s cubic-bezier(.4,0,.2,1)',
               marginBottom: 1,
-              borderLeft: showColorPicker ? `2px solid ${accentColor}` : '2px solid transparent',
+              borderLeft: showColorPicker ? `2px solid ${hexToRgba(accentColor, 0.20)}` : '2px solid transparent',
             }}
           >
-            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" style={{ opacity: showColorPicker ? 1 : 0.75, transition: 'opacity 0.3s cubic-bezier(.4,0,.2,1)' }}>
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" style={{ color: showColorPicker ? hexToRgba(accentColor, 0.50) : hexToRgba(accentColor, 0.20), transition: 'color 0.3s cubic-bezier(.4,0,.2,1)' }}>
               <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" />
               <circle cx="12" cy="6" r="2.5" fill="#EF4444" />
               <circle cx="17.2" cy="9.5" r="2.5" fill="#F59E0B" />
@@ -928,7 +930,7 @@ export default function NewDashboard({
                   opacity: isLoading ? 0.4 : 1,
                   transition: 'opacity 0.15s cubic-bezier(.4,0,.2,1)',
                 }}>
-                <span style={{ fontSize: 11 }}>↑</span> {isLoading ? 'Analyse en cours…' : 'Ré-importer un PDF'}
+                <span style={{ fontSize: 11, color: hexToRgba(accentColor, 0.30) }}>↑</span> {isLoading ? 'Analyse en cours…' : 'Ré-importer un PDF'}
               </button>
             </>
           )}
@@ -1042,10 +1044,10 @@ export default function NewDashboard({
                 display: 'flex', alignItems: 'center', gap: 6, padding: '6px 14px',
                 borderRadius: 99,
                 background: 'rgba(255,255,255,0.05)',
-                border: '1px solid rgba(255,255,255,0.10)',
+                border: `1px solid ${hexToRgba(accentColor, 0.50)}`,
               }}>
-                <span style={{ fontSize: 14, fontWeight: 700, color: 'rgba(255,255,255,0.8)' }}>{streak.current}</span>
-                <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.45)' }}>
+                <span style={{ fontSize: 14, fontWeight: 700, color: hexToRgba(accentColor, 0.50) }}>{streak.current}</span>
+                <span style={{ fontSize: 12, color: hexToRgba(accentColor, 0.50) }}>
                   jour{streak.current !== 1 ? 's' : ''} de suite
                 </span>
               </div>
@@ -1071,13 +1073,13 @@ export default function NewDashboard({
                   borderRadius: 17,
                 }}>
                   <div>
-                    <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.45)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px', marginBottom: 10 }}>
+                    <div style={{ fontSize: 10, color: hexToRgba(accentColor, 0.30), fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px', marginBottom: 10 }}>
                       Soutenance dans
                     </div>
                     <div style={{ display: 'flex', alignItems: 'flex-end', gap: 10, marginBottom: 6 }}>
                       <span style={{
                         fontSize: 68, fontWeight: 900, letterSpacing: '-3px', lineHeight: 1,
-                        color: 'rgba(255,255,255,0.9)',
+                        color: hexToRgba(accentColor, 0.80),
                       }}>{remaining}</span>
                       <div style={{ paddingBottom: 8 }}>
                         <div style={{ fontSize: 16, color: 'rgba(255,255,255,0.65)', fontWeight: 500 }}>jours</div>
@@ -1091,13 +1093,13 @@ export default function NewDashboard({
                     </div>
                   </div>
                   <div style={{ padding: '4px 0' }}>
-                    <DotGrid start={startDate} deadline={deadlineDate} />
+                    <DotGrid start={startDate} deadline={deadlineDate} accentColor={accentColor} />
                   </div>
                   {/* Timeline bar */}
                   <div>
                     {/* FIX: track was 0.06 → 0.14 */}
-                    <div style={{ height: 2, borderRadius: 99, background: 'var(--mq-border)', overflow: 'visible', position: 'relative', marginBottom: 7 }}>
-                      <div style={{ height: '100%', width: `${timePct}%`, borderRadius: 99, background: 'rgba(255,255,255,0.30)', transition: 'width 0.6s cubic-bezier(.4,0,.2,1)' }} />
+                    <div style={{ height: 2, borderRadius: 99, background: hexToRgba(accentColor, 0.08), overflow: 'visible', position: 'relative', marginBottom: 7 }}>
+                      <div style={{ height: '100%', width: `${timePct}%`, borderRadius: 99, background: accentColor, transition: 'width 0.6s cubic-bezier(.4,0,.2,1)' }} />
                       <div style={{ position: 'absolute', left: `${timePct}%`, top: '50%', transform: 'translate(-50%,-50%)', width: 6, height: 6, borderRadius: '50%', background: 'rgba(255,255,255,0.6)' }} />
                     </div>
                     <div style={{ display: 'flex', justifyContent: 'space-between' }}>
@@ -1123,7 +1125,7 @@ export default function NewDashboard({
                 }}>
                   <Arc pct={pct} accentColor={accentColor} />
                   <div style={{ flex: 1 }}>
-                    <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.45)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.8px', marginBottom: 14 }}>
+                    <div style={{ fontSize: 10, color: hexToRgba(accentColor, 0.30), fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.8px', marginBottom: 14 }}>
                       Avancement
                     </div>
                     {[
@@ -1175,10 +1177,10 @@ export default function NewDashboard({
                       borderRight: i < 2 ? '1px solid var(--mq-stroke-soft)' : 'none',
                       padding: '0 24px',
                     }}>
-                      <div style={{ fontSize: 10, color: 'var(--mq-text-muted)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.8px', marginBottom: 4 }}>
+                      <div style={{ fontSize: 10, color: hexToRgba(accentColor, 0.30), fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.8px', marginBottom: 4 }}>
                         {s.label}
                       </div>
-                      <div style={{ fontSize: 32, fontWeight: 800, letterSpacing: '-1px', lineHeight: 1, color: 'var(--mq-text-primary)', marginBottom: 4 }}>
+                      <div style={{ fontSize: 32, fontWeight: 800, letterSpacing: '-1px', lineHeight: 1, color: 'var(--mq-text-primary)', marginBottom: 4, textShadow: `0 0 20px ${hexToRgba(accentColor, 0.25)}` }}>
                         {s.val}
                       </div>
                       <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)' }}>{s.sub}</div>
@@ -1188,7 +1190,7 @@ export default function NewDashboard({
               </div>
 
               {/* CHAPTERS grid — adaptatif au nombre de chapitres */}
-              <div style={{ gridColumn: '1/3' as unknown as undefined, display: 'flex', flexDirection: 'column', gap: 7, minHeight: 0 }}>
+              <div style={{ gridColumn: '1 / 3', display: 'flex', flexDirection: 'column', gap: 7, minHeight: 0 }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 }}>
                   {/* FIX: "Chapitres" label 0.5 → 0.75, count badge 0.35 → 0.60 */}
                   <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.75)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '1px' }}>
@@ -1247,11 +1249,12 @@ export default function NewDashboard({
           loadingKey={loadingKey}
           onClose={() => setSelectedCh(null)}
           onSectionComplete={(sectionIndex) => handleSectionComplete(selectedCh.num, sectionIndex)}
+          accentColor={accentColor}
         />
       )}
 
       {/* Re-upload loading overlay */}
-      {isLoading && plan && <ReuploadOverlay />}
+      {isLoading && plan && <ReuploadOverlay accentColor={accentColor} />}
     </div>
   )
 }

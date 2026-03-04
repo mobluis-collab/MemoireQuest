@@ -87,7 +87,7 @@ function AchievementCard({ a, accentColor }: { a: Achievement; accentColor: stri
         <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
           <div style={{
             width: 32, height: 2, borderRadius: 99,
-            background: 'rgba(255,255,255,0.06)',
+            background: hexToRgba(accentColor, 0.08),
             overflow: 'hidden',
           }}>
             <div style={{
@@ -144,7 +144,7 @@ export default function AchievementsView({ totalPoints, streak, questProgress, c
         {/* Global progress bar */}
         <div style={{
           marginTop: 12, width: '100%', height: 3, borderRadius: 99,
-          background: 'rgba(255,255,255,0.05)',
+          background: hexToRgba(accentColor, 0.08),
           overflow: 'hidden',
         }}>
           <div style={{

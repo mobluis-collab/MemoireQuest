@@ -140,7 +140,7 @@ export default function ProgressionView({ chapters, totalPoints, streak, startDa
                       <span style={{ fontSize: 11, fontWeight: 600, color: accentColor, minWidth: 32, textAlign: 'right' }}>{pct}%</span>
                     </div>
                   </div>
-                  <div style={{ height: 4, borderRadius: 99, background: 'var(--mq-stroke-soft)', overflow: 'hidden' }}>
+                  <div style={{ height: 4, borderRadius: 99, background: hexToRgba(accentColor, 0.08), overflow: 'hidden' }}>
                     <div style={{
                       height: '100%', width: `${pct}%`, borderRadius: 99,
                       background: accentColor,
@@ -175,7 +175,7 @@ export default function ProgressionView({ chapters, totalPoints, streak, startDa
                   <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.50)' }}>{d.label}</span>
                   <span style={{ fontSize: 11, fontWeight: 600, color: 'rgba(255,255,255,0.60)' }}>{d.total}</span>
                 </div>
-                <div style={{ height: 4, borderRadius: 99, background: 'var(--mq-stroke-soft)', overflow: 'hidden' }}>
+                <div style={{ height: 4, borderRadius: 99, background: hexToRgba(accentColor, 0.08), overflow: 'hidden' }}>
                   <div style={{
                     height: '100%',
                     width: totalSec > 0 ? `${Math.round((d.total / totalSec) * 100)}%` : '0%',
