@@ -160,7 +160,14 @@ export async function POST(request: Request) {
                 },
                 {
                   type: 'text',
-                  text: 'Génère le plan de mémoire en JSON. IMPORTANT : chaque section DOIT obligatoirement inclure un champ "tasks" avec un tableau de 2 à 4 sous-tâches concrètes et actionnables. Ne jamais omettre le tableau tasks.',
+                  text: `Génère le plan de mémoire en JSON.
+
+INSTRUCTIONS CRITIQUES :
+1. Chaque section DOIT obligatoirement inclure un champ "tasks" avec un tableau de 2 à 4 sous-tâches concrètes et actionnables.
+2. DEADLINE OBLIGATOIRE : Avant de générer le plan, relis le document UNE DEUXIÈME FOIS en cherchant spécifiquement toute mention de : "date de rendu", "deadline", "date limite", "date de soutenance", "date de remise", "à remettre avant le", "échéance", "date butoir", "rendu le", "pour le", ou toute date future mentionnée dans le contexte d'une remise de travail.
+   - Si tu trouves une date, mets-la dans "deadline" au format "YYYY-MM-DD".
+   - Si tu ne trouves AUCUNE date après cette double vérification, mets "deadline": null.
+   - NE JAMAIS inventer de date.`,
                 },
               ],
             },
@@ -233,6 +240,9 @@ export async function POST(request: Request) {
         }
 
         const plan = parsed.data
+        // Log deadline detection for debugging
+        console.log('[plan] Deadline detected:', plan.deadline ?? 'null (not found in PDF)')
+        console.log('[plan] Plan title:', plan.title)
         await savePlan(supabase, user.id, plan.title, plan)
 
         // Send the final result

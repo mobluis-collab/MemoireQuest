@@ -7,6 +7,7 @@ import { getLevelProgress } from '@/lib/xp/levels'
 import UploadZone from '@/components/dashboard/UploadZone'
 import RateLimitWarning from '@/components/ui/RateLimitWarning'
 import MemoireView from './MemoireView'
+import PomodoroTimer from './PomodoroTimer'
 import ProgressionView from './ProgressionView'
 import AchievementsView from './AchievementsView'
 import { useTheme as useThemeToggle } from '@/context/ThemeProvider'
@@ -613,6 +614,8 @@ export default function NewDashboard({
   const [showShortcuts, setShowShortcuts] = useState(false)
   const [hoveredNav, setHoveredNav] = useState<number | null>(null)
   const [focusMode, setFocusMode] = useState(false)
+  const [pomodoroOpen, setPomodoroOpen] = useState(false)
+  const [manualDeadline, setManualDeadline] = useState('')
   const prevChaptersRef = useRef<ChapterData[]>([])
   const reuploadRef = useRef<HTMLInputElement>(null)
 
@@ -676,11 +679,15 @@ export default function NewDashboard({
         case 'F':
           setFocusMode(prev => !prev)
           break
+        case 'p':
+        case 'P':
+          setPomodoroOpen(prev => !prev)
+          break
       }
     }
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [handleViewChange, showShortcuts, focusMode])
+  }, [handleViewChange, showShortcuts, focusMode, pomodoroOpen])
 
   const today = new Date()
   const firstName = user.user_metadata?.full_name?.split(' ')[0] ?? user.email.split('@')[0]
@@ -773,6 +780,26 @@ export default function NewDashboard({
       if (reuploadRef.current) reuploadRef.current.value = ''
     }
   }, [onUpload])
+
+  /* ── Save manual deadline ── */
+  const handleSaveDeadline = useCallback(async () => {
+    if (!manualDeadline || !plan) return
+    try {
+      const res = await fetch('/api/user/save', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          field: 'deadline',
+          value: manualDeadline,
+        }),
+      })
+      if (res.ok) {
+        window.location.reload()
+      }
+    } catch (err) {
+      console.error('Failed to save deadline:', err)
+    }
+  }, [manualDeadline, plan])
 
   /* ── Quest complete ── */
   const handleSectionComplete = async (chapterNumber: string, sectionIndex: number) => {
@@ -1108,6 +1135,36 @@ export default function NewDashboard({
         position: 'relative', zIndex: 1,
         display: 'flex', flexDirection: 'column', gap: 10,
       }}>
+        {/* Pomodoro button — next to Focus */}
+        {!focusMode && plan && (
+          <button
+            onClick={() => setPomodoroOpen(true)}
+            style={{
+              position: 'absolute',
+              top: 14,
+              right: 100,
+              zIndex: 20,
+              display: 'flex',
+              alignItems: 'center',
+              gap: 5,
+              padding: '5px 12px',
+              borderRadius: 99,
+              border: `1px solid ${bg(0.10, isDark)}`,
+              background: bg(0.05, isDark),
+              color: tw(0.45, textIntensity, isDark),
+              fontSize: 11,
+              fontWeight: 500,
+              cursor: 'pointer',
+              transition: 'all 0.2s cubic-bezier(.4,0,.2,1)',
+              backdropFilter: 'blur(8px)',
+            }}
+            title="Pomodoro (P)"
+          >
+            <span style={{ fontSize: 12 }}>{'\u25D4'}</span>
+            <span>Pomodoro</span>
+          </button>
+        )}
+
         {/* Focus mode toggle — top-right pill */}
         {!focusMode && plan && (
           <button
@@ -1293,15 +1350,48 @@ export default function NewDashboard({
                       </div>
                     </>
                   ) : (
-                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', gap: 12, textAlign: 'center' }}>
-                      <div style={{ fontSize: 10, color: tw(0.25, textIntensity, isDark), fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px' }}>
-                        Deadline
-                      </div>
-                      <div style={{ fontSize: 42, fontWeight: 900, letterSpacing: '-2px', lineHeight: 1, color: tw(0.40, textIntensity, isDark) }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12, padding: '16px 0' }}>
+                      <div style={{ fontSize: 28, color: tw(0.15, textIntensity, isDark) }}>
                         {'\u2014'}
                       </div>
-                      <div style={{ fontSize: 12, color: tw(0.45, textIntensity, isDark), lineHeight: 1.5, maxWidth: 260 }}>
+                      <div style={{ fontSize: 12, color: tw(0.45, textIntensity, isDark), lineHeight: 1.5, maxWidth: 260, textAlign: 'center' }}>
                         Aucune deadline d{'\u00E9'}tect{'\u00E9'}e dans ton cahier des charges
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 4 }}>
+                        <input
+                          type="date"
+                          value={manualDeadline}
+                          onChange={(e: ChangeEvent<HTMLInputElement>) => setManualDeadline(e.target.value)}
+                          style={{
+                            padding: '6px 10px',
+                            borderRadius: 8,
+                            border: `1px solid ${bg(0.12, isDark)}`,
+                            background: bg(0.04, isDark),
+                            color: tw(0.70, textIntensity, isDark),
+                            fontSize: 12,
+                            fontFamily: 'inherit',
+                            outline: 'none',
+                            cursor: 'pointer',
+                          }}
+                        />
+                        {manualDeadline && (
+                          <button
+                            onClick={handleSaveDeadline}
+                            style={{
+                              padding: '6px 14px',
+                              borderRadius: 8,
+                              border: `1px solid ${bg(0.15, isDark)}`,
+                              background: bg(0.08, isDark),
+                              color: tw(0.65, textIntensity, isDark),
+                              fontSize: 11,
+                              fontWeight: 600,
+                              cursor: 'pointer',
+                              transition: 'all 0.2s',
+                            }}
+                          >
+                            Valider
+                          </button>
+                        )}
                       </div>
                     </div>
                   )}
@@ -1455,6 +1545,13 @@ export default function NewDashboard({
         />
       )}
 
+      <PomodoroTimer
+        isOpen={pomodoroOpen}
+        onClose={() => setPomodoroOpen(false)}
+        textIntensity={textIntensity}
+        isDark={isDark}
+      />
+
       {/* Re-upload loading overlay */}
       {isLoading && plan && <ReuploadOverlay accentColor={accentColor} textIntensity={textIntensity} isDark={isDark} />}
 
@@ -1543,6 +1640,7 @@ export default function NewDashboard({
                 { keys: '4', desc: 'Troph\u00E9es' },
                 { keys: '[ ]', desc: 'Ouvrir / fermer la sidebar' },
                 { keys: 'F', desc: 'Mode focus' },
+                { keys: 'P', desc: 'Pomodoro' },
                 { keys: 'Esc', desc: 'Retour au dashboard / quitter focus' },
                 { keys: '?', desc: 'Afficher / masquer cette aide' },
               ].map((shortcut) => (
