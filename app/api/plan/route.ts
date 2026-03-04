@@ -138,8 +138,8 @@ export async function POST(request: Request) {
         let stopReason = ''
 
         const anthropicStream = anthropic.messages.stream({
-          model: 'claude-sonnet-4-5-20250929',
-          max_tokens: 8192,
+          model: 'claude-haiku-4-5-20251001',
+          max_tokens: 4096,
           system: SYSTEM_PROMPT,
           messages: [
             {
