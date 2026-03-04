@@ -5,7 +5,14 @@ export function hexToRgba(hex: string, opacity: number): string {
   return `rgba(${r}, ${g}, ${b}, ${opacity})`
 }
 
-export function tw(baseOpacity: number, intensity: number = 1.0): string {
+export function tw(baseOpacity: number, intensity: number = 1.0, isDark: boolean = true): string {
   const o = Math.min(1, Math.max(0, baseOpacity * intensity))
-  return `rgba(255,255,255,${o.toFixed(2)})`
+  const ch = isDark ? 255 : 0
+  return `rgba(${ch},${ch},${ch},${o.toFixed(2)})`
+}
+
+export function bg(baseOpacity: number, isDark: boolean = true): string {
+  const o = Math.min(1, Math.max(0, baseOpacity))
+  const ch = isDark ? 255 : 0
+  return `rgba(${ch},${ch},${ch},${o.toFixed(2)})`
 }

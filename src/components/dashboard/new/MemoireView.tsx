@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { isSectionDone, SectionProgress } from '@/types/memoir'
-import { tw } from '@/lib/color-utils'
+import { tw, bg } from '@/lib/color-utils'
 
 
 interface Section {
@@ -29,9 +29,10 @@ interface MemoireViewProps {
   onSubtaskToggle: (chapterNumber: string, sectionIndex: number, taskIndex: number) => void
   accentColor?: string
   textIntensity?: number
+  isDark?: boolean
 }
 
-export default function MemoireView({ chapters, questProgress, loadingKey, onSubtaskToggle, accentColor = '#6366f1', textIntensity = 1.0 }: MemoireViewProps) {
+export default function MemoireView({ chapters, questProgress, loadingKey, onSubtaskToggle, accentColor = '#6366f1', textIntensity = 1.0, isDark = true }: MemoireViewProps) {
   const [openChapter, setOpenChapter] = useState<string | null>(chapters[0]?.num ?? null)
   const [hoveredChapter, setHoveredChapter] = useState<string | null>(null)
 
@@ -89,11 +90,11 @@ export default function MemoireView({ chapters, questProgress, loadingKey, onSub
             color: 'var(--mq-text-primary)',
           }}>Mon mémoire</h1>
           <p style={{ fontSize: 13, color: 'var(--mq-text-muted)', marginTop: 6 }}>
-            {doneSec} / {totalSec} sections · <span style={{ color: tw(0.60, textIntensity), fontWeight: 600 }}>{globalPct}%</span>
+            {doneSec} / {totalSec} sections · <span style={{ color: tw(0.60, textIntensity, isDark), fontWeight: 600 }}>{globalPct}%</span>
           </p>
         </div>
         <div style={{ width: 200 }}>
-          <div style={{ height: 4, borderRadius: 99, background: 'rgba(255,255,255,0.06)', overflow: 'hidden' }}>
+          <div style={{ height: 4, borderRadius: 99, background: bg(0.06, isDark), overflow: 'hidden' }}>
             <div style={{
               height: '100%', width: `${globalPct}%`, borderRadius: 99,
               background: accentColor,
@@ -115,8 +116,8 @@ export default function MemoireView({ chapters, questProgress, loadingKey, onSub
           return (
             <div key={ch.num} style={{
               borderRadius: 12,
-              border: `1px solid ${isHovered ? 'rgba(255,255,255,0.12)' : 'rgba(255,255,255,0.06)'}`,
-              background: chapterDone ? 'rgba(255,255,255,0.03)' : 'rgba(255,255,255,0.02)',
+              border: `1px solid ${isHovered ? bg(0.12, isDark) : bg(0.06, isDark)}`,
+              background: chapterDone ? bg(0.03, isDark) : bg(0.02, isDark),
               overflow: 'hidden',
               transition: 'border-color 0.2s cubic-bezier(.4,0,.2,1), background 0.2s cubic-bezier(.4,0,.2,1)',
               flexShrink: 0,
@@ -129,11 +130,11 @@ export default function MemoireView({ chapters, questProgress, loadingKey, onSub
                 style={{
                   display: 'flex', alignItems: 'center', gap: 14,
                   padding: '14px 20px', cursor: 'pointer',
-                  background: isHovered ? 'rgba(255,255,255,0.03)' : 'transparent',
+                  background: isHovered ? bg(0.03, isDark) : 'transparent',
                   transition: 'background 0.15s cubic-bezier(.4,0,.2,1)',
                 }}>
                 <span style={{
-                  fontSize: 11, color: tw(0.35, textIntensity), fontWeight: 600,
+                  fontSize: 11, color: tw(0.35, textIntensity, isDark), fontWeight: 600,
                   whiteSpace: 'nowrap', maxWidth: 52, overflow: 'hidden', textOverflow: 'ellipsis',
                   flexShrink: 0,
                 }}>{ch.num}</span>
@@ -141,12 +142,12 @@ export default function MemoireView({ chapters, questProgress, loadingKey, onSub
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{
                     fontSize: 14, fontWeight: 500,
-                    color: chapterDone ? tw(0.55, textIntensity) : tw(0.90, textIntensity),
+                    color: chapterDone ? tw(0.55, textIntensity, isDark) : tw(0.90, textIntensity, isDark),
                     whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
                   }}>
                     {ch.title}
-                    {chapterDone && <span style={{ marginLeft: 6, fontSize: 11, color: tw(0.60, textIntensity) }}>✓</span>}
-                    {!chapterDone && !wip && <span style={{ marginLeft: 6, fontSize: 11, color: tw(0.20, textIntensity) }}>—</span>}
+                    {chapterDone && <span style={{ marginLeft: 6, fontSize: 11, color: tw(0.60, textIntensity, isDark) }}>✓</span>}
+                    {!chapterDone && !wip && <span style={{ marginLeft: 6, fontSize: 11, color: tw(0.20, textIntensity, isDark) }}>—</span>}
                   </div>
                   <div style={{ fontSize: 11, color: 'var(--mq-text-muted)', marginTop: 2 }}>
                     {ch.done}/{ch.sections} sections
@@ -155,12 +156,12 @@ export default function MemoireView({ chapters, questProgress, loadingKey, onSub
 
                 <div style={{ width: 100, flexShrink: 0 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-                    <span style={{ fontSize: 10, color: tw(0.45, textIntensity) }}>
+                    <span style={{ fontSize: 10, color: tw(0.45, textIntensity, isDark) }}>
                       {chapterDone ? 'Terminé' : wip ? 'En cours' : 'A faire'}
                     </span>
-                    <span style={{ fontSize: 10, fontWeight: 600, color: tw(0.60, textIntensity) }}>{pct}%</span>
+                    <span style={{ fontSize: 10, fontWeight: 600, color: tw(0.60, textIntensity, isDark) }}>{pct}%</span>
                   </div>
-                  <div style={{ height: 3, borderRadius: 99, background: 'rgba(255,255,255,0.06)', overflow: 'hidden' }}>
+                  <div style={{ height: 3, borderRadius: 99, background: bg(0.06, isDark), overflow: 'hidden' }}>
                     <div style={{
                       height: '100%', width: `${pct}%`, borderRadius: 99,
                       background: accentColor,
@@ -170,7 +171,7 @@ export default function MemoireView({ chapters, questProgress, loadingKey, onSub
                 </div>
 
                 <div style={{
-                  fontSize: 14, color: tw(0.35, textIntensity),
+                  fontSize: 14, color: tw(0.35, textIntensity, isDark),
                   transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)',
                   transition: 'transform 0.2s cubic-bezier(.4,0,.2,1)',
                   flexShrink: 0,
@@ -191,15 +192,15 @@ export default function MemoireView({ chapters, questProgress, loadingKey, onSub
                   {ch.tips && (
                     <div style={{
                       padding: '10px 14px', borderRadius: 8,
-                      background: 'rgba(255,255,255,0.03)',
-                      borderLeft: '3px solid rgba(255,255,255,0.10)',
+                      background: bg(0.03, isDark),
+                      borderLeft: `3px solid ${bg(0.10, isDark)}`,
                       marginBottom: 4,
                     }}>
                       <div style={{
-                        fontSize: 10, color: tw(0.25, textIntensity), fontWeight: 600,
+                        fontSize: 10, color: tw(0.25, textIntensity, isDark), fontWeight: 600,
                         letterSpacing: '0.3px', marginBottom: 4, textTransform: 'uppercase',
                       }}>Conseils du cahier des charges</div>
-                      <div style={{ fontSize: 12, lineHeight: 1.55, color: tw(0.40, textIntensity), fontStyle: 'italic' }}>
+                      <div style={{ fontSize: 12, lineHeight: 1.55, color: tw(0.40, textIntensity, isDark), fontStyle: 'italic' }}>
                         {ch.tips}
                       </div>
                     </div>
@@ -240,8 +241,8 @@ export default function MemoireView({ chapters, questProgress, loadingKey, onSub
                         onMouseLeave={() => setHoveredSection(null)}
                         style={{
                           borderRadius: 10,
-                          border: `1px solid ${isDone ? 'rgba(255,255,255,0.06)' : isSectionHovered ? 'rgba(255,255,255,0.10)' : 'rgba(255,255,255,0.06)'}`,
-                          background: isDone ? 'rgba(255,255,255,0.02)' : 'rgba(255,255,255,0.04)',
+                          border: `1px solid ${isDone ? bg(0.06, isDark) : isSectionHovered ? bg(0.10, isDark) : bg(0.06, isDark)}`,
+                          background: isDone ? bg(0.02, isDark) : bg(0.04, isDark),
                           overflow: 'hidden',
                           // Animation 3 — Stagger
                           opacity: isAnyTaskLoading ? 0.6 : isSectionVisible ? 1 : 0,
@@ -249,7 +250,7 @@ export default function MemoireView({ chapters, questProgress, loadingKey, onSub
                             ? (isSectionHovered && !isDone ? 'translateY(-2px)' : 'translateY(0)')
                             : 'translateY(12px)',
                           // Animation 5 — Hover lift shadow
-                          boxShadow: isSectionHovered && !isDone ? '0 4px 20px rgba(255,255,255,0.03)' : 'none',
+                          boxShadow: isSectionHovered && !isDone ? `0 4px 20px ${bg(0.03, isDark)}` : 'none',
                           transition: `opacity 0.3s cubic-bezier(.4,0,.2,1) ${i * 60}ms, transform 0.3s cubic-bezier(.4,0,.2,1) ${i * 60}ms, box-shadow 0.2s cubic-bezier(.4,0,.2,1), border-color 0.2s cubic-bezier(.4,0,.2,1)`,
                         }}>
                         {/* Section header row */}
@@ -261,26 +262,26 @@ export default function MemoireView({ chapters, questProgress, loadingKey, onSub
                           <div style={{
                             width: 24, height: 24, borderRadius: '50%', flexShrink: 0,
                             display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            background: isDone ? 'rgba(255,255,255,0.60)' : 'var(--mq-border)',
-                            border: `1.5px solid ${isDone ? 'rgba(255,255,255,0.25)' : 'rgba(255,255,255,0.12)'}`,
+                            background: isDone ? bg(0.60, isDark) : 'var(--mq-border)',
+                            border: `1.5px solid ${isDone ? bg(0.25, isDark) : bg(0.12, isDark)}`,
                             fontSize: 10,
                           }}>
                             {isAnyTaskLoading
-                              ? <span style={{ color: tw(0.4, textIntensity), fontSize: 9 }}>...</span>
+                              ? <span style={{ color: tw(0.4, textIntensity, isDark), fontSize: 9 }}>...</span>
                               : isDone
                                 ? <span style={{ color: '#fff' }}>✓</span>
-                                : <span style={{ color: tw(0.45, textIntensity), fontSize: 9 }}>{i + 1}</span>}
+                                : <span style={{ color: tw(0.45, textIntensity, isDark), fontSize: 9 }}>{i + 1}</span>}
                           </div>
 
                           {/* Text + sous-taches count */}
                           <div style={{ flex: 1 }}>
                             <div style={{
                               fontSize: 13, fontWeight: isDone ? 400 : 500,
-                              color: isDone ? tw(0.50, textIntensity) : tw(0.85, textIntensity),
+                              color: isDone ? tw(0.50, textIntensity, isDark) : tw(0.85, textIntensity, isDark),
                             }}>{sec.text}</div>
                             {hasTasks && (
-                              <div style={{ fontSize: 10, color: tw(0.35, textIntensity), marginTop: 2 }}>
-                                {tasksDone}/{tasksTotal} sous-taches · <span style={{ color: tw(0.60, textIntensity), fontWeight: 600 }}>{tasksPct}%</span>
+                              <div style={{ fontSize: 10, color: tw(0.35, textIntensity, isDark), marginTop: 2 }}>
+                                {tasksDone}/{tasksTotal} sous-taches · <span style={{ color: tw(0.60, textIntensity, isDark), fontWeight: 600 }}>{tasksPct}%</span>
                               </div>
                             )}
                           </div>
@@ -289,9 +290,9 @@ export default function MemoireView({ chapters, questProgress, loadingKey, onSub
                           <span style={{
                             fontSize: 9, fontWeight: 600, flexShrink: 0,
                             padding: '2px 7px', borderRadius: 99,
-                            background: sec.difficulty === 'hard' ? 'rgba(255,255,255,0.10)' : sec.difficulty === 'medium' ? 'rgba(255,255,255,0.06)' : 'rgba(255,255,255,0.04)',
-                            border: '1px solid rgba(255,255,255,0.08)',
-                            color: sec.difficulty === 'hard' ? tw(0.70, textIntensity) : sec.difficulty === 'medium' ? tw(0.50, textIntensity) : tw(0.35, textIntensity),
+                            background: sec.difficulty === 'hard' ? bg(0.10, isDark) : sec.difficulty === 'medium' ? bg(0.06, isDark) : bg(0.04, isDark),
+                            border: `1px solid ${bg(0.08, isDark)}`,
+                            color: sec.difficulty === 'hard' ? tw(0.70, textIntensity, isDark) : sec.difficulty === 'medium' ? tw(0.50, textIntensity, isDark) : tw(0.35, textIntensity, isDark),
                           }}>
                             {sec.difficulty === 'hard' ? 'difficile' : sec.difficulty === 'medium' ? 'moyen' : 'facile'}
                           </span>
@@ -301,7 +302,7 @@ export default function MemoireView({ chapters, questProgress, loadingKey, onSub
                         {!isDone && hasTasks && (
                           <div style={{
                             height: 2, borderRadius: 99,
-                            background: 'rgba(255,255,255,0.06)',
+                            background: bg(0.06, isDark),
                             margin: '0 16px 8px 52px',
                             overflow: 'hidden',
                           }}>
@@ -344,7 +345,7 @@ export default function MemoireView({ chapters, questProgress, loadingKey, onSub
                                   style={{
                                     display: 'flex', alignItems: 'center', gap: 10,
                                     padding: '7px 0',
-                                    borderTop: ti === 0 ? 'none' : '1px solid rgba(255,255,255,0.04)',
+                                    borderTop: ti === 0 ? 'none' : `1px solid ${bg(0.04, isDark)}`,
                                     cursor: canToggle ? 'pointer' : 'default',
                                     opacity: isTaskLoading ? 0.5 : 1,
                                     transition: 'opacity 0.15s cubic-bezier(.4,0,.2,1)',
@@ -353,8 +354,8 @@ export default function MemoireView({ chapters, questProgress, loadingKey, onSub
                                   <div style={{
                                     width: 16, height: 16, borderRadius: 4, flexShrink: 0,
                                     display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                    border: `1.5px solid ${isChecked ? 'rgba(255,255,255,0.25)' : 'rgba(255,255,255,0.15)'}`,
-                                    background: isChecked ? 'rgba(255,255,255,0.70)' : 'transparent',
+                                    border: `1.5px solid ${isChecked ? bg(0.25, isDark) : bg(0.15, isDark)}`,
+                                    background: isChecked ? bg(0.70, isDark) : 'transparent',
                                     fontSize: 9,
                                     transform: isBouncing ? 'scale(1.3)' : 'scale(1)',
                                     transition: 'transform 0.3s cubic-bezier(.175,.885,.32,1.275), border-color 0.2s cubic-bezier(.4,0,.2,1), background 0.2s cubic-bezier(.4,0,.2,1)',
@@ -365,9 +366,9 @@ export default function MemoireView({ chapters, questProgress, loadingKey, onSub
                                   {/* Task text */}
                                   <span style={{
                                     fontSize: 12, lineHeight: 1.4,
-                                    color: isChecked ? tw(0.30, textIntensity) : tw(0.45, textIntensity),
+                                    color: isChecked ? tw(0.30, textIntensity, isDark) : tw(0.45, textIntensity, isDark),
                                     textDecoration: isChecked ? 'line-through' : 'none',
-                                    textDecorationColor: 'rgba(255,255,255,0.15)',
+                                    textDecorationColor: bg(0.15, isDark),
                                   }}>
                                     {taskText}
                                   </span>

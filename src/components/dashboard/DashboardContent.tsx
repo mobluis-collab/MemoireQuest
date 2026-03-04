@@ -5,7 +5,8 @@ import type { MemoirePlan, QuestProgress, StreakData, SectionProgress } from '@/
 import { isSectionDone } from '@/types/memoir'
 import type { ComboState } from '@/lib/combo'
 import NewDashboard from './new/NewDashboard'
-import { tw } from '@/lib/color-utils'
+import { tw, bg } from '@/lib/color-utils'
+import { useTheme as useThemeToggle } from '@/context/ThemeProvider'
 import PrestigeModal from '@/components/prestige/PrestigeModal'
 import { useToast } from '@/hooks/useToast'
 import { usePrestigeMode } from '@/hooks/usePrestigeMode'
@@ -39,6 +40,7 @@ export default function DashboardContent({
   planCreatedAt,
 }: DashboardContentProps) {
   const { showToast, ToastContainer } = useToast()
+  const { isDark } = useThemeToggle()
   const [plan, setPlan] = useState<MemoirePlan | null>(initialPlan)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -75,14 +77,14 @@ export default function DashboardContent({
     }).catch(() => {})
   }, [])
 
-  // Update CSS variables when textIntensity changes
+  // Update CSS variables when textIntensity or isDark changes
   useEffect(() => {
     const root = document.documentElement
-    root.style.setProperty('--mq-text-primary', tw(0.88, textIntensity))
-    root.style.setProperty('--mq-text-secondary', tw(0.60, textIntensity))
-    root.style.setProperty('--mq-text-muted', tw(0.40, textIntensity))
-    root.style.setProperty('--mq-text-subtle', tw(0.20, textIntensity))
-  }, [textIntensity])
+    root.style.setProperty('--mq-text-primary', tw(0.88, textIntensity, isDark))
+    root.style.setProperty('--mq-text-secondary', tw(0.60, textIntensity, isDark))
+    root.style.setProperty('--mq-text-muted', tw(0.40, textIntensity, isDark))
+    root.style.setProperty('--mq-text-subtle', tw(0.20, textIntensity, isDark))
+  }, [textIntensity, isDark])
 
   // Calculate total quests and completed quests for prestige
   const { totalQuests, completedQuests } = useMemo(() => {

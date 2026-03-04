@@ -1,6 +1,6 @@
 'use client'
 
-import { tw } from '@/lib/color-utils'
+import { tw, bg } from '@/lib/color-utils'
 
 /* ─── Types ─────────────────────────────────────────────── */
 
@@ -22,6 +22,7 @@ interface AchievementsViewProps {
   chapters: Array<{ num: string; title: string; sections: number; done: number }>
   accentColor?: string
   textIntensity?: number
+  isDark?: boolean
 }
 
 /* ─── Build achievements ─────────────────────────────────── */
@@ -53,7 +54,7 @@ function buildAchievements(
 
 /* ─── Card component ─────────────────────────────────────── */
 
-function AchievementCard({ a, accentColor, textIntensity = 1.0 }: { a: Achievement; accentColor: string; textIntensity?: number }) {
+function AchievementCard({ a, accentColor, textIntensity = 1.0, isDark = true }: { a: Achievement; accentColor: string; textIntensity?: number; isDark?: boolean }) {
   const pct = a.progress ? Math.round((a.progress.current / a.progress.target) * 100) : null
 
   return (
@@ -61,24 +62,24 @@ function AchievementCard({ a, accentColor, textIntensity = 1.0 }: { a: Achieveme
       display: 'flex', alignItems: 'center', gap: 10,
       padding: '7px 10px',
       borderRadius: 7,
-      background: a.unlocked ? 'rgba(255,255,255,0.05)' : 'transparent',
+      background: a.unlocked ? bg(0.05, isDark) : 'transparent',
     }}>
       {/* Status circle */}
       <div style={{
         width: 18, height: 18, borderRadius: '50%', flexShrink: 0,
         display: 'flex', alignItems: 'center', justifyContent: 'center',
-        background: a.unlocked ? 'rgba(255,255,255,0.10)' : 'transparent',
-        border: `1.5px solid ${a.unlocked ? 'rgba(255,255,255,0.15)' : 'rgba(255,255,255,0.07)'}`,
+        background: a.unlocked ? bg(0.10, isDark) : 'transparent',
+        border: `1.5px solid ${a.unlocked ? bg(0.15, isDark) : bg(0.07, isDark)}`,
       }}>
         {a.unlocked && (
-          <span style={{ fontSize: 10, color: tw(0.60, textIntensity), lineHeight: 1 }}>&#10003;</span>
+          <span style={{ fontSize: 10, color: tw(0.60, textIntensity, isDark), lineHeight: 1 }}>&#10003;</span>
         )}
       </div>
 
       {/* Title */}
       <span style={{
         flex: 1, fontSize: 12, fontWeight: 500,
-        color: a.unlocked ? tw(0.75, textIntensity) : tw(0.30, textIntensity),
+        color: a.unlocked ? tw(0.75, textIntensity, isDark) : tw(0.30, textIntensity, isDark),
         whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
       }}>
         {a.title}
@@ -89,7 +90,7 @@ function AchievementCard({ a, accentColor, textIntensity = 1.0 }: { a: Achieveme
         <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
           <div style={{
             width: 32, height: 2, borderRadius: 99,
-            background: 'rgba(255,255,255,0.06)',
+            background: bg(0.06, isDark),
             overflow: 'hidden',
           }}>
             <div style={{
@@ -98,7 +99,7 @@ function AchievementCard({ a, accentColor, textIntensity = 1.0 }: { a: Achieveme
               transition: 'width 0.6s cubic-bezier(.4,0,.2,1)',
             }} />
           </div>
-          <span style={{ fontSize: 10, color: tw(0.50, textIntensity), minWidth: 22, textAlign: 'right' }}>
+          <span style={{ fontSize: 10, color: tw(0.50, textIntensity, isDark), minWidth: 22, textAlign: 'right' }}>
             {pct}%
           </span>
         </div>
@@ -109,7 +110,7 @@ function AchievementCard({ a, accentColor, textIntensity = 1.0 }: { a: Achieveme
 
 /* ─── Main component ─────────────────────────────────────── */
 
-export default function AchievementsView({ totalPoints, streak, questProgress, chapters, accentColor = '#6366f1', textIntensity = 1.0 }: AchievementsViewProps) {
+export default function AchievementsView({ totalPoints, streak, questProgress, chapters, accentColor = '#6366f1', textIntensity = 1.0, isDark = true }: AchievementsViewProps) {
   const achievements = buildAchievements(totalPoints, streak, questProgress, chapters)
   const unlocked = achievements.filter(a => a.unlocked).length
   const total = achievements.length
@@ -136,9 +137,9 @@ export default function AchievementsView({ totalPoints, streak, questProgress, c
         <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between' }}>
           <h1 style={{
             fontSize: 20, fontWeight: 600, letterSpacing: '-0.3px', margin: 0,
-            color: tw(0.88, textIntensity),
+            color: tw(0.88, textIntensity, isDark),
           }}>Progression</h1>
-          <span style={{ fontSize: 12, fontWeight: 500, color: tw(0.35, textIntensity) }}>
+          <span style={{ fontSize: 12, fontWeight: 500, color: tw(0.35, textIntensity, isDark) }}>
             {unlocked} sur {total}
           </span>
         </div>
@@ -146,7 +147,7 @@ export default function AchievementsView({ totalPoints, streak, questProgress, c
         {/* Global progress bar */}
         <div style={{
           marginTop: 12, width: '100%', height: 3, borderRadius: 99,
-          background: 'rgba(255,255,255,0.06)',
+          background: bg(0.06, isDark),
           overflow: 'hidden',
         }}>
           <div style={{
@@ -171,8 +172,8 @@ export default function AchievementsView({ totalPoints, streak, questProgress, c
 
           return (
             <div key={label} style={{
-              background: 'rgba(255,255,255,0.02)',
-              border: '1px solid rgba(255,255,255,0.05)',
+              background: bg(0.02, isDark),
+              border: `1px solid ${bg(0.05, isDark)}`,
               borderRadius: 10,
               padding: 12,
               display: 'flex', flexDirection: 'column', gap: 4,
@@ -184,16 +185,16 @@ export default function AchievementsView({ totalPoints, streak, questProgress, c
               }}>
                 <span style={{
                   fontSize: 12, fontWeight: 600, letterSpacing: '0.2px',
-                  color: tw(0.50, textIntensity),
+                  color: tw(0.50, textIntensity, isDark),
                 }}>{label}</span>
                 <span style={{
-                  fontSize: 10, color: tw(0.22, textIntensity),
+                  fontSize: 10, color: tw(0.22, textIntensity, isDark),
                 }}>{groupUnlocked}/{groupTotal}</span>
               </div>
 
               {/* Achievements */}
               {items.map(a => (
-                <AchievementCard key={a.id} a={a} accentColor={accentColor} textIntensity={textIntensity} />
+                <AchievementCard key={a.id} a={a} accentColor={accentColor} textIntensity={textIntensity} isDark={isDark} />
               ))}
             </div>
           )

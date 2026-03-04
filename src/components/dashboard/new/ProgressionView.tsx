@@ -1,6 +1,6 @@
 'use client'
 
-import { tw } from '@/lib/color-utils'
+import { tw, bg } from '@/lib/color-utils'
 
 interface ChapterData {
   num: string
@@ -18,11 +18,12 @@ interface ProgressionViewProps {
   deadlineDate: Date
   accentColor?: string
   textIntensity?: number
+  isDark?: boolean
 }
 
 const daysBetween = (a: Date, b: Date) => Math.round((b.getTime() - a.getTime()) / 864e5)
 
-function StatPill({ label, value, sub, highlightColor, textIntensity = 1.0 }: { label: string; value: string; sub?: string; highlightColor?: string; textIntensity?: number }) {
+function StatPill({ label, value, sub, highlightColor, textIntensity = 1.0, isDark = true }: { label: string; value: string; sub?: string; highlightColor?: string; textIntensity?: number; isDark?: boolean }) {
   return (
     <div style={{
       flex: 1, padding: '14px 16px', borderRadius: 14,
@@ -32,12 +33,12 @@ function StatPill({ label, value, sub, highlightColor, textIntensity = 1.0 }: { 
     }}>
       <div style={{ fontSize: 9, color: 'var(--mq-text-muted)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.8px', marginBottom: 4 }}>{label}</div>
       <div style={{ fontSize: 28, fontWeight: 800, color: highlightColor ?? 'var(--mq-text-primary)', letterSpacing: '-1px' }}>{value}</div>
-      {sub && <div style={{ fontSize: 10, color: tw(0.35, textIntensity), marginTop: 3 }}>{sub}</div>}
+      {sub && <div style={{ fontSize: 10, color: tw(0.35, textIntensity, isDark), marginTop: 3 }}>{sub}</div>}
     </div>
   )
 }
 
-export default function ProgressionView({ chapters, totalPoints, streak, startDate, deadlineDate, accentColor = '#6366f1', textIntensity = 1.0 }: ProgressionViewProps) {
+export default function ProgressionView({ chapters, totalPoints, streak, startDate, deadlineDate, accentColor = '#6366f1', textIntensity = 1.0, isDark = true }: ProgressionViewProps) {
   const today = new Date()
   const total     = daysBetween(startDate, deadlineDate)
   const elapsed   = Math.min(Math.max(daysBetween(startDate, today), 0), total)
@@ -73,7 +74,7 @@ export default function ProgressionView({ chapters, totalPoints, streak, startDa
       <div style={{ flexShrink: 0, marginBottom: 12 }}>
         <h1 style={{
           fontSize: 24, fontWeight: 700, letterSpacing: '-0.5px', margin: 0,
-          color: tw(0.90, textIntensity),
+          color: tw(0.90, textIntensity, isDark),
         }}>Progression</h1>
         <p style={{ fontSize: 13, color: 'var(--mq-text-muted)', marginTop: 6 }}>
           Vue d&apos;ensemble de ton avancement
@@ -84,10 +85,10 @@ export default function ProgressionView({ chapters, totalPoints, streak, startDa
 
         {/* Stats row */}
         <div style={{ display: 'flex', gap: 8 }}>
-          <StatPill label="Complété" value={`${globalPct}%`} sub={`${doneSec}/${totalSec} sections`} textIntensity={textIntensity} />
-          <StatPill label="Temps" value={`${timePct}%`} sub={`${remaining} jours restants`} textIntensity={textIntensity} />
-          <StatPill label="Points" value={String(totalPoints)} textIntensity={textIntensity} />
-          <StatPill label="Régularité" value={`${streak.current}j`} sub="de suite" textIntensity={textIntensity} />
+          <StatPill label="Complété" value={`${globalPct}%`} sub={`${doneSec}/${totalSec} sections`} textIntensity={textIntensity} isDark={isDark} />
+          <StatPill label="Temps" value={`${timePct}%`} sub={`${remaining} jours restants`} textIntensity={textIntensity} isDark={isDark} />
+          <StatPill label="Points" value={String(totalPoints)} textIntensity={textIntensity} isDark={isDark} />
+          <StatPill label="Régularité" value={`${streak.current}j`} sub="de suite" textIntensity={textIntensity} isDark={isDark} />
         </div>
 
         {/* Pace prediction */}
@@ -98,13 +99,13 @@ export default function ProgressionView({ chapters, totalPoints, streak, startDa
             border: '1px solid var(--mq-border)',
             display: 'flex', alignItems: 'center', gap: 14,
           }}>
-            <div style={{ fontSize: 13, fontWeight: 500, color: tw(0.70, textIntensity) }}>
+            <div style={{ fontSize: 13, fontWeight: 500, color: tw(0.70, textIntensity, isDark) }}>
               {willFinishBeforeDeadline
                 ? 'À ce rythme, tu finiras avant la deadline.'
                 : 'À ce rythme, tu ne finiras pas avant la deadline.'}
             </div>
-            <div style={{ fontSize: 11, color: tw(0.35, textIntensity), whiteSpace: 'nowrap' }}>
-              Fin estimée : <strong style={{ color: tw(0.60, textIntensity) }}>{estimatedDate}</strong>
+            <div style={{ fontSize: 11, color: tw(0.35, textIntensity, isDark), whiteSpace: 'nowrap' }}>
+              Fin estimée : <strong style={{ color: tw(0.60, textIntensity, isDark) }}>{estimatedDate}</strong>
             </div>
           </div>
         )}
@@ -115,7 +116,7 @@ export default function ProgressionView({ chapters, totalPoints, streak, startDa
           background: 'var(--mq-card-bg)',
           border: '1px solid var(--mq-border)',
         }}>
-          <div style={{ fontSize: 13, color: tw(0.55, textIntensity), fontWeight: 600, letterSpacing: '0.3px', marginBottom: 16 }}>
+          <div style={{ fontSize: 13, color: tw(0.55, textIntensity, isDark), fontWeight: 600, letterSpacing: '0.3px', marginBottom: 16 }}>
             Par chapitre
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
@@ -127,21 +128,21 @@ export default function ProgressionView({ chapters, totalPoints, streak, startDa
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                       <span style={{
-                        fontSize: 10, color: tw(0.30, textIntensity), fontWeight: 600,
+                        fontSize: 10, color: tw(0.30, textIntensity, isDark), fontWeight: 600,
                         whiteSpace: 'nowrap', maxWidth: 52, overflow: 'hidden', textOverflow: 'ellipsis',
                       }}>{ch.num}</span>
                       <span style={{
                         fontSize: 12, fontWeight: 500,
-                        color: done ? tw(0.45, textIntensity) : tw(0.75, textIntensity),
+                        color: done ? tw(0.45, textIntensity, isDark) : tw(0.75, textIntensity, isDark),
                       }}>{ch.title}</span>
                       {done && <span style={{ fontSize: 11, color: 'var(--mq-text-muted)' }}>✓</span>}
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                      <span style={{ fontSize: 11, color: tw(0.35, textIntensity) }}>{ch.done}/{ch.sections}</span>
-                      <span style={{ fontSize: 11, fontWeight: 600, color: tw(0.60, textIntensity), minWidth: 32, textAlign: 'right' }}>{pct}%</span>
+                      <span style={{ fontSize: 11, color: tw(0.35, textIntensity, isDark) }}>{ch.done}/{ch.sections}</span>
+                      <span style={{ fontSize: 11, fontWeight: 600, color: tw(0.60, textIntensity, isDark), minWidth: 32, textAlign: 'right' }}>{pct}%</span>
                     </div>
                   </div>
-                  <div style={{ height: 4, borderRadius: 99, background: 'rgba(255,255,255,0.06)', overflow: 'hidden' }}>
+                  <div style={{ height: 4, borderRadius: 99, background: bg(0.06, isDark), overflow: 'hidden' }}>
                     <div style={{
                       height: '100%', width: `${pct}%`, borderRadius: 99,
                       background: accentColor,
@@ -163,7 +164,7 @@ export default function ProgressionView({ chapters, totalPoints, streak, startDa
             background: 'var(--mq-card-bg)',
             border: '1px solid var(--mq-border)',
           }}>
-            <div style={{ fontSize: 13, color: tw(0.55, textIntensity), fontWeight: 600, letterSpacing: '0.3px', marginBottom: 14 }}>
+            <div style={{ fontSize: 13, color: tw(0.55, textIntensity, isDark), fontWeight: 600, letterSpacing: '0.3px', marginBottom: 14 }}>
               Par difficulté
             </div>
             {[
@@ -173,15 +174,15 @@ export default function ProgressionView({ chapters, totalPoints, streak, startDa
             ].map(d => (
               <div key={d.label} style={{ marginBottom: 12 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 5 }}>
-                  <span style={{ fontSize: 11, color: tw(0.50, textIntensity) }}>{d.label}</span>
-                  <span style={{ fontSize: 11, fontWeight: 600, color: tw(0.60, textIntensity) }}>{d.total}</span>
+                  <span style={{ fontSize: 11, color: tw(0.50, textIntensity, isDark) }}>{d.label}</span>
+                  <span style={{ fontSize: 11, fontWeight: 600, color: tw(0.60, textIntensity, isDark) }}>{d.total}</span>
                 </div>
-                <div style={{ height: 4, borderRadius: 99, background: 'rgba(255,255,255,0.06)', overflow: 'hidden' }}>
+                <div style={{ height: 4, borderRadius: 99, background: bg(0.06, isDark), overflow: 'hidden' }}>
                   <div style={{
                     height: '100%',
                     width: totalSec > 0 ? `${Math.round((d.total / totalSec) * 100)}%` : '0%',
                     borderRadius: 99,
-                    background: 'rgba(255,255,255,0.35)',
+                    background: bg(0.35, isDark),
                     transition: 'width 0.6s cubic-bezier(.4,0,.2,1)',
                   }} />
                 </div>
@@ -195,7 +196,7 @@ export default function ProgressionView({ chapters, totalPoints, streak, startDa
             background: 'var(--mq-card-bg)',
             border: '1px solid var(--mq-border)',
           }}>
-            <div style={{ fontSize: 13, color: tw(0.55, textIntensity), fontWeight: 600, letterSpacing: '0.3px', marginBottom: 14 }}>
+            <div style={{ fontSize: 13, color: tw(0.55, textIntensity, isDark), fontWeight: 600, letterSpacing: '0.3px', marginBottom: 14 }}>
               7 derniers jours
             </div>
             <div style={{ display: 'flex', gap: 6, marginBottom: 12 }}>
@@ -206,18 +207,18 @@ export default function ProgressionView({ chapters, totalPoints, streak, startDa
                     <div style={{
                       width: '100%', aspectRatio: '1', borderRadius: 6,
                       background: active
-                        ? isToday ? 'rgba(255,255,255,0.15)' : 'rgba(255,255,255,0.08)'
-                        : 'rgba(255,255,255,0.04)',
-                      border: `1px solid ${active ? 'rgba(255,255,255,0.10)' : 'var(--mq-stroke-soft)'}`,
+                        ? isToday ? bg(0.15, isDark) : bg(0.08, isDark)
+                        : bg(0.04, isDark),
+                      border: `1px solid ${active ? bg(0.10, isDark) : 'var(--mq-stroke-soft)'}`,
                     }} />
-                    <span style={{ fontSize: 9, color: tw(0.30, textIntensity), fontWeight: 500 }}>
+                    <span style={{ fontSize: 9, color: tw(0.30, textIntensity, isDark), fontWeight: 500 }}>
                       {['L', 'M', 'M', 'J', 'V', 'S', 'D'][(new Date().getDay() + i - 6 + 7) % 7]}
                     </span>
                   </div>
                 )
               })}
             </div>
-            <div style={{ fontSize: 12, color: tw(0.50, textIntensity) }}>
+            <div style={{ fontSize: 12, color: tw(0.50, textIntensity, isDark) }}>
               {streak.current === 0
                 ? "Commence aujourd'hui."
                 : `${streak.current} jour${streak.current > 1 ? 's' : ''} de suite.`}
