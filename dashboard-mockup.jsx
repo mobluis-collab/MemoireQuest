@@ -430,7 +430,7 @@ export default function Dashboard() {
               boxShadow:`0 4px 18px ${C.indigo}66`,
             }}>M</div>
             <div>
-              <div style={{fontSize:13,fontWeight:700,letterSpacing:"-0.3px",color:"rgba(255,255,255,0.9)"}}>MemoireQuest</div>
+              <div style={{fontSize:13,fontWeight:700,letterSpacing:"-0.3px",color:"rgba(255,255,255,0.9)"}}>maimouarkwest</div>
               <div style={{fontSize:10,color:"rgba(255,255,255,0.25)",letterSpacing:"0.3px"}}>Thesis OS v1.0</div>
             </div>
           </div>

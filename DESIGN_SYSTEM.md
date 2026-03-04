@@ -1,4 +1,4 @@
-# Design System — MemoireQuest
+# Design System — maimouarkwest
 
 **Version** : 1.0
 **Date** : 2026-02-23

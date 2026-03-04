@@ -138,7 +138,7 @@ export default function AchievementsView({ totalPoints, streak, questProgress, c
           <h1 style={{
             fontSize: 20, fontWeight: 600, letterSpacing: '-0.3px', margin: 0,
             color: tw(0.88, textIntensity, isDark),
-          }}>Progression</h1>
+          }}>Trophées</h1>
           <span style={{ fontSize: 12, fontWeight: 500, color: tw(0.35, textIntensity, isDark) }}>
             {unlocked} sur {total}
           </span>

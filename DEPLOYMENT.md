@@ -1,8 +1,8 @@
-# 🚀 MemoireQuest v2.0 — Guide de Déploiement Vercel
+# 🚀 maimouarkwest v2.0 — Guide de Déploiement Vercel
 
 ## Prérequis
 
-✅ Compte GitHub avec le repo MemoireQuest
+✅ Compte GitHub avec le repo maimouarkwest
 ✅ Compte Vercel (gratuit)
 ✅ Projet Supabase configuré
 ✅ Clé API Anthropic valide
@@ -31,7 +31,7 @@ ANTHROPIC_API_KEY=sk-ant-api03-...
 
 1. Allez sur https://vercel.com/new
 2. Sélectionnez "Import Git Repository"
-3. Choisissez votre repo GitHub `MemoireQuest`
+3. Choisissez votre repo GitHub `maimouarkwest`
 4. Vercel détecte automatiquement Next.js ✅
 
 ### 3. Configurer les Variables d'Environnement
@@ -89,7 +89,7 @@ Dans Vercel Dashboard > Runtime Logs, surveillez :
 ### Custom Domain
 
 1. **Project Settings** > **Domains**
-2. Ajoutez votre domaine (ex: `memoirequest.com`)
+2. Ajoutez votre domaine (ex: `maimouarkwest.com`)
 3. Configurez les DNS selon les instructions Vercel
 4. Vercel génère automatiquement un certificat SSL ✅
 
@@ -167,7 +167,7 @@ Après déploiement :
 **URL Production** : https://your-app.vercel.app
 **Dashboard Vercel** : https://vercel.com/dashboard
 
-Félicitations ! MemoireQuest v2.0 est maintenant en production. 🚀
+Félicitations ! maimouarkwest v2.0 est maintenant en production. 🚀
 
 ---
 

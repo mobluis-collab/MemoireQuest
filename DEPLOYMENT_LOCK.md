@@ -1,4 +1,4 @@
-# 🔒 MemoireQuest — Configuration de Production VERROUILLÉE
+# 🔒 maimouarkwest — Configuration de Production VERROUILLÉE
 
 **Date de freeze** : 2026-02-25
 **Statut** : ✅ PRODUCTION STABLE — NE PLUS TOUCHER

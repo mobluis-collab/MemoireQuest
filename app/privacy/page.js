@@ -1,7 +1,7 @@
 import Link from "next/link";
 
 export const metadata = {
-  title: "Politique de confidentialité — maimoirkouest",
+  title: "Politique de confidentialité — maimouarkwest",
 };
 
 const s = {
@@ -86,7 +86,7 @@ export default function PrivacyPage() {
             <strong style={s.strong}>Luis Chabot</strong> &mdash; projet &eacute;tudiant open source &agrave; but p&eacute;dagogique.
           </p>
           <p style={s.p}>
-            Contact : <a href="mailto:maimoirkouest@proton.me" style={s.accent}>maimoirkouest@proton.me</a>
+            Contact : <a href="mailto:maimouarkwest@proton.me" style={s.accent}>maimouarkwest@proton.me</a>
             <br />
             GitHub : <a href="https://github.com/mobluis-collab/MemoireQuest/issues" target="_blank" rel="noopener noreferrer" style={s.accent}>GitHub Issues</a>
           </p>
@@ -139,7 +139,7 @@ export default function PrivacyPage() {
             <strong style={s.strong}> Anthropic (Claude AI)</strong> via leur API pour g&eacute;n&eacute;rer votre plan de m&eacute;moire personnalis&eacute;.
           </p>
           <ul style={s.ul}>
-            <li>Les documents sont envoy&eacute;s en temps r&eacute;el et ne sont <strong style={s.strong}>pas stock&eacute;s</strong> par maimoirkouest apr&egrave;s l&apos;analyse.</li>
+            <li>Les documents sont envoy&eacute;s en temps r&eacute;el et ne sont <strong style={s.strong}>pas stock&eacute;s</strong> par maimouarkwest apr&egrave;s l&apos;analyse.</li>
             <li>Anthropic peut traiter ces donn&eacute;es conform&eacute;ment &agrave; sa propre politique de confidentialit&eacute; (<a href="https://www.anthropic.com/privacy" target="_blank" rel="noopener noreferrer" style={s.accent}>anthropic.com/privacy</a>).</li>
             <li>Seul le r&eacute;sultat structur&eacute; (plan, analyse) est conserv&eacute; dans votre compte.</li>
           </ul>
@@ -231,7 +231,7 @@ export default function PrivacyPage() {
           </ul>
           <p style={s.p}>
             Pour exercer vos droits, contactez-nous &agrave; :{" "}
-            <a href="mailto:maimoirkouest@proton.me" style={s.accent}>maimoirkouest@proton.me</a>
+            <a href="mailto:maimouarkwest@proton.me" style={s.accent}>maimouarkwest@proton.me</a>
             {" "}ou via{" "}
             <a href="https://github.com/mobluis-collab/MemoireQuest/issues" target="_blank" rel="noopener noreferrer" style={s.accent}>
               GitHub Issues

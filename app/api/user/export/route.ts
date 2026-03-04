@@ -34,7 +34,7 @@ export async function GET(request: Request) {
       export_info: {
         format: "JSON",
         exported_at: new Date().toISOString(),
-        service: "maimoirkouest",
+        service: "maimouarkwest",
         rgpd_article: "Art. 20 — Droit à la portabilité",
       },
       user: {
@@ -61,7 +61,7 @@ export async function GET(request: Request) {
       status: 200,
       headers: {
         "Content-Type": "application/json; charset=utf-8",
-        "Content-Disposition": `attachment; filename="maimoirkouest-export-${user.id.slice(0, 8)}.json"`,
+        "Content-Disposition": `attachment; filename="maimouarkwest-export-${user.id.slice(0, 8)}.json"`,
       },
     });
   } catch (e) {

@@ -1,7 +1,7 @@
-# ROADMAP EXCELLENCE — MemoireQuest
+# ROADMAP EXCELLENCE — maimouarkwest
 
 > Audit réalisé le 11 février 2026 par une équipe d'élite (Lead Dev, UX Designer, Database Architect)
-> Objectif : Transformer MemoireQuest en référence absolue de qualité
+> Objectif : Transformer maimouarkwest en référence absolue de qualité
 
 ---
 
@@ -33,7 +33,7 @@
 ### Faiblesses critiques
 
 #### F1.1 — Aucun Design System
-**Fichier** : `Maimoirkouest.jsx:267-286, 418-600`
+**Fichier** : `Maimouarkwest.jsx:267-286, 418-600`
 
 Couleurs définies dans un objet JS (`const c = {...}`) avec 880+ lignes de CSS inline dans une template string `<style>{css}</style>`. Aucune variable CSS, aucun token de spacing, aucun système typographique standardisé.
 
@@ -49,12 +49,12 @@ const c = {
 **Impact** : Maintenance exponentielle. Si on change une couleur, il faut modifier 50+ occurrences.
 
 #### F1.2 — Composant monolithique de 1083 lignes
-**Fichier** : `Maimoirkouest.jsx:1-1083`
+**Fichier** : `Maimouarkwest.jsx:1-1083`
 
 Tout est dans une seule fonction : navbar, hero, cards, modales, dashboard, sidebar, tasks. Aucun composant React extrait (Button, Card, Modal, TaskItem...).
 
 #### F1.3 — Responsive Desktop-First avec 1 breakpoint
-**Fichier** : `Maimoirkouest.jsx:589-599`
+**Fichier** : `Maimouarkwest.jsx:589-599`
 
 Une seule media query `@media(max-width:768px)`. Sidebar masquée brutalement avec `display:none`. Aucun breakpoint pour petits mobiles (320px), tablettes (1024px), ou safe-area iOS.
 
@@ -98,7 +98,7 @@ Le Footer observe la couleur de fond du `.root` via `getComputedStyle` + `Mutati
 ### Faiblesses critiques
 
 #### F2.1 — Race condition Auth → Onboarding
-**Fichier** : `Maimoirkouest.jsx:708, 318-321`
+**Fichier** : `Maimouarkwest.jsx:708, 318-321`
 
 ```javascript
 onClick={()=>{
@@ -113,7 +113,7 @@ onClick={()=>{
 Après le redirect OAuth, l'utilisateur revient sur la landing page et doit re-cliquer.
 
 #### F2.2 — Fausse barre de progression
-**Fichier** : `Maimoirkouest.jsx:334-339`
+**Fichier** : `Maimouarkwest.jsx:334-339`
 
 ```javascript
 prog += Math.random() * 3 + 0.5;  // Incréments aléatoires
@@ -123,17 +123,17 @@ if (prog > 90) prog = 90;          // Plafond à 90%
 Si l'API prend 5 min, la barre reste à 90% pendant 4min40. Aucun timeout client.
 
 #### F2.3 — Pas de distinction Plan IA vs Fallback
-**Fichier** : `Maimoirkouest.jsx:387-391, 653-654`
+**Fichier** : `Maimouarkwest.jsx:387-391, 653-654`
 
 Si l'analyse IA échoue, le fallback générique est utilisé sans que l'utilisateur sache qu'il n'a pas un plan personnalisé. Le badge "✦ IA" disparaît silencieusement.
 
 #### F2.4 — Perte de données sur fermeture
-**Fichier** : `Maimoirkouest.jsx:234-236`
+**Fichier** : `Maimouarkwest.jsx:234-236`
 
 Auto-save débounced à 800ms. Si l'utilisateur ferme l'onglet pendant le timeout → **données perdues**. Aucun `beforeunload` flush.
 
 #### F2.5 — Cookie consent irréversible
-**Fichier** : `Maimoirkouest.jsx:129-133, 248`
+**Fichier** : `Maimouarkwest.jsx:129-133, 248`
 
 Si l'utilisateur refuse les cookies, il ne peut plus jamais se connecter. Aucune UI pour changer d'avis. Le message dit "Rechargez la page" mais les données locales sont perdues.
 
@@ -141,7 +141,7 @@ Si l'utilisateur refuse les cookies, il ne peut plus jamais se connecter. Aucune
 Pas de micro-interaction au clic des checkboxes. Pas de message à 100%. Les steps apparaissent/disparaissent sans animation.
 
 #### F2.7 — Écran de chargement = noir avec spinner
-**Fichier** : `Maimoirkouest.jsx:612-636`
+**Fichier** : `Maimouarkwest.jsx:612-636`
 
 Aucun skeleton screen. L'utilisateur voit un écran noir pendant le chargement des données.
 
@@ -185,7 +185,7 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 **Tout utilisateur authentifié peut potentiellement lire les données d'autres utilisateurs** via l'API Supabase directe. C'est la faille de sécurité la plus critique du projet.
 
 #### F3.2 — Lost Updates (conflits multi-onglets)
-**Fichier** : `Maimoirkouest.jsx:215`
+**Fichier** : `Maimouarkwest.jsx:215`
 
 ```javascript
 .upsert(dataToSave, { onConflict: 'user_id' });
@@ -196,7 +196,7 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 Aucune validation Zod/Joi lors de la sauvegarde. Un attaquant peut écrire n'importe quoi dans `user_progress`.
 
 #### F3.4 — Tokens JWT sans refresh automatique
-**Fichier** : `Maimoirkouest.jsx:136-159`
+**Fichier** : `Maimouarkwest.jsx:136-159`
 
 Le client Supabase n'a pas `autoRefreshToken: true`. Après 1h, le token expire silencieusement.
 
@@ -204,7 +204,7 @@ Le client Supabase n'a pas `autoRefreshToken: true`. Après 1h, le token expire 
 Chaque nouvelle analyse écrase l'ancienne. Impossible de revenir à un plan précédent.
 
 #### F3.6 — Suppression hard delete uniquement
-**Fichier** : `Maimoirkouest.jsx:672, 877`
+**Fichier** : `Maimouarkwest.jsx:672, 877`
 
 ```javascript
 await supabase.from('user_progress').delete().eq('user_id', user.id);
@@ -343,7 +343,7 @@ Après : ~3-5c/requête avec :
 ### Faiblesses critiques
 
 #### F5.1 — Fichier monolithique de 1083 lignes
-**Fichier** : `Maimoirkouest.jsx`
+**Fichier** : `Maimouarkwest.jsx`
 
 27 `useState` dans une seule fonction. Impossible à tester, difficile à maintenir.
 
@@ -366,7 +366,7 @@ const [page, setPage] = useState("landing");
 Faille de sécurité la plus critique côté code : **n'importe qui peut déclencher des appels API Anthropic** sans être connecté.
 
 #### F5.6 — Hydration fragile (écran noir)
-**Fichier** : `Maimoirkouest.jsx:605-609`
+**Fichier** : `Maimouarkwest.jsx:605-609`
 
 ```javascript
 if (!mounted) {
@@ -383,7 +383,7 @@ if (!mounted) {
 ```
 app/
 ├── components/
-│   ├── Maimoirkouest.tsx     (wrapper ~100 lignes)
+│   ├── Maimouarkwest.tsx     (wrapper ~100 lignes)
 │   ├── Landing.tsx
 │   ├── Onboarding.tsx
 │   ├── Dashboard.tsx
@@ -567,5 +567,5 @@ jobs:
 
 ---
 
-> **Ce document sert de référence pour la transformation de MemoireQuest.**
+> **Ce document sert de référence pour la transformation de maimouarkwest.**
 > Aucune modification de code n'a été effectuée. Ce plan attend validation avant implémentation.

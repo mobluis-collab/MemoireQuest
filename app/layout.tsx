@@ -7,7 +7,7 @@ import GoogleAuthProvider from "@/components/providers/GoogleAuthProvider";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "MemoireQuest — Ton mémoire, structuré par l'IA",
+  title: "maimouarkwest — Ton mémoire, structuré par l'IA",
   description:
     "Dépose ton cahier des charges, reçois un plan de rédaction complet et personnalisé pour ton mémoire de fin d'études.",
 };

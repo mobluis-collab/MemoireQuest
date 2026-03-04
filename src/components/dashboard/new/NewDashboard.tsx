@@ -582,7 +582,7 @@ const NAV: Array<{ icon: string; label: string; view: ActiveView }> = [
   { icon: '⊞', label: 'Dashboard',     view: 'dashboard'     },
   { icon: '◎', label: 'Mon mémoire',   view: 'memoire'       },
   { icon: '◈', label: 'Progression',   view: 'progression'   },
-  { icon: '◇', label: 'Achievements',  view: 'achievements'  },
+  { icon: '◇', label: 'Trophées',      view: 'achievements'  },
 ]
 
 /* ─── MAIN COMPONENT ──────────────────────────────────────────── */
@@ -625,15 +625,17 @@ export default function NewDashboard({
   }, [planCreatedAt])
 
   const deadlineDate = useMemo(() => {
-    const d = new Date(startDate)
-    d.setMonth(d.getMonth() + 9)
-    return d
-  }, [startDate])
+    if (plan?.deadline) {
+      const d = new Date(plan.deadline)
+      if (!isNaN(d.getTime())) return d
+    }
+    return null
+  }, [plan])
 
-  const total     = daysBetween(startDate, deadlineDate)
-  const elapsed   = Math.min(Math.max(daysBetween(startDate, today), 0), total)
-  const remaining = Math.max(total - elapsed, 0)
-  const timePct   = total > 0 ? Math.round((elapsed / total) * 100) : 0
+  const total     = deadlineDate ? daysBetween(startDate, deadlineDate) : 0
+  const elapsed   = deadlineDate ? Math.min(Math.max(daysBetween(startDate, today), 0), total) : 0
+  const remaining = deadlineDate ? Math.max(total - elapsed, 0) : 0
+  const timePct   = deadlineDate && total > 0 ? Math.round((elapsed / total) * 100) : 0
 
   /* ── Chapter data ── */
   const chapters: ChapterData[] = useMemo(() => {
@@ -797,7 +799,7 @@ export default function NewDashboard({
               border: `1px solid ${bg(0.12, isDark)}`,
             }}>M</div>
             <div>
-              <div style={{ fontSize: 13, fontWeight: 700, letterSpacing: '-0.3px', color: tw(0.92, textIntensity, isDark) }}>MemoireQuest</div>
+              <div style={{ fontSize: 13, fontWeight: 700, letterSpacing: '-0.3px', color: tw(0.92, textIntensity, isDark) }}>maimouarkwest</div>
               {/* FIX: was 0.25 → 0.5 */}
               <div style={{ fontSize: 10, color: tw(0.5, textIntensity, isDark), letterSpacing: '0.3px' }}>Thesis OS v1.0</div>
             </div>
@@ -1026,7 +1028,7 @@ export default function NewDashboard({
                   totalPoints={totalPoints}
                   streak={streak}
                   startDate={startDate}
-                  deadlineDate={deadlineDate}
+                  deadlineDate={deadlineDate ?? undefined}
                   accentColor={accentColor}
                   textIntensity={textIntensity}
                   isDark={isDark}
@@ -1063,9 +1065,11 @@ export default function NewDashboard({
                   color: 'var(--mq-text-primary)',
                 }}>Bonjour, {firstName}.</h1>
                 <p style={{ fontSize: 12.5, color: 'var(--mq-text-muted)', marginTop: 3 }}>
-                  {isAhead
-                    ? `En avance de ${delta}% sur le planning.`
-                    : `${delta}% de retard — une section à la fois.`}
+                  {deadlineDate
+                    ? (isAhead
+                      ? `En avance de ${delta}% sur le planning.`
+                      : `${delta}% de retard — une section à la fois.`)
+                    : `${pct}% complété — continue comme ça.`}
                 </p>
               </div>
               {/* Streak pill */}
@@ -1101,43 +1105,55 @@ export default function NewDashboard({
                   display: 'flex', flexDirection: 'column', justifyContent: 'space-between',
                   borderRadius: 17,
                 }}>
-                  <div>
-                    <div style={{ fontSize: 10, color: tw(0.25, textIntensity, isDark), fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px', marginBottom: 10 }}>
-                      Soutenance dans
-                    </div>
-                    <div style={{ display: 'flex', alignItems: 'flex-end', gap: 10, marginBottom: 6 }}>
-                      <span style={{
-                        fontSize: 68, fontWeight: 900, letterSpacing: '-3px', lineHeight: 1,
-                        color: tw(0.88, textIntensity, isDark),
-                      }}>{remaining}</span>
-                      <div style={{ paddingBottom: 8 }}>
-                        <div style={{ fontSize: 16, color: tw(0.65, textIntensity, isDark), fontWeight: 500 }}>jours</div>
-                        {/* FIX: semaines was 0.22 → 0.5 */}
-                        <div style={{ fontSize: 11, color: tw(0.5, textIntensity, isDark) }}>≈ {Math.round(remaining / 7)} semaines</div>
+                  {deadlineDate ? (
+                    <>
+                      <div>
+                        <div style={{ fontSize: 10, color: tw(0.25, textIntensity, isDark), fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px', marginBottom: 10 }}>
+                          Soutenance dans
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'flex-end', gap: 10, marginBottom: 6 }}>
+                          <span style={{
+                            fontSize: 68, fontWeight: 900, letterSpacing: '-3px', lineHeight: 1,
+                            color: tw(0.88, textIntensity, isDark),
+                          }}>{remaining}</span>
+                          <div style={{ paddingBottom: 8 }}>
+                            <div style={{ fontSize: 16, color: tw(0.65, textIntensity, isDark), fontWeight: 500 }}>jours</div>
+                            <div style={{ fontSize: 11, color: tw(0.5, textIntensity, isDark) }}>{'\u2248'} {Math.round(remaining / 7)} semaines</div>
+                          </div>
+                        </div>
+                        <div style={{ fontSize: 11, color: tw(0.5, textIntensity, isDark), letterSpacing: '0.2px' }}>
+                          Deadline {'\u00B7'} <span style={{ color: tw(0.8, textIntensity, isDark), fontWeight: 600 }}>{fmt(deadlineDate, 'long')} {deadlineDate.getFullYear()}</span>
+                        </div>
+                      </div>
+                      <div style={{ padding: '4px 0' }}>
+                        <DotGrid start={startDate} deadline={deadlineDate} accentColor={accentColor} />
+                      </div>
+                      {/* Timeline bar */}
+                      <div>
+                        <div style={{ height: 2, borderRadius: 99, background: bg(0.06, isDark), overflow: 'visible', position: 'relative', marginBottom: 7 }}>
+                          <div style={{ height: '100%', width: `${timePct}%`, borderRadius: 99, background: accentColor, transition: 'width 0.6s cubic-bezier(.4,0,.2,1)' }} />
+                          <div style={{ position: 'absolute', left: `${timePct}%`, top: '50%', transform: 'translate(-50%,-50%)', width: 6, height: 6, borderRadius: '50%', background: bg(0.6, isDark) }} />
+                        </div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                          <span style={{ fontSize: 10, color: tw(0.5, textIntensity, isDark) }}>{fmt(startDate)}</span>
+                          <span style={{ fontSize: 10, color: tw(0.65, textIntensity, isDark), fontWeight: 600 }}>{timePct}% du temps écoul{'\u00E9'}</span>
+                          <span style={{ fontSize: 10, color: tw(0.5, textIntensity, isDark) }}>{fmt(deadlineDate)}</span>
+                        </div>
+                      </div>
+                    </>
+                  ) : (
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', gap: 12, textAlign: 'center' }}>
+                      <div style={{ fontSize: 10, color: tw(0.25, textIntensity, isDark), fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px' }}>
+                        Deadline
+                      </div>
+                      <div style={{ fontSize: 42, fontWeight: 900, letterSpacing: '-2px', lineHeight: 1, color: tw(0.40, textIntensity, isDark) }}>
+                        {'\u2014'}
+                      </div>
+                      <div style={{ fontSize: 12, color: tw(0.45, textIntensity, isDark), lineHeight: 1.5, maxWidth: 260 }}>
+                        Aucune deadline d{'\u00E9'}tect{'\u00E9'}e dans ton cahier des charges
                       </div>
                     </div>
-                    {/* FIX: deadline was 0.25/0.5 → 0.5/0.75 */}
-                    <div style={{ fontSize: 11, color: tw(0.5, textIntensity, isDark), letterSpacing: '0.2px' }}>
-                      Deadline · <span style={{ color: tw(0.8, textIntensity, isDark), fontWeight: 600 }}>{fmt(deadlineDate, 'long')} {deadlineDate.getFullYear()}</span>
-                    </div>
-                  </div>
-                  <div style={{ padding: '4px 0' }}>
-                    <DotGrid start={startDate} deadline={deadlineDate} accentColor={accentColor} />
-                  </div>
-                  {/* Timeline bar */}
-                  <div>
-                    {/* FIX: track was 0.06 → 0.14 */}
-                    <div style={{ height: 2, borderRadius: 99, background: bg(0.06, isDark), overflow: 'visible', position: 'relative', marginBottom: 7 }}>
-                      <div style={{ height: '100%', width: `${timePct}%`, borderRadius: 99, background: accentColor, transition: 'width 0.6s cubic-bezier(.4,0,.2,1)' }} />
-                      <div style={{ position: 'absolute', left: `${timePct}%`, top: '50%', transform: 'translate(-50%,-50%)', width: 6, height: 6, borderRadius: '50%', background: bg(0.6, isDark) }} />
-                    </div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                      {/* FIX: dates were 0.2 → 0.5 */}
-                      <span style={{ fontSize: 10, color: tw(0.5, textIntensity, isDark) }}>{fmt(startDate)}</span>
-                      <span style={{ fontSize: 10, color: tw(0.65, textIntensity, isDark), fontWeight: 600 }}>{timePct}% du temps écoulé</span>
-                      <span style={{ fontSize: 10, color: tw(0.5, textIntensity, isDark) }}>{fmt(deadlineDate)}</span>
-                    </div>
-                  </div>
+                  )}
                 </div>
               </div>
 

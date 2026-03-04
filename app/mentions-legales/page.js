@@ -1,7 +1,7 @@
 import Link from "next/link";
 
 export const metadata = {
-  title: "Mentions légales — maimoirkouest",
+  title: "Mentions légales — maimouarkwest",
 };
 
 const s = {
@@ -83,12 +83,12 @@ export default function MentionsLegalesPage() {
         <div style={s.section}>
           <h2 style={s.h2}>1. &Eacute;diteur du site</h2>
           <p style={s.p}>
-            <strong style={s.strong}>maimoirkouest</strong> est un projet &eacute;tudiant open source &agrave; but p&eacute;dagogique.
+            <strong style={s.strong}>maimouarkwest</strong> est un projet &eacute;tudiant open source &agrave; but p&eacute;dagogique.
           </p>
           <ul style={s.ul}>
             <li><strong style={s.strong}>&Eacute;diteur</strong> : Luis Chabot (mobluis)</li>
             <li><strong style={s.strong}>Statut</strong> : personne physique &mdash; projet &eacute;tudiant non commercial</li>
-            <li><strong style={s.strong}>Contact</strong> : <a href="mailto:maimoirkouest@proton.me" style={s.accent}>maimoirkouest@proton.me</a></li>
+            <li><strong style={s.strong}>Contact</strong> : <a href="mailto:maimouarkwest@proton.me" style={s.accent}>maimouarkwest@proton.me</a></li>
           </ul>
         </div>
 
@@ -113,7 +113,7 @@ export default function MentionsLegalesPage() {
         <div style={s.section}>
           <h2 style={s.h2}>4. Nature du site</h2>
           <p style={s.p}>
-            maimoirkouest est un outil gratuit &agrave; but p&eacute;dagogique qui utilise l&apos;intelligence artificielle
+            maimouarkwest est un outil gratuit &agrave; but p&eacute;dagogique qui utilise l&apos;intelligence artificielle
             (Claude AI par Anthropic) pour aider les &eacute;tudiants &agrave; structurer leur m&eacute;moire.
             Il est fourni &laquo; tel quel &raquo;, sans garantie d&apos;aucune sorte.
           </p>
@@ -122,7 +122,7 @@ export default function MentionsLegalesPage() {
         <div style={s.section}>
           <h2 style={s.h2}>5. Propri&eacute;t&eacute; intellectuelle</h2>
           <p style={s.p}>
-            Le code source de maimoirkouest est distribu&eacute; sous licence open source et est disponible sur{" "}
+            Le code source de maimouarkwest est distribu&eacute; sous licence open source et est disponible sur{" "}
             <a href="https://github.com/mobluis-collab/MemoireQuest" target="_blank" rel="noopener noreferrer" style={s.accent}>GitHub</a>.
           </p>
           <p style={s.p}>
@@ -189,7 +189,7 @@ export default function MentionsLegalesPage() {
             Pour toute question concernant ces mentions l&eacute;gales :
           </p>
           <ul style={s.ul}>
-            <li>Email : <a href="mailto:maimoirkouest@proton.me" style={s.accent}>maimoirkouest@proton.me</a></li>
+            <li>Email : <a href="mailto:maimouarkwest@proton.me" style={s.accent}>maimouarkwest@proton.me</a></li>
             <li>GitHub : <a href="https://github.com/mobluis-collab/MemoireQuest/issues" target="_blank" rel="noopener noreferrer" style={s.accent}>GitHub Issues</a></li>
           </ul>
         </div>

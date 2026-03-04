@@ -15,7 +15,7 @@ interface ProgressionViewProps {
   totalPoints: number
   streak: { current: number; jokers: number }
   startDate: Date
-  deadlineDate: Date
+  deadlineDate?: Date
   accentColor?: string
   textIntensity?: number
   isDark?: boolean
@@ -40,10 +40,11 @@ function StatPill({ label, value, sub, highlightColor, textIntensity = 1.0, isDa
 
 export default function ProgressionView({ chapters, totalPoints, streak, startDate, deadlineDate, accentColor = '#6366f1', textIntensity = 1.0, isDark = true }: ProgressionViewProps) {
   const today = new Date()
-  const total     = daysBetween(startDate, deadlineDate)
-  const elapsed   = Math.min(Math.max(daysBetween(startDate, today), 0), total)
-  const remaining = Math.max(total - elapsed, 0)
-  const timePct   = total > 0 ? Math.round((elapsed / total) * 100) : 0
+  const hasDeadline = !!deadlineDate
+  const total     = hasDeadline ? daysBetween(startDate, deadlineDate) : 0
+  const elapsed   = hasDeadline ? Math.min(Math.max(daysBetween(startDate, today), 0), total) : 0
+  const remaining = hasDeadline ? Math.max(total - elapsed, 0) : 0
+  const timePct   = hasDeadline && total > 0 ? Math.round((elapsed / total) * 100) : 0
 
   const totalSec  = chapters.reduce((a, c) => a + c.sections, 0)
   const doneSec   = chapters.reduce((a, c) => a + c.done, 0)
@@ -56,11 +57,11 @@ export default function ProgressionView({ chapters, totalPoints, streak, startDa
   const daysElapsed = Math.max(elapsed, 1)
   const ratePerDay  = doneSec / daysElapsed
   const remaining_sec = totalSec - doneSec
-  const daysToFinish  = ratePerDay > 0 ? Math.ceil(remaining_sec / ratePerDay) : null
+  const daysToFinish  = hasDeadline && ratePerDay > 0 ? Math.ceil(remaining_sec / ratePerDay) : null
   const estimatedDate = daysToFinish !== null
     ? new Date(today.getTime() + daysToFinish * 864e5).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })
     : null
-  const willFinishBeforeDeadline = daysToFinish !== null && daysToFinish < remaining
+  const willFinishBeforeDeadline = hasDeadline && daysToFinish !== null && daysToFinish < remaining
 
   const last7 = Array.from({ length: 7 }, (_, i) => {
     const daysAgo = 6 - i
@@ -86,13 +87,13 @@ export default function ProgressionView({ chapters, totalPoints, streak, startDa
         {/* Stats row */}
         <div style={{ display: 'flex', gap: 8 }}>
           <StatPill label="Complété" value={`${globalPct}%`} sub={`${doneSec}/${totalSec} sections`} textIntensity={textIntensity} isDark={isDark} />
-          <StatPill label="Temps" value={`${timePct}%`} sub={`${remaining} jours restants`} textIntensity={textIntensity} isDark={isDark} />
+          <StatPill label="Temps" value={hasDeadline ? `${timePct}%` : '\u2014'} sub={hasDeadline ? `${remaining} jours restants` : 'Aucune deadline'} textIntensity={textIntensity} isDark={isDark} />
           <StatPill label="Points" value={String(totalPoints)} textIntensity={textIntensity} isDark={isDark} />
           <StatPill label="Régularité" value={`${streak.current}j`} sub="de suite" textIntensity={textIntensity} isDark={isDark} />
         </div>
 
         {/* Pace prediction */}
-        {estimatedDate && (
+        {hasDeadline && estimatedDate && (
           <div style={{
             padding: '14px 20px', borderRadius: 12,
             background: 'var(--mq-card-bg)',
@@ -101,11 +102,22 @@ export default function ProgressionView({ chapters, totalPoints, streak, startDa
           }}>
             <div style={{ fontSize: 13, fontWeight: 500, color: tw(0.70, textIntensity, isDark) }}>
               {willFinishBeforeDeadline
-                ? 'À ce rythme, tu finiras avant la deadline.'
-                : 'À ce rythme, tu ne finiras pas avant la deadline.'}
+                ? '\u00C0 ce rythme, tu finiras avant la deadline.'
+                : '\u00C0 ce rythme, tu ne finiras pas avant la deadline.'}
             </div>
             <div style={{ fontSize: 11, color: tw(0.35, textIntensity, isDark), whiteSpace: 'nowrap' }}>
-              Fin estimée : <strong style={{ color: tw(0.60, textIntensity, isDark) }}>{estimatedDate}</strong>
+              Fin estim{'\u00E9'}e : <strong style={{ color: tw(0.60, textIntensity, isDark) }}>{estimatedDate}</strong>
+            </div>
+          </div>
+        )}
+        {!hasDeadline && (
+          <div style={{
+            padding: '14px 20px', borderRadius: 12,
+            background: 'var(--mq-card-bg)',
+            border: '1px solid var(--mq-border)',
+          }}>
+            <div style={{ fontSize: 13, fontWeight: 500, color: tw(0.50, textIntensity, isDark) }}>
+              Aucune deadline d{'\u00E9'}tect{'\u00E9'}e dans ton cahier des charges
             </div>
           </div>
         )}

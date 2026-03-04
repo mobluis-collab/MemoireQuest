@@ -1,8 +1,8 @@
-# MemoireQuest — Contexte projet pour Claude Code
+# maimouarkwest — Contexte projet pour Claude Code
 
 ## Qu'est-ce que c'est ?
 
-MemoireQuest est un dashboard gamifié qui aide les étudiants en alternance à rédiger leur mémoire. L'utilisateur dépose son cahier des charges (PDF), l'IA génère un plan de rédaction structuré avec des conseils (hints), puis l'étudiant complète les sections comme des quêtes avec un système de XP, niveaux, streaks, combos et prestige.
+maimouarkwest est un dashboard gamifié qui aide les étudiants en alternance à rédiger leur mémoire. L'utilisateur dépose son cahier des charges (PDF), l'IA génère un plan de rédaction structuré avec des conseils (hints), puis l'étudiant complète les sections comme des quêtes avec un système de XP, niveaux, streaks, combos et prestige.
 
 ## Stack technique
 

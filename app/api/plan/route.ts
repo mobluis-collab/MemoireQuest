@@ -19,6 +19,12 @@ RÈGLES STRICTES ANTI-HALLUCINATION :
 - Si le document manque d'information, proposer un plan générique cohérent avec les éléments présents
 - Ne jamais inventer de contraintes, deadlines, ou exigences qui ne sont pas explicitement mentionnées
 
+DEADLINE / DATE DE RENDU :
+- Cherche ATTENTIVEMENT dans le document toute mention de date de rendu, deadline, date limite, date de soutenance, date de remise.
+- Si une date est trouvée, inclus-la dans le champ "deadline" au format "YYYY-MM-DD".
+- Si AUCUNE date n'est mentionnée dans le document, mets "deadline": null.
+- NE JAMAIS inventer une date. Si tu n'es pas sûr, mets null.
+
 INSTRUCTIONS :
 - Lis attentivement le document pour identifier : le type de mémoire (professionnel, académique, recherche, stage, projet, etc.), le niveau d'études (BTS, Licence, Bachelor, Master, Ingénieur, etc.), la discipline ou domaine (communication, droit, gestion, informatique, marketing, sciences, etc.), les objectifs pédagogiques ou compétences à valider, la structure et le nombre de pages attendus, les deadlines et contraintes formelles (police, interligne, bibliographie, etc.), et les critères d'évaluation si mentionnés.
 - Génère un plan de rédaction couvrant l'ensemble du mémoire, du début à la fin, adapté au contexte spécifique identifié.
@@ -46,6 +52,7 @@ ATTRIBUTION DE DIFFICULTÉ ET XP :
 Réponds UNIQUEMENT en JSON valide selon ce schéma exact :
 {
   "title": "string",
+  "deadline": "YYYY-MM-DD or null",
   "chapters": [
     {
       "number": "string",
@@ -88,6 +95,7 @@ const ChapterSchema = z.object({
 const MemoirePlanSchema = z.object({
   title: z.string(),
   chapters: z.array(ChapterSchema).min(2).max(15),
+  deadline: z.string().nullable().optional(), // format "YYYY-MM-DD" or null
 })
 
 export async function POST(request: Request) {

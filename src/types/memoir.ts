@@ -19,6 +19,7 @@ export interface MemoirePlan {
   title: string
   chapters: Chapter[]
   prestige_count?: number
+  deadline?: string | null
 }
 
 export type ChapterProgress = Record<string, ChapterStatus>

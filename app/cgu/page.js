@@ -1,7 +1,7 @@
 import Link from "next/link";
 
 export const metadata = {
-  title: "Conditions Générales d'Utilisation — maimoirkouest",
+  title: "Conditions Générales d'Utilisation — maimouarkwest",
 };
 
 const s = {
@@ -84,8 +84,8 @@ export default function CGUPage() {
           <h2 style={s.h2}>1. Objet</h2>
           <p style={s.p}>
             Les pr&eacute;sentes Conditions G&eacute;n&eacute;rales d&apos;Utilisation (CGU) encadrent l&apos;utilisation
-            du service <strong style={s.strong}>maimoirkouest</strong>, accessible en ligne.
-            maimoirkouest est un outil p&eacute;dagogique gratuit qui utilise l&apos;intelligence artificielle
+            du service <strong style={s.strong}>maimouarkwest</strong>, accessible en ligne.
+            maimouarkwest est un outil p&eacute;dagogique gratuit qui utilise l&apos;intelligence artificielle
             pour aider les &eacute;tudiants &agrave; structurer leur m&eacute;moire universitaire.
           </p>
         </div>
@@ -105,7 +105,7 @@ export default function CGUPage() {
         <div style={s.section}>
           <h2 style={s.h2}>3. Description du service</h2>
           <p style={s.p}>
-            maimoirkouest propose les fonctionnalit&eacute;s suivantes :
+            maimouarkwest propose les fonctionnalit&eacute;s suivantes :
           </p>
           <ul style={s.ul}>
             <li>
@@ -162,7 +162,7 @@ export default function CGUPage() {
               sont librement utilisables par l&apos;utilisateur.
             </li>
             <li>
-              Le <strong style={s.strong}>code source</strong> de maimoirkouest est open source
+              Le <strong style={s.strong}>code source</strong> de maimouarkwest est open source
               et disponible sur GitHub.
             </li>
           </ul>
@@ -223,7 +223,7 @@ export default function CGUPage() {
             Pour toute question relative aux pr&eacute;sentes CGU :
           </p>
           <ul style={s.ul}>
-            <li>Email : <a href="mailto:maimoirkouest@proton.me" style={s.accent}>maimoirkouest@proton.me</a></li>
+            <li>Email : <a href="mailto:maimouarkwest@proton.me" style={s.accent}>maimouarkwest@proton.me</a></li>
             <li>GitHub : <a href="https://github.com/mobluis-collab/MemoireQuest/issues" target="_blank" rel="noopener noreferrer" style={s.accent}>GitHub Issues</a></li>
           </ul>
         </div>

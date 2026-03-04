@@ -1,5 +1,5 @@
 -- ========================================
--- MEMOIREQUEST v2.0 - MIGRATIONS PRODUCTION
+-- maimouarkwest v2.0 - MIGRATIONS PRODUCTION
 -- Date: 2026-02-26
 -- Apply these in Supabase SQL Editor
 -- ========================================

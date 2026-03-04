@@ -1,4 +1,4 @@
-# Spécifications techniques — MemoireQuest
+# Spécifications techniques — maimouarkwest
 
 **Version** : 1.0
 **Date** : 2026-02-23

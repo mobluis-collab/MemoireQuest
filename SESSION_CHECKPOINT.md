@@ -1,4 +1,4 @@
-# 📍 MemoireQuest — Checkpoint Session
+# 📍 maimouarkwest — Checkpoint Session
 
 **Dernière mise à jour** : 2026-02-25
 **Phase actuelle** : Amélioration UI/UX (post-déploiement)

@@ -16,7 +16,7 @@ export default function LandingPage() {
       <FeaturesSection />
       <FooterCTA />
       <div className="text-center py-5 text-[11px] text-zinc-300 dark:text-white/20">
-        MemoireQuest · Thesis OS v1.0
+        maimouarkwest · Thesis OS v1.0
       </div>
     </main>
   )

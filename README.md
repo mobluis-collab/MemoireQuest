@@ -1,4 +1,4 @@
-# maimoirkouest
+# maimouarkwest
 
 L'assistant IA qui analyse votre sujet de memoire et vous guide pas a pas jusqu'a la soutenance.
 
@@ -81,7 +81,7 @@ app/
       save/route.ts        # Sauvegarde sendBeacon (POST)
       export/route.ts      # Export RGPD (GET, auth)
   components/
-    Maimoirkouest.tsx       # Orchestrateur principal (~95 lignes)
+    Maimouarkwest.tsx       # Orchestrateur principal (~95 lignes)
     landing/                # Hero, Features, Stats
     onboarding/             # Selection domaine + saisie sujet
     dashboard/              # Sidebar, TaskCard, AnalysisCard, ProgressRing
