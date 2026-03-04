@@ -609,8 +609,18 @@ export default function NewDashboard({
   const [selectedCh, setSelectedCh] = useState<ChapterData | null>(null)
   const [celebratingChapter, setCelebratingChapter] = useState<string | null>(null)
   const [isTransitioning, setIsTransitioning] = useState(false)
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
   const prevChaptersRef = useRef<ChapterData[]>([])
   const reuploadRef = useRef<HTMLInputElement>(null)
+
+  /* ── Sidebar collapsed persistence ── */
+  useEffect(() => {
+    const saved = localStorage.getItem('mq-sidebar-collapsed')
+    if (saved === 'true') setSidebarCollapsed(true)
+  }, [])
+  useEffect(() => {
+    localStorage.setItem('mq-sidebar-collapsed', String(sidebarCollapsed))
+  }, [sidebarCollapsed])
 
   const today = new Date()
   const firstName = user.user_metadata?.full_name?.split(' ')[0] ?? user.email.split('@')[0]
@@ -780,14 +790,34 @@ export default function NewDashboard({
 
       {/* ── SIDEBAR ── */}
       <aside style={{
-        width: 216, flexShrink: 0, height: '100vh',
+        width: sidebarCollapsed ? 56 : 216, flexShrink: 0, height: '100vh',
         position: 'relative', zIndex: 10,
         display: 'flex', flexDirection: 'column',
         background: 'var(--mq-sidebar-bg)',
         backdropFilter: 'blur(32px) saturate(180%)',
         WebkitBackdropFilter: 'blur(32px) saturate(180%)',
         borderRight: '1px solid var(--mq-border)',
+        transition: 'width 0.3s cubic-bezier(.4,0,.2,1)',
+        overflow: 'hidden',
       }}>
+        {/* Collapse toggle */}
+        <button
+          onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+          style={{
+            position: 'absolute', top: 28, right: -12, zIndex: 20,
+            width: 24, height: 24, borderRadius: '50%',
+            background: 'var(--mq-card-bg)',
+            border: '1px solid var(--mq-border)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            cursor: 'pointer', fontSize: 10,
+            color: tw(0.5, textIntensity, isDark),
+            transition: 'transform 0.3s cubic-bezier(.4,0,.2,1)',
+            transform: sidebarCollapsed ? 'rotate(180deg)' : 'none',
+          }}
+        >
+          {'\u2039'}
+        </button>
+
         {/* Logo */}
         <div style={{ padding: '24px 18px 16px', borderBottom: '1px solid var(--mq-card-hover)' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
@@ -798,42 +828,51 @@ export default function NewDashboard({
               color: tw(0.8, textIntensity, isDark), fontSize: 13, fontWeight: 800,
               border: `1px solid ${bg(0.12, isDark)}`,
             }}>M</div>
-            <div>
-              <div style={{ fontSize: 13, fontWeight: 700, letterSpacing: '-0.3px', color: tw(0.92, textIntensity, isDark) }}>maimouarkwest</div>
-              {/* FIX: was 0.25 → 0.5 */}
-              <div style={{ fontSize: 10, color: tw(0.5, textIntensity, isDark), letterSpacing: '0.3px' }}>Thesis OS v1.0</div>
-            </div>
+            {!sidebarCollapsed && (
+              <div>
+                <div style={{ fontSize: 13, fontWeight: 700, letterSpacing: '-0.3px', color: tw(0.92, textIntensity, isDark) }}>maimouarkwest</div>
+                {/* FIX: was 0.25 → 0.5 */}
+                <div style={{ fontSize: 10, color: tw(0.5, textIntensity, isDark), letterSpacing: '0.3px' }}>Thesis OS v1.0</div>
+              </div>
+            )}
           </div>
         </div>
 
         {/* Avatar */}
-        <div style={{ padding: '14px 14px 12px', borderBottom: '1px solid var(--mq-card-hover)' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
+        <div style={{ padding: sidebarCollapsed ? '14px 0 12px' : '14px 14px 12px', borderBottom: '1px solid var(--mq-card-hover)', display: 'flex', flexDirection: 'column', alignItems: sidebarCollapsed ? 'center' : 'stretch' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: sidebarCollapsed ? 0 : 10, justifyContent: sidebarCollapsed ? 'center' : 'flex-start' }}>
             <div style={{
-              width: 34, height: 34, borderRadius: '50%', flexShrink: 0,
+              width: sidebarCollapsed ? 28 : 34, height: sidebarCollapsed ? 28 : 34, borderRadius: '50%', flexShrink: 0,
               background: bg(0.1, isDark),
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              color: tw(0.8, textIntensity, isDark), fontSize: 14, fontWeight: 800,
+              color: tw(0.8, textIntensity, isDark), fontSize: sidebarCollapsed ? 11 : 14, fontWeight: 800,
               border: '1px solid var(--mq-border-hover)',
+              transition: 'all 0.3s cubic-bezier(.4,0,.2,1)',
             }}>{firstInitial}</div>
-            <div>
-              <div style={{ fontSize: 13, fontWeight: 600, color: tw(0.92, textIntensity, isDark) }}>{firstName}</div>
-              {/* FIX: was 0.32 → 0.55 */}
-              <div style={{ fontSize: 11, color: tw(0.55, textIntensity, isDark), marginTop: 1 }}>
-                Niv. {currentLevel} · {levelTitle}
+            {!sidebarCollapsed && (
+              <div>
+                <div style={{ fontSize: 13, fontWeight: 600, color: tw(0.92, textIntensity, isDark) }}>{firstName}</div>
+                {/* FIX: was 0.32 → 0.55 */}
+                <div style={{ fontSize: 11, color: tw(0.55, textIntensity, isDark), marginTop: 1 }}>
+                  Niv. {currentLevel} {'\u00B7'} {levelTitle}
+                </div>
               </div>
-            </div>
+            )}
           </div>
-          <div style={{ height: 4, borderRadius: 99, background: bg(0.06, isDark), overflow: 'hidden', marginBottom: 4 }}>
-            <div style={{
-              height: '100%', width: `${xpPct}%`, borderRadius: 99,
-              background: accentColor,
-              transition: 'width 0.6s cubic-bezier(.4,0,.2,1)',
-            }} />
-          </div>
-          <div style={{ fontSize: 9, color: tw(0.35, textIntensity, isDark) }}>
-            {totalPoints} XP{levelInfo.isMaxLevel ? '' : ` · encore ${xpToNext} avant le niv. ${currentLevel + 1}`}
-          </div>
+          {!sidebarCollapsed && (
+            <>
+              <div style={{ height: 4, borderRadius: 99, background: bg(0.06, isDark), overflow: 'hidden', marginBottom: 4 }}>
+                <div style={{
+                  height: '100%', width: `${xpPct}%`, borderRadius: 99,
+                  background: accentColor,
+                  transition: 'width 0.6s cubic-bezier(.4,0,.2,1)',
+                }} />
+              </div>
+              <div style={{ fontSize: 9, color: tw(0.35, textIntensity, isDark) }}>
+                {totalPoints} XP{levelInfo.isMaxLevel ? '' : ` \u00B7 encore ${xpToNext} avant le niv. ${currentLevel + 1}`}
+              </div>
+            </>
+          )}
         </div>
 
         {/* Nav */}
@@ -842,22 +881,24 @@ export default function NewDashboard({
             const active = activeView === item.view
             return (
               <button key={i} onClick={() => handleViewChange(item.view)} style={{
-                width: '100%', display: 'flex', alignItems: 'center', gap: 9,
-                padding: '8px 11px 8px 13px', borderRadius: 9, border: 'none', cursor: 'pointer',
+                width: '100%', display: 'flex', alignItems: 'center', gap: sidebarCollapsed ? 0 : 9,
+                justifyContent: sidebarCollapsed ? 'center' : 'flex-start',
+                padding: sidebarCollapsed ? '8px 0' : '8px 11px 8px 13px',
+                borderRadius: 9, border: 'none', cursor: 'pointer',
                 background: active ? bg(0.06, isDark) : 'transparent',
                 color: active ? tw(0.90, textIntensity, isDark) : tw(0.45, textIntensity, isDark),
                 fontSize: 13, fontWeight: active ? 600 : 400,
                 textAlign: 'left',
                 transition: 'all 0.3s cubic-bezier(.4,0,.2,1)',
                 marginBottom: 1,
-                borderLeft: active ? `2px solid ${bg(0.12, isDark)}` : '2px solid transparent',
+                borderLeft: sidebarCollapsed ? 'none' : active ? `2px solid ${bg(0.12, isDark)}` : '2px solid transparent',
               }}>
                 <span style={{
-                  fontSize: 11,
+                  fontSize: 15, flexShrink: 0, width: 20, textAlign: 'center',
                   color: active ? tw(0.60, textIntensity, isDark) : tw(0.25, textIntensity, isDark),
                   transition: 'color 0.3s cubic-bezier(.4,0,.2,1)',
                 }}>{item.icon}</span>
-                {item.label}
+                {!sidebarCollapsed && <span>{item.label}</span>}
               </button>
             )
           })}
@@ -865,22 +906,25 @@ export default function NewDashboard({
           <button
             onClick={() => setShowIntensity(!showIntensity)}
             style={{
-              width: '100%', display: 'flex', alignItems: 'center', gap: 9,
-              padding: '8px 11px 8px 13px', borderRadius: 9, border: 'none', cursor: 'pointer',
+              width: '100%', display: 'flex', alignItems: 'center', gap: sidebarCollapsed ? 0 : 9,
+              justifyContent: sidebarCollapsed ? 'center' : 'flex-start',
+              padding: sidebarCollapsed ? '8px 0' : '8px 11px 8px 13px',
+              borderRadius: 9, border: 'none', cursor: 'pointer',
               background: showIntensity ? bg(0.06, isDark) : 'transparent',
               color: showIntensity ? tw(0.90, textIntensity, isDark) : tw(0.45, textIntensity, isDark),
               fontSize: 13, fontWeight: showIntensity ? 600 : 400,
               textAlign: 'left' as const,
               transition: 'all 0.3s cubic-bezier(.4,0,.2,1)',
               marginBottom: 1,
-              borderLeft: showIntensity ? `2px solid ${bg(0.12, isDark)}` : '2px solid transparent',
+              borderLeft: sidebarCollapsed ? 'none' : showIntensity ? `2px solid ${bg(0.12, isDark)}` : '2px solid transparent',
             }}
           >
-            <span style={{ fontSize: 11, color: showIntensity ? tw(0.60, textIntensity, isDark) : tw(0.25, textIntensity, isDark), transition: 'color 0.3s cubic-bezier(.4,0,.2,1)' }}>◐</span>
-            Intensité
+            <span style={{ fontSize: 15, flexShrink: 0, width: 20, textAlign: 'center', color: showIntensity ? tw(0.60, textIntensity, isDark) : tw(0.25, textIntensity, isDark), transition: 'color 0.3s cubic-bezier(.4,0,.2,1)' }}>{'\u25D0'}</span>
+            {!sidebarCollapsed && <span>Intensit{'\u00E9'}</span>}
           </button>
 
           {/* Slider accordion */}
+          {!sidebarCollapsed && (
           <div style={{
             maxHeight: showIntensity ? '80px' : '0px',
             overflow: 'hidden',
@@ -932,11 +976,12 @@ export default function NewDashboard({
               />
             </div>
           </div>
+          )}
         </nav>
 
         {/* Re-upload + sign out */}
         <div style={{ padding: '8px 7px', borderTop: '1px solid var(--mq-card-hover)', display: 'flex', flexDirection: 'column', gap: 1 }}>
-          {plan && (
+          {!sidebarCollapsed && plan && (
             <>
               <input
                 ref={reuploadRef}
@@ -955,26 +1000,31 @@ export default function NewDashboard({
                   opacity: isLoading ? 0.4 : 1,
                   transition: 'opacity 0.15s cubic-bezier(.4,0,.2,1)',
                 }}>
-                <span style={{ fontSize: 11, color: tw(0.25, textIntensity, isDark) }}>↑</span> {isLoading ? 'Analyse en cours…' : 'Ré-importer un PDF'}
+                <span style={{ fontSize: 11, color: tw(0.25, textIntensity, isDark) }}>{'\u2191'}</span> {isLoading ? 'Analyse en cours\u2026' : 'R\u00E9-importer un PDF'}
               </button>
             </>
           )}
           {/* Theme toggle */}
           <button onClick={toggle} style={{
-            width: '100%', display: 'flex', alignItems: 'center', gap: 9,
-            padding: '8px 11px', borderRadius: 9, border: 'none', cursor: 'pointer',
+            width: '100%', display: 'flex', alignItems: 'center', gap: sidebarCollapsed ? 0 : 9,
+            justifyContent: sidebarCollapsed ? 'center' : 'flex-start',
+            padding: sidebarCollapsed ? '8px 0' : '8px 11px',
+            borderRadius: 9, border: 'none', cursor: 'pointer',
             background: 'transparent', color: 'var(--mq-text-secondary)', fontSize: 12, textAlign: 'left',
-            transition: 'color 0.15s cubic-bezier(.4,0,.2,1)',
+            transition: 'all 0.15s cubic-bezier(.4,0,.2,1)',
           }}>
-            <span style={{ fontSize: 13 }}>{isDark ? '☀' : '☽'}</span>
-            {isDark ? 'Mode clair' : 'Mode sombre'}
+            <span style={{ fontSize: 13, flexShrink: 0, width: 20, textAlign: 'center' }}>{isDark ? '\u2600' : '\u263D'}</span>
+            {!sidebarCollapsed && <span>{isDark ? 'Mode clair' : 'Mode sombre'}</span>}
           </button>
           <button onClick={handleSignOut} style={{
-            width: '100%', display: 'flex', alignItems: 'center', gap: 9,
-            padding: '8px 11px', borderRadius: 9, border: 'none', cursor: 'pointer',
+            width: '100%', display: 'flex', alignItems: 'center', gap: sidebarCollapsed ? 0 : 9,
+            justifyContent: sidebarCollapsed ? 'center' : 'flex-start',
+            padding: sidebarCollapsed ? '8px 0' : '8px 11px',
+            borderRadius: 9, border: 'none', cursor: 'pointer',
             background: 'transparent', color: 'rgba(251,113,133,0.85)', fontSize: 12, textAlign: 'left',
           }}>
-            <span>↩</span> Déconnexion
+            <span style={{ flexShrink: 0, width: 20, textAlign: 'center' }}>{'\u21A9'}</span>
+            {!sidebarCollapsed && <span>D{'\u00E9'}connexion</span>}
           </button>
         </div>
       </aside>
