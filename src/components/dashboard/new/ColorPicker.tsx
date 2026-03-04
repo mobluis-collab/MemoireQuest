@@ -9,8 +9,10 @@ interface ColorPickerProps {
 }
 
 /* ─── Palette prédéfinie ──────────────────────────────────────── */
+const DEFAULT_COLOR = '#7C3AED'
+
 const PRESET_COLORS = [
-  '#7C3AED', // violet (défaut)
+  DEFAULT_COLOR, // violet (défaut)
   '#3B82F6', // bleu
   '#10B981', // vert
   '#F59E0B', // ambre
@@ -28,6 +30,7 @@ export default function ColorPicker({ currentColor, onColorChange }: ColorPicker
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null)
   const [plusHovered, setPlusHovered] = useState(false)
   const [applyHovered, setApplyHovered] = useState(false)
+  const [resetHovered, setResetHovered] = useState(false)
 
   const colorInputRef = useRef<HTMLInputElement>(null)
   const customPanelRef = useRef<HTMLDivElement>(null)
@@ -171,6 +174,14 @@ export default function ColorPicker({ currentColor, onColorChange }: ColorPicker
   const isCustomSelected =
     !PRESET_COLORS.includes(selectedColor as typeof PRESET_COLORS[number])
 
+  const isDefault = selectedColor.toUpperCase() === DEFAULT_COLOR.toUpperCase()
+
+  const handleReset = () => {
+    setSelectedColor(DEFAULT_COLOR)
+    setCustomColor(DEFAULT_COLOR)
+    onColorChange(DEFAULT_COLOR)
+  }
+
   return (
     <div style={containerStyle}>
       {/* Grille de ronds prédéfinis + bouton "+" */}
@@ -268,6 +279,27 @@ export default function ColorPicker({ currentColor, onColorChange }: ColorPicker
           </button>
         </div>
       </div>
+
+      {/* Réinitialiser */}
+      {!isDefault && (
+        <button
+          onClick={handleReset}
+          onMouseEnter={() => setResetHovered(true)}
+          onMouseLeave={() => setResetHovered(false)}
+          style={{
+            background: 'none',
+            border: 'none',
+            color: resetHovered ? 'rgba(255,255,255,0.60)' : 'rgba(255,255,255,0.30)',
+            fontSize: 12,
+            cursor: 'pointer',
+            padding: '4px 0',
+            transition: 'color 0.2s cubic-bezier(.4,0,.2,1)',
+            alignSelf: 'center',
+          }}
+        >
+          Réinitialiser par défaut
+        </button>
+      )}
     </div>
   )
 }
