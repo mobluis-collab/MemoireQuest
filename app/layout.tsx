@@ -2,6 +2,7 @@ import "./globals.css";
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import { ThemeProvider } from "@/context/ThemeProvider";
+import GoogleAuthProvider from "@/components/providers/GoogleAuthProvider";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -30,7 +31,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         />
       </head>
       <body className={inter.className}>
-        <ThemeProvider>{children}</ThemeProvider>
+        <GoogleAuthProvider>
+          <ThemeProvider>{children}</ThemeProvider>
+        </GoogleAuthProvider>
       </body>
     </html>
   );

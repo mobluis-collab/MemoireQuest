@@ -1,3 +1,7 @@
+// DEPRECATED: This callback was used for the OAuth redirect flow.
+// The app now uses client-side Google Sign-In + signInWithIdToken.
+// Kept as fallback — safe to remove once the new flow is confirmed stable.
+
 import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
 
