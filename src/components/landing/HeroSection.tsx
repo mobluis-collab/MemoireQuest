@@ -67,18 +67,18 @@ export default function HeroSection() {
   };
 
   return (
-    <section className="max-w-[680px] mx-auto text-center pt-24 pb-16 px-5 max-sm:pt-16 max-sm:px-4">
-      <div className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full border border-white/10 bg-white/5 text-xs text-white/40 font-medium mb-8">
-        <span className="w-1.5 h-1.5 rounded-full bg-white/45 animate-pulse" />
+    <section className="max-w-[680px] mx-auto text-center pt-14 pb-8 px-5 max-sm:pt-10 max-sm:px-4">
+      <div className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full border border-black/10 dark:border-white/10 bg-black/5 dark:bg-white/5 text-xs text-zinc-400 dark:text-white/40 font-medium mb-5">
+        <span className="w-1.5 h-1.5 rounded-full bg-black/45 dark:bg-white/45 animate-pulse" />
         Propulsé par l&apos;IA · Gratuit
       </div>
 
-      <h1 className="text-[clamp(32px,6vw,52px)] font-bold tracking-tight leading-[1.1] mb-5 text-white">
+      <h1 className="text-[clamp(32px,6vw,52px)] font-bold tracking-tight leading-[1.1] mb-4 text-zinc-900 dark:text-white">
         Ton mémoire,{" "}
-        <span className="text-white/50">structuré par l&apos;IA.</span>
+        <span className="text-zinc-500 dark:text-white/50">structuré par l&apos;IA.</span>
       </h1>
 
-      <p className="text-[17px] leading-relaxed text-white/40 max-w-[480px] mx-auto mb-10 max-md:text-[15px]">
+      <p className="text-[17px] leading-relaxed text-zinc-400 dark:text-white/40 max-w-[480px] mx-auto mb-7 max-md:text-[15px]">
         Dépose ton cahier des charges, reçois un plan de rédaction complet et personnalisé.
         De l&apos;introduction à la conclusion, étape par étape.
       </p>
@@ -102,7 +102,7 @@ export default function HeroSection() {
           <button
             onClick={handleOAuthFallback}
             aria-label="Se connecter avec Google"
-            className="inline-flex items-center gap-3 px-7 py-3.5 rounded-full border border-white/15 bg-white/[0.06] text-white/85 text-sm font-medium hover:bg-white/10 hover:border-white/25 hover:-translate-y-px transition-all cursor-pointer"
+            className="inline-flex items-center gap-3 px-7 py-3.5 rounded-full border border-black/15 dark:border-white/15 bg-black/[0.06] dark:bg-white/[0.06] text-zinc-800 dark:text-white/85 text-sm font-medium hover:bg-black/10 dark:hover:bg-white/10 hover:border-black/25 dark:hover:border-white/25 hover:-translate-y-px transition-all cursor-pointer"
           >
             <GoogleIcon />
             Continuer avec Google
