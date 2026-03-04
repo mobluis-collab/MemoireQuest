@@ -84,7 +84,7 @@ function GBorder({
 }
 
 /* ─── Arc SVG ─────────────────────────────────────────────────── */
-function Arc({ pct, textIntensity = 1.0, isDark = true }: { pct: number; textIntensity?: number; isDark?: boolean }) {
+function Arc({ pct, accentColor, textIntensity = 1.0, isDark = true }: { pct: number; accentColor: string; textIntensity?: number; isDark?: boolean }) {
   const R = 68, SW = 6, C2 = 86, circ = 2 * Math.PI * R
   const dash = (pct / 100) * circ
   return (
@@ -92,13 +92,11 @@ function Arc({ pct, textIntensity = 1.0, isDark = true }: { pct: number; textInt
       style={{ overflow: 'visible', flexShrink: 0 }}>
       <circle cx={C2} cy={C2} r={R} fill="none" stroke="var(--mq-stroke-soft)" strokeWidth={SW} />
       <circle cx={C2} cy={C2} r={R} fill="none"
-        stroke={bg(0.60, isDark)} strokeWidth={SW} strokeLinecap="round"
+        stroke={accentColor} strokeWidth={SW} strokeLinecap="round"
         strokeDasharray={`${dash} ${circ}`} strokeDashoffset={circ * 0.25}
         style={{ animation: 'mq-arc-in 1.2s cubic-bezier(.4,0,.2,1) both' }} />
-      <text x={C2} y={C2 - 10} textAnchor="middle" fill={tw(0.88, textIntensity, isDark)}
-        fontSize="34" fontWeight="800" fontFamily={FONT} letterSpacing="-1.5">{pct}</text>
-      <text x={C2} y={C2 + 14} textAnchor="middle" fill={tw(0.35, textIntensity, isDark)}
-        fontSize="12" fontFamily={FONT} fontWeight="500">% terminé</text>
+      <text x={C2} y={C2 + 4} textAnchor="middle" fill={tw(0.88, textIntensity, isDark)}
+        fontSize="34" fontWeight="800" fontFamily={FONT} letterSpacing="-1.5">{pct}%</text>
     </svg>
   )
 }
@@ -1175,7 +1173,7 @@ export default function NewDashboard({
                   display: 'flex', alignItems: 'center', gap: 20,
                   borderRadius: 17,
                 }}>
-                  <Arc pct={pct} textIntensity={textIntensity} isDark={isDark} />
+                  <Arc pct={pct} accentColor={accentColor} textIntensity={textIntensity} isDark={isDark} />
                   <div style={{ flex: 1 }}>
                     <div style={{ fontSize: 10, color: tw(0.25, textIntensity, isDark), fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.8px', marginBottom: 14 }}>
                       Avancement

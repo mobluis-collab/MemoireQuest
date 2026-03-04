@@ -182,7 +182,7 @@ export default function ProgressionView({ chapters, totalPoints, streak, startDa
                     height: '100%',
                     width: totalSec > 0 ? `${Math.round((d.total / totalSec) * 100)}%` : '0%',
                     borderRadius: 99,
-                    background: bg(0.35, isDark),
+                    background: accentColor,
                     transition: 'width 0.6s cubic-bezier(.4,0,.2,1)',
                   }} />
                 </div>
