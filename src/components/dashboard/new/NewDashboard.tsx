@@ -610,6 +610,9 @@ export default function NewDashboard({
   const [celebratingChapter, setCelebratingChapter] = useState<string | null>(null)
   const [isTransitioning, setIsTransitioning] = useState(false)
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
+  const [showShortcuts, setShowShortcuts] = useState(false)
+  const [hoveredNav, setHoveredNav] = useState<number | null>(null)
+  const [focusMode, setFocusMode] = useState(false)
   const prevChaptersRef = useRef<ChapterData[]>([])
   const reuploadRef = useRef<HTMLInputElement>(null)
 
@@ -621,6 +624,63 @@ export default function NewDashboard({
   useEffect(() => {
     localStorage.setItem('mq-sidebar-collapsed', String(sidebarCollapsed))
   }, [sidebarCollapsed])
+
+  /* ── View transition handler (Animation 7) ── */
+  const handleViewChange = useCallback((view: ActiveView) => {
+    if (view === activeView) return
+    setIsTransitioning(true)
+    setTimeout(() => {
+      setActiveView(view)
+      setIsTransitioning(false)
+    }, 50)
+  }, [activeView])
+
+  /* ── Keyboard shortcuts ── */
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const tag = document.activeElement?.tagName
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return
+
+      switch (e.key) {
+        case '1':
+          handleViewChange('dashboard')
+          break
+        case '2':
+          handleViewChange('memoire')
+          break
+        case '3':
+          handleViewChange('progression')
+          break
+        case '4':
+          handleViewChange('achievements')
+          break
+        case '[':
+          setSidebarCollapsed(prev => !prev)
+          break
+        case ']':
+          setSidebarCollapsed(prev => !prev)
+          break
+        case 'Escape':
+          if (focusMode) {
+            setFocusMode(false)
+          } else if (showShortcuts) {
+            setShowShortcuts(false)
+          } else {
+            handleViewChange('dashboard')
+          }
+          break
+        case '?':
+          setShowShortcuts(prev => !prev)
+          break
+        case 'f':
+        case 'F':
+          setFocusMode(prev => !prev)
+          break
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [handleViewChange, showShortcuts, focusMode])
 
   const today = new Date()
   const firstName = user.user_metadata?.full_name?.split(' ')[0] ?? user.email.split('@')[0]
@@ -723,16 +783,6 @@ export default function NewDashboard({
     await onSubtaskToggle(chapterNumber, sectionIndex, taskIndex)
   }
 
-  /* ── View transition handler (Animation 7) ── */
-  const handleViewChange = useCallback((view: ActiveView) => {
-    if (view === activeView) return
-    setIsTransitioning(true)
-    setTimeout(() => {
-      setActiveView(view)
-      setIsTransitioning(false)
-    }, 50)
-  }, [activeView])
-
   const { isDark, toggle } = useThemeToggle()
 
   return (
@@ -790,15 +840,17 @@ export default function NewDashboard({
 
       {/* ── SIDEBAR ── */}
       <aside style={{
-        width: sidebarCollapsed ? 56 : 216, flexShrink: 0, height: '100vh',
+        width: focusMode ? 0 : (sidebarCollapsed ? 56 : 216), flexShrink: 0, height: '100vh',
         position: 'relative', zIndex: 10,
         display: 'flex', flexDirection: 'column',
         background: 'var(--mq-sidebar-bg)',
         backdropFilter: 'blur(32px) saturate(180%)',
         WebkitBackdropFilter: 'blur(32px) saturate(180%)',
-        borderRight: '1px solid var(--mq-border)',
-        transition: 'width 0.3s cubic-bezier(.4,0,.2,1)',
+        borderRight: focusMode ? 'none' : '1px solid var(--mq-border)',
+        transition: 'width 0.35s cubic-bezier(.4,0,.2,1), border-right 0.35s cubic-bezier(.4,0,.2,1), opacity 0.35s cubic-bezier(.4,0,.2,1)',
         overflow: 'hidden',
+        opacity: focusMode ? 0 : 1,
+        pointerEvents: focusMode ? 'none' : 'auto',
       }}>
         {/* Collapse toggle */}
         <button
@@ -879,20 +931,28 @@ export default function NewDashboard({
         <nav style={{ flex: 1, padding: '8px 7px' }}>
           {NAV.map((item, i) => {
             const active = activeView === item.view
+            const isHovered = hoveredNav === i
             return (
-              <button key={i} onClick={() => handleViewChange(item.view)} style={{
-                width: '100%', display: 'flex', alignItems: 'center', gap: sidebarCollapsed ? 0 : 9,
-                justifyContent: sidebarCollapsed ? 'center' : 'flex-start',
-                padding: sidebarCollapsed ? '8px 0' : '8px 11px 8px 13px',
-                borderRadius: 9, border: 'none', cursor: 'pointer',
-                background: active ? bg(0.06, isDark) : 'transparent',
-                color: active ? tw(0.90, textIntensity, isDark) : tw(0.45, textIntensity, isDark),
-                fontSize: 13, fontWeight: active ? 600 : 400,
-                textAlign: 'left',
-                transition: 'all 0.3s cubic-bezier(.4,0,.2,1)',
-                marginBottom: 1,
-                borderLeft: sidebarCollapsed ? 'none' : active ? `2px solid ${bg(0.12, isDark)}` : '2px solid transparent',
-              }}>
+              <button
+                key={i}
+                onClick={() => handleViewChange(item.view)}
+                onMouseEnter={() => setHoveredNav(i)}
+                onMouseLeave={() => setHoveredNav(null)}
+                style={{
+                  width: '100%', display: 'flex', alignItems: 'center', gap: sidebarCollapsed ? 0 : 9,
+                  justifyContent: sidebarCollapsed ? 'center' : 'flex-start',
+                  padding: sidebarCollapsed ? '8px 0' : '8px 11px 8px 13px',
+                  borderRadius: 9, border: 'none', cursor: 'pointer',
+                  background: active ? bg(0.06, isDark) : 'transparent',
+                  color: active ? tw(0.90, textIntensity, isDark) : tw(0.45, textIntensity, isDark),
+                  fontSize: 13, fontWeight: active ? 600 : 400,
+                  textAlign: 'left',
+                  transition: 'all 0.15s cubic-bezier(.4,0,.2,1), transform 0.15s cubic-bezier(.4,0,.2,1)',
+                  transform: isHovered && !active ? 'scale(1.04)' : 'scale(1)',
+                  marginBottom: 1,
+                  borderLeft: sidebarCollapsed ? 'none' : active ? `2px solid ${bg(0.12, isDark)}` : '2px solid transparent',
+                }}
+              >
                 <span style={{
                   fontSize: 15, flexShrink: 0, width: 20, textAlign: 'center',
                   color: active ? tw(0.60, textIntensity, isDark) : tw(0.25, textIntensity, isDark),
@@ -1036,6 +1096,35 @@ export default function NewDashboard({
         position: 'relative', zIndex: 1,
         display: 'flex', flexDirection: 'column', gap: 10,
       }}>
+        {/* Focus mode toggle — top-right pill */}
+        {!focusMode && plan && (
+          <button
+            onClick={() => setFocusMode(true)}
+            style={{
+              position: 'absolute',
+              top: 14,
+              right: 20,
+              zIndex: 20,
+              display: 'flex',
+              alignItems: 'center',
+              gap: 5,
+              padding: '5px 12px',
+              borderRadius: 99,
+              border: `1px solid ${bg(0.10, isDark)}`,
+              background: bg(0.05, isDark),
+              color: tw(0.45, textIntensity, isDark),
+              fontSize: 11,
+              fontWeight: 500,
+              cursor: 'pointer',
+              transition: 'all 0.2s cubic-bezier(.4,0,.2,1)',
+              backdropFilter: 'blur(8px)',
+            }}
+            title="Mode focus (F)"
+          >
+            <span style={{ fontSize: 12 }}>{'\u25C9'}</span>
+            <span>Focus</span>
+          </button>
+        )}
         {planRemaining !== null && <RateLimitWarning remaining={planRemaining} endpoint="plan" />}
         {error && (
           <p role="alert" style={{
@@ -1356,6 +1445,144 @@ export default function NewDashboard({
 
       {/* Re-upload loading overlay */}
       {isLoading && plan && <ReuploadOverlay accentColor={accentColor} textIntensity={textIntensity} isDark={isDark} />}
+
+      {/* Focus mode — floating exit button (bottom-right) */}
+      {focusMode && (
+        <button
+          onClick={() => setFocusMode(false)}
+          style={{
+            position: 'fixed',
+            bottom: 24,
+            right: 24,
+            zIndex: 100,
+            display: 'flex',
+            alignItems: 'center',
+            gap: 6,
+            padding: '7px 14px',
+            borderRadius: 99,
+            border: `1px solid ${bg(0.12, isDark)}`,
+            background: bg(0.06, isDark),
+            backdropFilter: 'blur(12px)',
+            color: tw(0.50, textIntensity, isDark),
+            fontSize: 11,
+            fontWeight: 500,
+            cursor: 'pointer',
+            opacity: 0.7,
+            transition: 'opacity 0.2s cubic-bezier(.4,0,.2,1), transform 0.2s cubic-bezier(.4,0,.2,1)',
+            animation: 'mq-overlay-in 0.3s ease both',
+          }}
+          onMouseEnter={(e) => { e.currentTarget.style.opacity = '1' }}
+          onMouseLeave={(e) => { e.currentTarget.style.opacity = '0.7' }}
+          title="Quitter le mode focus (Esc)"
+        >
+          <span style={{ fontSize: 12 }}>{'\u2715'}</span>
+          <span>Quitter focus</span>
+        </button>
+      )}
+
+      {/* Keyboard shortcuts overlay */}
+      {showShortcuts && (
+        <>
+          <div
+            onClick={() => setShowShortcuts(false)}
+            style={{
+              position: 'fixed', inset: 0, zIndex: 9998,
+              background: 'var(--mq-bg-overlay)',
+              backdropFilter: 'blur(6px)',
+              animation: 'mq-overlay-in 0.2s ease both',
+              cursor: 'pointer',
+            }}
+          />
+          <div style={{
+            position: 'fixed', top: '50%', left: '50%',
+            transform: 'translate(-50%, -50%)',
+            zIndex: 9999,
+            width: 380, padding: '28px 32px',
+            borderRadius: 18,
+            background: isDark ? 'rgba(10,9,28,0.95)' : 'rgba(255,255,255,0.97)',
+            backdropFilter: 'blur(40px) saturate(180%)',
+            border: `1px solid ${bg(0.12, isDark)}`,
+            boxShadow: '0 20px 60px rgba(0,0,0,0.4)',
+            animation: 'mq-overlay-in 0.2s ease both',
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
+              <h3 style={{ fontSize: 16, fontWeight: 700, color: tw(0.92, textIntensity, isDark), margin: 0, letterSpacing: '-0.3px' }}>
+                Raccourcis clavier
+              </h3>
+              <button
+                onClick={() => setShowShortcuts(false)}
+                style={{
+                  width: 28, height: 28, borderRadius: '50%',
+                  border: `1px solid ${bg(0.15, isDark)}`,
+                  background: bg(0.06, isDark),
+                  color: tw(0.7, textIntensity, isDark),
+                  fontSize: 12, cursor: 'pointer',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                }}
+              >
+                {'\u2715'}
+              </button>
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              {[
+                { keys: '1', desc: 'Dashboard' },
+                { keys: '2', desc: 'Mon m\u00E9moire' },
+                { keys: '3', desc: 'Progression' },
+                { keys: '4', desc: 'Troph\u00E9es' },
+                { keys: '[ ]', desc: 'Ouvrir / fermer la sidebar' },
+                { keys: 'F', desc: 'Mode focus' },
+                { keys: 'Esc', desc: 'Retour au dashboard / quitter focus' },
+                { keys: '?', desc: 'Afficher / masquer cette aide' },
+              ].map((shortcut) => (
+                <div key={shortcut.keys} style={{
+                  display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                  padding: '6px 0',
+                }}>
+                  <span style={{ fontSize: 13, color: tw(0.65, textIntensity, isDark) }}>
+                    {shortcut.desc}
+                  </span>
+                  <div style={{ display: 'flex', gap: 4 }}>
+                    {shortcut.keys.split(' ').map((k) => (
+                      <kbd key={k} style={{
+                        display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                        minWidth: 28, height: 26, padding: '0 8px',
+                        borderRadius: 7,
+                        background: bg(0.08, isDark),
+                        border: `1px solid ${bg(0.15, isDark)}`,
+                        fontSize: 12, fontWeight: 600,
+                        color: tw(0.80, textIntensity, isDark),
+                        fontFamily: FONT,
+                      }}>
+                        {k}
+                      </kbd>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div style={{
+              marginTop: 16, paddingTop: 14,
+              borderTop: `1px solid ${bg(0.08, isDark)}`,
+              fontSize: 11, color: tw(0.35, textIntensity, isDark),
+              textAlign: 'center',
+            }}>
+              Appuie sur <kbd style={{
+                padding: '1px 6px', borderRadius: 4,
+                background: bg(0.06, isDark),
+                border: `1px solid ${bg(0.12, isDark)}`,
+                fontSize: 11, fontWeight: 600,
+                color: tw(0.60, textIntensity, isDark),
+              }}>?</kbd> ou <kbd style={{
+                padding: '1px 6px', borderRadius: 4,
+                background: bg(0.06, isDark),
+                border: `1px solid ${bg(0.12, isDark)}`,
+                fontSize: 11, fontWeight: 600,
+                color: tw(0.60, textIntensity, isDark),
+              }}>Esc</kbd> pour fermer
+            </div>
+          </div>
+        </>
+      )}
     </div>
   )
 }

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback, useRef } from 'react'
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react'
 import { isSectionDone, SectionProgress } from '@/types/memoir'
 import { tw, bg } from '@/lib/color-utils'
 
@@ -39,6 +39,14 @@ export default function MemoireView({ chapters, questProgress, loadingKey, onSub
 
   // Animation 4 — Checkbox bounce: track recently checked tasks
   const [justChecked, setJustChecked] = useState<Set<string>>(() => new Set())
+
+  // Drag & drop state for chapter reorder
+  const [localChapters, setLocalChapters] = useState(chapters)
+  const [draggedIndex, setDraggedIndex] = useState<number | null>(null)
+  const [dropTargetIndex, setDropTargetIndex] = useState<number | null>(null)
+
+  // Sync localChapters when props change
+  useEffect(() => { setLocalChapters(chapters) }, [chapters])
 
   // Animation 4 — Helper to add a bounce key and auto-remove after 300ms
   const triggerCheckBounce = useCallback((key: string) => {
@@ -83,7 +91,7 @@ export default function MemoireView({ chapters, questProgress, loadingKey, onSub
     })
 
     return () => observer.disconnect()
-  }, [chapters.length])
+  }, [localChapters.length])
 
   // Keyboard navigation: ArrowUp/ArrowDown, PageUp/PageDown
   useEffect(() => {
@@ -91,7 +99,7 @@ export default function MemoireView({ chapters, questProgress, loadingKey, onSub
       let newIndex = activeIndex
       if (e.key === 'ArrowDown' || e.key === 'PageDown') {
         e.preventDefault()
-        newIndex = Math.min(activeIndex + 1, chapters.length - 1)
+        newIndex = Math.min(activeIndex + 1, localChapters.length - 1)
       } else if (e.key === 'ArrowUp' || e.key === 'PageUp') {
         e.preventDefault()
         newIndex = Math.max(activeIndex - 1, 0)
@@ -104,7 +112,7 @@ export default function MemoireView({ chapters, questProgress, loadingKey, onSub
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeIndex, chapters.length])
+  }, [activeIndex, localChapters.length])
 
   const scrollToChapter = (index: number) => {
     const target = chapterRefs.current[index]
@@ -112,6 +120,56 @@ export default function MemoireView({ chapters, questProgress, loadingKey, onSub
       target.scrollIntoView({ behavior: 'smooth', block: 'start' })
     }
   }
+
+  // Drag & drop handlers
+  const handleDragStart = useCallback((e: React.DragEvent, index: number) => {
+    setDraggedIndex(index)
+    e.dataTransfer.effectAllowed = 'move'
+    e.dataTransfer.setData('text/plain', String(index))
+  }, [])
+
+  const handleDragOver = useCallback((e: React.DragEvent, index: number) => {
+    e.preventDefault()
+    e.dataTransfer.dropEffect = 'move'
+    if (draggedIndex === null) return
+    if (index !== draggedIndex) {
+      setDropTargetIndex(index)
+    }
+  }, [draggedIndex])
+
+  const handleDragLeave = useCallback(() => {
+    setDropTargetIndex(null)
+  }, [])
+
+  const handleDrop = useCallback((e: React.DragEvent, index: number) => {
+    e.preventDefault()
+    if (draggedIndex === null || draggedIndex === index) {
+      setDraggedIndex(null)
+      setDropTargetIndex(null)
+      return
+    }
+    setLocalChapters(prev => {
+      const next = [...prev]
+      const [removed] = next.splice(draggedIndex, 1)
+      next.splice(index, 0, removed)
+      return next
+    })
+    // Update activeIndex if needed
+    if (activeIndex === draggedIndex) {
+      setActiveIndex(index)
+    } else if (draggedIndex < activeIndex && index >= activeIndex) {
+      setActiveIndex(activeIndex - 1)
+    } else if (draggedIndex > activeIndex && index <= activeIndex) {
+      setActiveIndex(activeIndex + 1)
+    }
+    setDraggedIndex(null)
+    setDropTargetIndex(null)
+  }, [draggedIndex, activeIndex])
+
+  const handleDragEnd = useCallback(() => {
+    setDraggedIndex(null)
+    setDropTargetIndex(null)
+  }, [])
 
   return (
     <div style={{
@@ -132,7 +190,7 @@ export default function MemoireView({ chapters, questProgress, loadingKey, onSub
           scrollBehavior: 'smooth',
         }}
       >
-        {chapters.map((ch, chIdx) => {
+        {localChapters.map((ch, chIdx) => {
           const pct = ch.sections > 0 ? Math.round((ch.done / ch.sections) * 100) : 0
           const chapterDone = pct === 100
           const wip = pct > 0 && !chapterDone
@@ -505,8 +563,8 @@ export default function MemoireView({ chapters, questProgress, loadingKey, onSub
         })}
       </div>
 
-      {/* Dot indicators — right side */}
-      {chapters.length > 1 && (
+      {/* Dot indicators — right side — with drag & drop */}
+      {localChapters.length > 1 && (
         <div style={{
           position: 'absolute',
           right: 12,
@@ -515,26 +573,68 @@ export default function MemoireView({ chapters, questProgress, loadingKey, onSub
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
-          gap: 8,
+          gap: 0,
           zIndex: 10,
         }}>
-          {chapters.map((_, dotIdx) => {
+          {localChapters.map((_, dotIdx) => {
             const isActive = dotIdx === activeIndex
+            const isDragged = dotIdx === draggedIndex
+            const isDropTarget = dotIdx === dropTargetIndex && draggedIndex !== null
+            const showDropBefore = isDropTarget && draggedIndex !== null && dotIdx < draggedIndex
+            const showDropAfter = isDropTarget && draggedIndex !== null && dotIdx > draggedIndex
+
             return (
               <div
                 key={dotIdx}
-                onClick={() => scrollToChapter(dotIdx)}
                 style={{
-                  width: isActive ? 10 : 7,
-                  height: isActive ? 10 : 7,
-                  borderRadius: '50%',
-                  background: isActive ? accentColor : bg(0.15, isDark),
-                  cursor: 'pointer',
-                  transition: 'all 0.25s cubic-bezier(.4,0,.2,1)',
-                  boxShadow: isActive ? `0 0 8px ${accentColor}44` : 'none',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  padding: '4px 0',
                 }}
-                title={`Chapitre ${chapters[dotIdx].num}`}
-              />
+              >
+                {/* Drop indicator line — before */}
+                <div style={{
+                  width: 16,
+                  height: 2,
+                  borderRadius: 99,
+                  background: showDropBefore ? bg(0.30, isDark) : 'transparent',
+                  marginBottom: 2,
+                  transition: 'background 0.15s ease',
+                }} />
+
+                {/* Dot — draggable */}
+                <div
+                  draggable
+                  onDragStart={(e) => handleDragStart(e, dotIdx)}
+                  onDragOver={(e) => handleDragOver(e, dotIdx)}
+                  onDragLeave={handleDragLeave}
+                  onDrop={(e) => handleDrop(e, dotIdx)}
+                  onDragEnd={handleDragEnd}
+                  onClick={() => scrollToChapter(dotIdx)}
+                  style={{
+                    width: isActive ? 10 : 7,
+                    height: isActive ? 10 : 7,
+                    borderRadius: '50%',
+                    background: isActive ? accentColor : bg(0.15, isDark),
+                    cursor: 'grab',
+                    transition: 'all 0.25s cubic-bezier(.4,0,.2,1)',
+                    boxShadow: isActive ? `0 0 8px ${accentColor}44` : 'none',
+                    opacity: isDragged ? 0.4 : 1,
+                  }}
+                  title={`Chapitre ${localChapters[dotIdx].num} — glisser pour r\u00E9ordonner`}
+                />
+
+                {/* Drop indicator line — after */}
+                <div style={{
+                  width: 16,
+                  height: 2,
+                  borderRadius: 99,
+                  background: showDropAfter ? bg(0.30, isDark) : 'transparent',
+                  marginTop: 2,
+                  transition: 'background 0.15s ease',
+                }} />
+              </div>
             )
           })}
         </div>
