@@ -9,10 +9,10 @@ interface ColorPickerProps {
 }
 
 /* ─── Palette prédéfinie ──────────────────────────────────────── */
-const DEFAULT_COLOR = '#7C3AED'
+const DEFAULT_COLOR = '#6366f1'
 
 const PRESET_COLORS = [
-  DEFAULT_COLOR, // violet (défaut)
+  DEFAULT_COLOR, // indigo (défaut)
   '#3B82F6', // bleu
   '#10B981', // vert
   '#F59E0B', // ambre

@@ -36,7 +36,7 @@ function StatPill({ label, value, sub, highlightColor }: { label: string; value:
   )
 }
 
-export default function ProgressionView({ chapters, totalPoints, streak, startDate, deadlineDate, accentColor = '#7C3AED' }: ProgressionViewProps) {
+export default function ProgressionView({ chapters, totalPoints, streak, startDate, deadlineDate, accentColor = '#6366f1' }: ProgressionViewProps) {
   const today = new Date()
   const total     = daysBetween(startDate, deadlineDate)
   const elapsed   = Math.min(Math.max(daysBetween(startDate, today), 0), total)

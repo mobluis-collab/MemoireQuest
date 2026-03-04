@@ -29,7 +29,7 @@ interface MemoireViewProps {
   accentColor?: string
 }
 
-export default function MemoireView({ chapters, questProgress, loadingKey, onSubtaskToggle, accentColor = '#7C3AED' }: MemoireViewProps) {
+export default function MemoireView({ chapters, questProgress, loadingKey, onSubtaskToggle, accentColor = '#6366f1' }: MemoireViewProps) {
   const [openChapter, setOpenChapter] = useState<string | null>(chapters[0]?.num ?? null)
   const [hoveredChapter, setHoveredChapter] = useState<string | null>(null)
 

@@ -50,7 +50,7 @@ export default function DashboardContent({
   const [comboState, setComboState] = useState<ComboState>(
     initialComboState || { count: 0, lastQuestTime: null }
   )
-  const [accentColor, setAccentColor] = useState('#7C3AED')
+  const [accentColor, setAccentColor] = useState('#6366f1')
 
   // Load accent color from preferences API
   useEffect(() => {

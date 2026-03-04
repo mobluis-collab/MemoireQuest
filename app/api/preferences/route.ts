@@ -1,7 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
 
-const DEFAULT_ACCENT_COLOR = '#7C3AED'
+const DEFAULT_ACCENT_COLOR = '#6366f1'
 const HEX_COLOR_REGEX = /^#[0-9A-Fa-f]{6}$/
 
 // GET — retourne la couleur d'accent de l'utilisateur connecté

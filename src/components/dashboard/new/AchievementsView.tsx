@@ -107,7 +107,7 @@ function AchievementCard({ a, accentColor }: { a: Achievement; accentColor: stri
 
 /* ─── Main component ─────────────────────────────────────── */
 
-export default function AchievementsView({ totalPoints, streak, questProgress, chapters, accentColor = '#7C3AED' }: AchievementsViewProps) {
+export default function AchievementsView({ totalPoints, streak, questProgress, chapters, accentColor = '#6366f1' }: AchievementsViewProps) {
   const achievements = buildAchievements(totalPoints, streak, questProgress, chapters)
   const unlocked = achievements.filter(a => a.unlocked).length
   const total = achievements.length
