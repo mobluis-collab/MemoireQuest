@@ -25,11 +25,11 @@ const FEATURES = [
 
 export default function FeaturesSection() {
   return (
-    <section className="max-w-[880px] mx-auto px-5 pb-20 max-sm:px-4">
-      <h2 className="text-center text-[22px] font-bold tracking-tight text-white/90 mb-3">
+    <section className="max-w-[880px] mx-auto px-5 pb-12 max-sm:px-4">
+      <h2 className="text-center text-[22px] font-bold tracking-tight text-zinc-800 dark:text-white/90 mb-3">
         Tout ce qu&apos;il te faut
       </h2>
-      <p className="text-center text-sm text-white/35 mb-10">
+      <p className="text-center text-sm text-zinc-400 dark:text-white/35 mb-6">
         Un outil pensé pour les étudiants en alternance.
       </p>
 
@@ -37,15 +37,15 @@ export default function FeaturesSection() {
         {FEATURES.map((f) => (
           <div
             key={f.label}
-            className="p-6 rounded-[14px] border border-white/[0.06] bg-white/[0.02]"
+            className="p-6 rounded-[14px] border border-black/[0.06] dark:border-white/[0.06] bg-black/[0.02] dark:bg-white/[0.02]"
           >
-            <div className="text-[10px] font-semibold text-white/20 tracking-wider uppercase mb-2">
+            <div className="text-[10px] font-semibold text-zinc-300 dark:text-white/20 tracking-wider uppercase mb-2">
               {f.label}
             </div>
-            <h3 className="text-[15px] font-semibold text-white/80 mb-1.5">
+            <h3 className="text-[15px] font-semibold text-zinc-700 dark:text-white/80 mb-1.5">
               {f.title}
             </h3>
-            <p className="text-[12.5px] leading-relaxed text-white/35">
+            <p className="text-[12.5px] leading-relaxed text-zinc-400 dark:text-white/35">
               {f.desc}
             </p>
           </div>

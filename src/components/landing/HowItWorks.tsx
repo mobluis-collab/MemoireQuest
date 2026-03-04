@@ -36,12 +36,12 @@ const STEPS = [
 export default function HowItWorks() {
   return (
     <section
-      className="max-w-[880px] mx-auto mt-4 mb-16 px-5 max-sm:px-4"
+      className="max-w-[880px] mx-auto mt-2 mb-8 px-5 max-sm:px-4"
       aria-labelledby="how-it-works-title"
     >
       <h2
         id="how-it-works-title"
-        className="text-center text-2xl font-bold tracking-tight mb-10 text-white/90"
+        className="text-center text-2xl font-bold tracking-tight mb-6 text-zinc-800 dark:text-white/90"
       >
         Comment ça marche ?
       </h2>
@@ -50,18 +50,18 @@ export default function HowItWorks() {
         {STEPS.map((step) => (
           <article
             key={step.number}
-            className="p-6 rounded-2xl bg-white/[0.02] border border-white/[0.08] hover:border-white/15 hover:-translate-y-1 transition-all duration-300"
+            className="p-4 rounded-2xl bg-black/[0.02] dark:bg-white/[0.02] border border-black/[0.08] dark:border-white/[0.08] hover:border-black/15 dark:hover:border-white/15 hover:-translate-y-1 transition-all duration-300"
           >
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 rounded-xl bg-white/5 border border-white/[0.08] flex items-center justify-center text-white/45 shrink-0">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="w-10 h-10 rounded-xl bg-black/5 dark:bg-white/5 border border-black/[0.08] dark:border-white/[0.08] flex items-center justify-center text-zinc-400 dark:text-white/45 shrink-0">
                 {step.icon}
               </div>
-              <span className="text-xs font-semibold text-white/25 tracking-widest">
+              <span className="text-xs font-semibold text-zinc-300 dark:text-white/25 tracking-widest">
                 {step.number}
               </span>
             </div>
-            <h3 className="text-sm font-semibold text-white/85 tracking-tight mb-2">{step.title}</h3>
-            <p className="text-[13px] leading-relaxed text-white/35">{step.desc}</p>
+            <h3 className="text-sm font-semibold text-zinc-800 dark:text-white/85 tracking-tight mb-2">{step.title}</h3>
+            <p className="text-[13px] leading-relaxed text-zinc-400 dark:text-white/35">{step.desc}</p>
           </article>
         ))}
       </div>
