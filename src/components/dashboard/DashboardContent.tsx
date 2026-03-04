@@ -65,16 +65,6 @@ export default function DashboardContent({
       .catch(() => {}) // silently fallback to default
   }, [])
 
-  // Optimistic update for accent color
-  const handleAccentChange = useCallback((color: string) => {
-    setAccentColor(color) // optimistic UI update immédiat
-    fetch('/api/preferences', {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ accent_color: color }),
-    }).catch(() => {}) // silently handle error
-  }, [])
-
   // Optimistic update for text intensity
   const handleTextIntensityChange = useCallback((intensity: number) => {
     setTextIntensity(intensity)
@@ -307,7 +297,6 @@ export default function DashboardContent({
         onSubtaskToggle={handleSubtaskToggle}
         loadingKey={loadingKey}
         accentColor={accentColor}
-        onAccentChange={handleAccentChange}
         textIntensity={textIntensity}
         onTextIntensityChange={handleTextIntensityChange}
       />

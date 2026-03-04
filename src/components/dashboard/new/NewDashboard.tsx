@@ -9,7 +9,6 @@ import RateLimitWarning from '@/components/ui/RateLimitWarning'
 import MemoireView from './MemoireView'
 import ProgressionView from './ProgressionView'
 import AchievementsView from './AchievementsView'
-import ColorPicker from './ColorPicker'
 import { useTheme as useThemeToggle } from '@/context/ThemeProvider'
 import { hexToRgba, tw } from '@/lib/color-utils'
 
@@ -44,7 +43,7 @@ export interface NewDashboardProps {
   onSubtaskToggle: (chapterNumber: string, sectionIndex: number, taskIndex: number) => Promise<void>
   loadingKey: string | null
   accentColor: string
-  onAccentChange: (color: string) => void
+  onAccentChange?: (color: string) => void
   textIntensity: number
   onTextIntensityChange: (intensity: number) => void
 }
@@ -609,12 +608,11 @@ export default function NewDashboard({
   onSubtaskToggle,
   loadingKey,
   accentColor,
-  onAccentChange,
   textIntensity,
   onTextIntensityChange,
 }: NewDashboardProps) {
   const [activeView, setActiveView] = useState<ActiveView>('dashboard')
-  const [showColorPicker, setShowColorPicker] = useState(false)
+  const [showIntensity, setShowIntensity] = useState(false)
   const [selectedCh, setSelectedCh] = useState<ChapterData | null>(null)
   const [celebratingChapter, setCelebratingChapter] = useState<string | null>(null)
   const [isTransitioning, setIsTransitioning] = useState(false)
@@ -878,86 +876,75 @@ export default function NewDashboard({
               </button>
             )
           })}
-          {/* Accent color picker toggle */}
-          <div
-            onClick={() => setShowColorPicker(!showColorPicker)}
+          {/* Intensité toggle */}
+          <button
+            onClick={() => setShowIntensity(!showIntensity)}
             style={{
               width: '100%', display: 'flex', alignItems: 'center', gap: 9,
               padding: '8px 11px 8px 13px', borderRadius: 9, border: 'none', cursor: 'pointer',
-              background: showColorPicker ? 'rgba(255,255,255,0.06)' : 'transparent',
-              color: showColorPicker ? tw(0.90, textIntensity) : tw(0.45, textIntensity),
-              fontSize: 13, fontWeight: showColorPicker ? 600 : 400,
+              background: showIntensity ? 'rgba(255,255,255,0.06)' : 'transparent',
+              color: showIntensity ? tw(0.90, textIntensity) : tw(0.45, textIntensity),
+              fontSize: 13, fontWeight: showIntensity ? 600 : 400,
               textAlign: 'left' as const,
               transition: 'all 0.3s cubic-bezier(.4,0,.2,1)',
               marginBottom: 1,
-              borderLeft: showColorPicker ? '2px solid rgba(255,255,255,0.12)' : '2px solid transparent',
+              borderLeft: showIntensity ? '2px solid rgba(255,255,255,0.12)' : '2px solid transparent',
             }}
           >
-            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" style={{ color: showColorPicker ? tw(0.60, textIntensity) : tw(0.25, textIntensity), transition: 'color 0.3s cubic-bezier(.4,0,.2,1)' }}>
-              <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" />
-              <circle cx="12" cy="6" r="2.5" fill="#EF4444" />
-              <circle cx="17.2" cy="9.5" r="2.5" fill="#F59E0B" />
-              <circle cx="15.7" cy="16" r="2.5" fill="#10B981" />
-              <circle cx="8.3" cy="16" r="2.5" fill="#3B82F6" />
-              <circle cx="6.8" cy="9.5" r="2.5" fill="#8B5CF6" />
-            </svg>
-            Thème
-          </div>
+            <span style={{ fontSize: 11, color: showIntensity ? tw(0.60, textIntensity) : tw(0.25, textIntensity), transition: 'color 0.3s cubic-bezier(.4,0,.2,1)' }}>◐</span>
+            Intensité
+          </button>
 
-          {/* ColorPicker accordion panel */}
+          {/* Slider accordion */}
           <div style={{
-            maxHeight: showColorPicker ? '300px' : '0px',
+            maxHeight: showIntensity ? '80px' : '0px',
             overflow: 'hidden',
-            transition: 'max-height 0.4s cubic-bezier(.4,0,.2,1)',
+            transition: 'max-height 0.3s cubic-bezier(.4,0,.2,1)',
           }}>
-            <div style={{ padding: '4px 6px 8px' }}>
-              <ColorPicker currentColor={accentColor} onColorChange={onAccentChange} />
-              {/* Intensite du texte */}
-              <div style={{ padding: '8px 0' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-                  <span style={{ fontSize: 11, color: tw(0.45, textIntensity), fontWeight: 500 }}>Intensite</span>
-                  <span style={{ fontSize: 11, color: tw(0.60, textIntensity), fontWeight: 600 }}>{Math.round(textIntensity * 100)}%</span>
-                </div>
-                <style>{`
-                  .mq-intensity-slider {
-                    -webkit-appearance: none;
-                    appearance: none;
-                    width: 100%;
-                    height: 3px;
-                    border-radius: 99px;
-                    background: rgba(255,255,255,0.08);
-                    outline: none;
-                    cursor: pointer;
-                  }
-                  .mq-intensity-slider::-webkit-slider-thumb {
-                    -webkit-appearance: none;
-                    appearance: none;
-                    width: 14px;
-                    height: 14px;
-                    border-radius: 50%;
-                    background: rgba(255,255,255,0.80);
-                    border: none;
-                    cursor: pointer;
-                  }
-                  .mq-intensity-slider::-moz-range-thumb {
-                    width: 14px;
-                    height: 14px;
-                    border-radius: 50%;
-                    background: rgba(255,255,255,0.80);
-                    border: none;
-                    cursor: pointer;
-                  }
-                `}</style>
-                <input
-                  type="range"
-                  min={50}
-                  max={150}
-                  step={5}
-                  value={Math.round(textIntensity * 100)}
-                  onChange={(e) => onTextIntensityChange(Number(e.target.value) / 100)}
-                  className="mq-intensity-slider"
-                />
+            <div style={{ padding: '6px 13px 10px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                <span style={{ fontSize: 10, color: tw(0.35, textIntensity) }}>Texte</span>
+                <span style={{ fontSize: 10, color: tw(0.50, textIntensity), fontWeight: 600 }}>{Math.round(textIntensity * 100)}%</span>
               </div>
+              <style>{`
+                .mq-intensity-slider {
+                  -webkit-appearance: none;
+                  appearance: none;
+                  width: 100%;
+                  height: 3px;
+                  border-radius: 99px;
+                  background: rgba(255,255,255,0.08);
+                  outline: none;
+                  cursor: pointer;
+                }
+                .mq-intensity-slider::-webkit-slider-thumb {
+                  -webkit-appearance: none;
+                  appearance: none;
+                  width: 14px;
+                  height: 14px;
+                  border-radius: 50%;
+                  background: rgba(255,255,255,0.80);
+                  border: none;
+                  cursor: pointer;
+                }
+                .mq-intensity-slider::-moz-range-thumb {
+                  width: 14px;
+                  height: 14px;
+                  border-radius: 50%;
+                  background: rgba(255,255,255,0.80);
+                  border: none;
+                  cursor: pointer;
+                }
+              `}</style>
+              <input
+                type="range"
+                min={50}
+                max={150}
+                step={5}
+                value={Math.round(textIntensity * 100)}
+                onChange={(e) => onTextIntensityChange(Number(e.target.value) / 100)}
+                className="mq-intensity-slider"
+              />
             </div>
           </div>
         </nav>
