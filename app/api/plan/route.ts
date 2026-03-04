@@ -6,7 +6,7 @@ import { NextResponse } from 'next/server'
 import { z } from 'zod'
 import { extractText } from 'unpdf'
 
-export const maxDuration = 60
+export const maxDuration = 300
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
 
@@ -135,7 +135,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Le PDF semble vide ou illisible. Réessaie avec un autre fichier.' }, { status: 400 })
   }
 
-  // Truncate to ~30k chars to keep prompt fast (~8k tokens)
+  // Truncate to ~30k chars to keep prompt reasonable (~8k tokens)
   const MAX_TEXT_CHARS = 30_000
   const truncatedText = pdfText.length > MAX_TEXT_CHARS
     ? pdfText.slice(0, MAX_TEXT_CHARS) + '\n\n[... document tronqué pour performance ...]'
@@ -175,7 +175,7 @@ export async function POST(request: Request) {
           }
         })
 
-        const SAFETY_TIMEOUT = 55_000 // 55s — close cleanly before Vercel's 60s kill
+        const SAFETY_TIMEOUT = 290_000 // 290s — close cleanly before Vercel's 300s kill (Pro)
         const timeoutPromise = new Promise<never>((_, reject) =>
           setTimeout(() => reject(new Error('TIMEOUT')), SAFETY_TIMEOUT)
         )
@@ -188,7 +188,7 @@ export async function POST(request: Request) {
           ])
         } catch (raceErr) {
           if (raceErr instanceof Error && raceErr.message === 'TIMEOUT') {
-            console.error('[plan] Anthropic timeout after 55s. Chars received:', fullText.length)
+            console.error('[plan] Anthropic timeout after 290s. Chars received:', fullText.length)
             sendEvent(JSON.stringify({ type: 'error', error: 'La génération a pris trop de temps. Réessaie avec un PDF plus court.' }))
             controller.close()
             return
