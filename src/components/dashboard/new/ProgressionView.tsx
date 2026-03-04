@@ -1,6 +1,6 @@
 'use client'
 
-const FONT = "-apple-system,BlinkMacSystemFont,'SF Pro Display','Helvetica Neue',sans-serif"
+import { hexToRgba } from '@/lib/color-utils'
 
 interface ChapterData {
   num: string
@@ -16,11 +16,12 @@ interface ProgressionViewProps {
   streak: { current: number; jokers: number }
   startDate: Date
   deadlineDate: Date
+  accentColor?: string
 }
 
 const daysBetween = (a: Date, b: Date) => Math.round((b.getTime() - a.getTime()) / 864e5)
 
-function StatPill({ label, value, sub }: { label: string; value: string; sub?: string }) {
+function StatPill({ label, value, sub, highlightColor }: { label: string; value: string; sub?: string; highlightColor?: string }) {
   return (
     <div style={{
       flex: 1, padding: '14px 16px', borderRadius: 14,
@@ -29,13 +30,13 @@ function StatPill({ label, value, sub }: { label: string; value: string; sub?: s
       textAlign: 'center',
     }}>
       <div style={{ fontSize: 9, color: 'var(--mq-text-muted)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.8px', marginBottom: 4 }}>{label}</div>
-      <div style={{ fontSize: 28, fontWeight: 800, color: 'var(--mq-text-primary)', letterSpacing: '-1px' }}>{value}</div>
+      <div style={{ fontSize: 28, fontWeight: 800, color: highlightColor ?? 'var(--mq-text-primary)', letterSpacing: '-1px' }}>{value}</div>
       {sub && <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.35)', marginTop: 3 }}>{sub}</div>}
     </div>
   )
 }
 
-export default function ProgressionView({ chapters, totalPoints, streak, startDate, deadlineDate }: ProgressionViewProps) {
+export default function ProgressionView({ chapters, totalPoints, streak, startDate, deadlineDate, accentColor = '#7C3AED' }: ProgressionViewProps) {
   const today = new Date()
   const total     = daysBetween(startDate, deadlineDate)
   const elapsed   = Math.min(Math.max(daysBetween(startDate, today), 0), total)
@@ -82,9 +83,9 @@ export default function ProgressionView({ chapters, totalPoints, streak, startDa
 
         {/* Stats row */}
         <div style={{ display: 'flex', gap: 8 }}>
-          <StatPill label="Complété" value={`${globalPct}%`} sub={`${doneSec}/${totalSec} sections`} />
+          <StatPill label="Complété" value={`${globalPct}%`} sub={`${doneSec}/${totalSec} sections`} highlightColor={accentColor} />
           <StatPill label="Temps" value={`${timePct}%`} sub={`${remaining} jours restants`} />
-          <StatPill label="Points" value={String(totalPoints)} />
+          <StatPill label="Points" value={String(totalPoints)} highlightColor={accentColor} />
           <StatPill label="Régularité" value={`${streak.current}j`} sub="de suite" />
         </div>
 
@@ -136,14 +137,14 @@ export default function ProgressionView({ chapters, totalPoints, streak, startDa
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                       <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)' }}>{ch.done}/{ch.sections}</span>
-                      <span style={{ fontSize: 11, fontWeight: 600, color: 'rgba(255,255,255,0.55)', minWidth: 32, textAlign: 'right' }}>{pct}%</span>
+                      <span style={{ fontSize: 11, fontWeight: 600, color: accentColor, minWidth: 32, textAlign: 'right' }}>{pct}%</span>
                     </div>
                   </div>
                   <div style={{ height: 4, borderRadius: 99, background: 'var(--mq-stroke-soft)', overflow: 'hidden' }}>
                     <div style={{
                       height: '100%', width: `${pct}%`, borderRadius: 99,
-                      background: done ? 'var(--mq-text-muted)' : 'rgba(255,255,255,0.22)',
-                      transition: 'width 0.8s cubic-bezier(.4,0,.2,1)',
+                      background: accentColor,
+                      transition: 'width 0.6s cubic-bezier(.4,0,.2,1)',
                     }} />
                   </div>
                 </div>
@@ -179,7 +180,8 @@ export default function ProgressionView({ chapters, totalPoints, streak, startDa
                     height: '100%',
                     width: totalSec > 0 ? `${Math.round((d.total / totalSec) * 100)}%` : '0%',
                     borderRadius: 99,
-                    background: 'rgba(255,255,255,0.25)',
+                    background: hexToRgba(accentColor, 0.6),
+                    transition: 'width 0.6s cubic-bezier(.4,0,.2,1)',
                   }} />
                 </div>
               </div>
@@ -203,9 +205,9 @@ export default function ProgressionView({ chapters, totalPoints, streak, startDa
                     <div style={{
                       width: '100%', aspectRatio: '1', borderRadius: 6,
                       background: active
-                        ? isToday ? 'rgba(255,255,255,0.35)' : 'rgba(255,255,255,0.15)'
+                        ? isToday ? hexToRgba(accentColor, 0.5) : hexToRgba(accentColor, 0.25)
                         : 'rgba(255,255,255,0.04)',
-                      border: `1px solid ${active ? 'rgba(255,255,255,0.20)' : 'var(--mq-stroke-soft)'}`,
+                      border: `1px solid ${active ? hexToRgba(accentColor, 0.3) : 'var(--mq-stroke-soft)'}`,
                     }} />
                     <span style={{ fontSize: 9, color: 'rgba(255,255,255,0.30)', fontWeight: 500 }}>
                       {['L', 'M', 'M', 'J', 'V', 'S', 'D'][(new Date().getDay() + i - 6 + 7) % 7]}

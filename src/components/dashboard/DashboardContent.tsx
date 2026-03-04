@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect, useCallback } from 'react'
 import type { MemoirePlan, QuestProgress, StreakData, SectionProgress } from '@/types/memoir'
 import { isSectionDone } from '@/types/memoir'
 import type { ComboState } from '@/lib/combo'
@@ -50,6 +50,27 @@ export default function DashboardContent({
   const [comboState, setComboState] = useState<ComboState>(
     initialComboState || { count: 0, lastQuestTime: null }
   )
+  const [accentColor, setAccentColor] = useState('#7C3AED')
+
+  // Load accent color from preferences API
+  useEffect(() => {
+    fetch('/api/preferences')
+      .then(res => res.json())
+      .then(data => {
+        if (data.accent_color) setAccentColor(data.accent_color)
+      })
+      .catch(() => {}) // silently fallback to default
+  }, [])
+
+  // Optimistic update for accent color
+  const handleAccentChange = useCallback((color: string) => {
+    setAccentColor(color) // optimistic UI update immédiat
+    fetch('/api/preferences', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ accent_color: color }),
+    }).catch(() => {}) // silently handle error
+  }, [])
 
   // Calculate total quests and completed quests for prestige
   const { totalQuests, completedQuests } = useMemo(() => {
@@ -263,6 +284,8 @@ export default function DashboardContent({
         onQuestComplete={handleQuestComplete}
         onSubtaskToggle={handleSubtaskToggle}
         loadingKey={loadingKey}
+        accentColor={accentColor}
+        onAccentChange={handleAccentChange}
       />
       {plan && (
         <PrestigeModal

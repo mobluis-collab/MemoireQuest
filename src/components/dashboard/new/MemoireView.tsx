@@ -1,7 +1,8 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { isSectionDone, SectionProgress } from '@/types/memoir'
+import { hexToRgba } from '@/lib/color-utils'
 
 interface Section {
   text: string
@@ -25,11 +26,51 @@ interface MemoireViewProps {
   questProgress: Record<string, Record<string, SectionProgress>>
   loadingKey: string | null
   onSubtaskToggle: (chapterNumber: string, sectionIndex: number, taskIndex: number) => void
+  accentColor?: string
 }
 
-export default function MemoireView({ chapters, questProgress, loadingKey, onSubtaskToggle }: MemoireViewProps) {
+export default function MemoireView({ chapters, questProgress, loadingKey, onSubtaskToggle, accentColor = '#7C3AED' }: MemoireViewProps) {
   const [openChapter, setOpenChapter] = useState<string | null>(chapters[0]?.num ?? null)
   const [hoveredChapter, setHoveredChapter] = useState<string | null>(null)
+
+  // Animation 3 — Staggered fade-in: track which chapter's sections are visible
+  const [visibleChapter, setVisibleChapter] = useState<string | null>(chapters[0]?.num ?? null)
+
+  // Animation 4 — Checkbox bounce: track recently checked tasks
+  const [justChecked, setJustChecked] = useState<Set<string>>(() => new Set())
+
+  // Animation 5 — Hover lift on sections
+  const [hoveredSection, setHoveredSection] = useState<string | null>(null)
+
+  // Animation 3 — Trigger stagger when openChapter changes
+  useEffect(() => {
+    if (openChapter === null) {
+      setVisibleChapter(null)
+      return
+    }
+    // Reset visibility first, then trigger after a frame
+    setVisibleChapter(null)
+    const frameId = requestAnimationFrame(() => {
+      setVisibleChapter(openChapter)
+    })
+    return () => cancelAnimationFrame(frameId)
+  }, [openChapter])
+
+  // Animation 4 — Helper to add a bounce key and auto-remove after 300ms
+  const triggerCheckBounce = useCallback((key: string) => {
+    setJustChecked(prev => {
+      const next = new Set(prev)
+      next.add(key)
+      return next
+    })
+    setTimeout(() => {
+      setJustChecked(prev => {
+        const next = new Set(prev)
+        next.delete(key)
+        return next
+      })
+    }, 300)
+  }, [])
 
   const totalSec = chapters.reduce((a, c) => a + c.sections, 0)
   const doneSec  = chapters.reduce((a, c) => a + c.done, 0)
@@ -46,15 +87,15 @@ export default function MemoireView({ chapters, questProgress, loadingKey, onSub
             color: 'var(--mq-text-primary)',
           }}>Mon mémoire</h1>
           <p style={{ fontSize: 13, color: 'var(--mq-text-muted)', marginTop: 6 }}>
-            {doneSec} / {totalSec} sections · {globalPct}%
+            {doneSec} / {totalSec} sections · <span style={{ color: accentColor, fontWeight: 600 }}>{globalPct}%</span>
           </p>
         </div>
         <div style={{ width: 200 }}>
           <div style={{ height: 4, borderRadius: 99, background: 'var(--mq-border)', overflow: 'hidden' }}>
             <div style={{
               height: '100%', width: `${globalPct}%`, borderRadius: 99,
-              background: 'rgba(255,255,255,0.35)',
-              transition: 'width 0.8s cubic-bezier(.4,0,.2,1)',
+              background: accentColor,
+              transition: 'width 0.6s cubic-bezier(.4,0,.2,1)',
             }} />
           </div>
         </div>
@@ -75,7 +116,7 @@ export default function MemoireView({ chapters, questProgress, loadingKey, onSub
               border: '1px solid var(--mq-border)',
               background: 'rgba(255,255,255,0.02)',
               overflow: 'hidden',
-              transition: 'border-color 0.2s',
+              transition: 'border-color 0.2s cubic-bezier(.4,0,.2,1)',
               flexShrink: 0,
             }}>
               {/* Chapter header */}
@@ -87,7 +128,7 @@ export default function MemoireView({ chapters, questProgress, loadingKey, onSub
                   display: 'flex', alignItems: 'center', gap: 14,
                   padding: '14px 20px', cursor: 'pointer',
                   background: isHovered ? 'rgba(255,255,255,0.03)' : 'transparent',
-                  transition: 'background 0.15s',
+                  transition: 'background 0.15s cubic-bezier(.4,0,.2,1)',
                 }}>
                 <span style={{
                   fontSize: 11, color: 'rgba(255,255,255,0.45)', fontWeight: 600,
@@ -114,13 +155,13 @@ export default function MemoireView({ chapters, questProgress, loadingKey, onSub
                     <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.45)' }}>
                       {chapterDone ? 'Terminé' : wip ? 'En cours' : 'A faire'}
                     </span>
-                    <span style={{ fontSize: 10, fontWeight: 600, color: 'rgba(255,255,255,0.65)' }}>{pct}%</span>
+                    <span style={{ fontSize: 10, fontWeight: 600, color: accentColor }}>{pct}%</span>
                   </div>
                   <div style={{ height: 3, borderRadius: 99, background: 'var(--mq-border)', overflow: 'hidden' }}>
                     <div style={{
                       height: '100%', width: `${pct}%`, borderRadius: 99,
-                      background: chapterDone ? 'rgba(255,255,255,0.45)' : 'rgba(255,255,255,0.25)',
-                      transition: 'width 0.8s cubic-bezier(.4,0,.2,1)',
+                      background: accentColor,
+                      transition: 'width 0.6s cubic-bezier(.4,0,.2,1)',
                     }} />
                   </div>
                 </div>
@@ -128,13 +169,18 @@ export default function MemoireView({ chapters, questProgress, loadingKey, onSub
                 <div style={{
                   fontSize: 14, color: 'rgba(255,255,255,0.35)',
                   transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)',
-                  transition: 'transform 0.2s',
+                  transition: 'transform 0.2s cubic-bezier(.4,0,.2,1)',
                   flexShrink: 0,
                 }}>▾</div>
               </div>
 
-              {/* Sections */}
-              {isOpen && (
+              {/* Animation 2 — Accordion: content always in DOM, hidden via maxHeight/opacity */}
+              <div style={{
+                overflow: 'hidden',
+                maxHeight: isOpen ? '2000px' : '0px',
+                opacity: isOpen ? 1 : 0,
+                transition: 'max-height 0.4s cubic-bezier(.4,0,.2,1), opacity 0.3s cubic-bezier(.4,0,.2,1)',
+              }}>
                 <div style={{ padding: '0 20px 16px', display: 'flex', flexDirection: 'column', gap: 6 }}>
                   <div style={{ height: 1, background: 'var(--mq-stroke-soft)', marginBottom: 4 }} />
 
@@ -177,15 +223,37 @@ export default function MemoireView({ chapters, questProgress, loadingKey, onSub
                     const tasksTotal = sec.tasks?.length ?? 0
                     const tasksPct = tasksTotal > 0 ? Math.round((tasksDone / tasksTotal) * 100) : 0
 
+                    // Animation 3 — Staggered fade-in
+                    const isSectionVisible = visibleChapter === ch.num
+
+                    // Animation 5 — Hover lift
+                    const sectionKey = `${ch.num}:${i}`
+                    const isSectionHovered = hoveredSection === sectionKey
+
                     return (
-                      <div key={i} style={{
-                        borderRadius: 10,
-                        border: `1px solid ${isDone ? 'rgba(255,255,255,0.06)' : 'rgba(255,255,255,0.12)'}`,
-                        background: isDone ? 'rgba(255,255,255,0.02)' : 'rgba(255,255,255,0.04)',
-                        overflow: 'hidden',
-                        opacity: isAnyTaskLoading ? 0.6 : 1,
-                        transition: 'all 0.15s',
-                      }}>
+                      <div
+                        key={i}
+                        onMouseEnter={() => setHoveredSection(sectionKey)}
+                        onMouseLeave={() => setHoveredSection(null)}
+                        style={{
+                          borderRadius: 10,
+                          border: `1px solid ${isDone ? 'rgba(255,255,255,0.06)' : isSectionHovered ? 'rgba(255,255,255,0.12)' : 'rgba(255,255,255,0.12)'}`,
+                          background: isDone ? 'rgba(255,255,255,0.02)' : 'rgba(255,255,255,0.04)',
+                          overflow: 'hidden',
+                          // Animation 3 — Stagger
+                          opacity: isAnyTaskLoading ? 0.6 : isSectionVisible ? 1 : 0,
+                          transform: isSectionVisible
+                            ? (isSectionHovered && !isDone ? 'translateY(-2px)' : 'translateY(0)')
+                            : 'translateY(12px)',
+                          // Animation 5 — Hover lift shadow
+                          boxShadow: isSectionHovered && !isDone ? '0 4px 20px rgba(255,255,255,0.03)' : 'none',
+                          borderColor: isDone
+                            ? 'rgba(255,255,255,0.06)'
+                            : isSectionHovered
+                              ? 'rgba(255,255,255,0.12)'
+                              : 'rgba(255,255,255,0.10)',
+                          transition: `opacity 0.3s cubic-bezier(.4,0,.2,1) ${i * 60}ms, transform 0.3s cubic-bezier(.4,0,.2,1) ${i * 60}ms, box-shadow 0.2s cubic-bezier(.4,0,.2,1), border-color 0.2s cubic-bezier(.4,0,.2,1)`,
+                        }}>
                         {/* Section header row */}
                         <div style={{
                           display: 'flex', alignItems: 'center', gap: 12,
@@ -240,9 +308,9 @@ export default function MemoireView({ chapters, questProgress, loadingKey, onSub
                           }}>
                             <div style={{
                               height: '100%', borderRadius: 99,
-                              background: 'rgba(255,255,255,0.25)',
+                              background: accentColor,
                               width: `${tasksPct}%`,
-                              transition: 'width 0.5s cubic-bezier(.4,0,.2,1)',
+                              transition: 'width 0.6s cubic-bezier(.4,0,.2,1)',
                             }} />
                           </div>
                         )}
@@ -258,28 +326,41 @@ export default function MemoireView({ chapters, questProgress, loadingKey, onSub
                               const isTaskLoading = loadingKey === `${ch.num}:${i}:${ti}`
                               const canToggle = !isTaskLoading
 
+                              // Animation 4 — Checkbox bounce key
+                              const checkKey = `${ch.num}:${i}:${ti}`
+                              const isBouncing = justChecked.has(checkKey)
+
                               return (
                                 <div
                                   key={ti}
-                                  onClick={() => { if (canToggle) onSubtaskToggle(ch.num, i, ti) }}
+                                  onClick={() => {
+                                    if (canToggle) {
+                                      // Animation 4 — Trigger bounce on check (not uncheck)
+                                      if (!isChecked) {
+                                        triggerCheckBounce(checkKey)
+                                      }
+                                      onSubtaskToggle(ch.num, i, ti)
+                                    }
+                                  }}
                                   style={{
                                     display: 'flex', alignItems: 'center', gap: 10,
                                     padding: '7px 0',
                                     borderTop: ti === 0 ? 'none' : '1px solid rgba(255,255,255,0.04)',
                                     cursor: canToggle ? 'pointer' : 'default',
                                     opacity: isTaskLoading ? 0.5 : 1,
-                                    transition: 'opacity 0.15s',
+                                    transition: 'opacity 0.15s cubic-bezier(.4,0,.2,1)',
                                   }}>
-                                  {/* Checkbox carre */}
+                                  {/* Checkbox carre — Animation 4: bounce on check */}
                                   <div style={{
                                     width: 16, height: 16, borderRadius: 4, flexShrink: 0,
                                     display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                    border: `1.5px solid ${isChecked ? 'rgba(255,255,255,0.30)' : 'rgba(255,255,255,0.15)'}`,
-                                    background: isChecked ? 'rgba(255,255,255,0.08)' : 'transparent',
+                                    border: `1.5px solid ${isChecked ? hexToRgba(accentColor, 0.3) : 'rgba(255,255,255,0.15)'}`,
+                                    background: isChecked ? accentColor : 'transparent',
                                     fontSize: 9,
-                                    transition: 'all 0.2s',
+                                    transform: isBouncing ? 'scale(1.3)' : 'scale(1)',
+                                    transition: 'transform 0.3s cubic-bezier(.175,.885,.32,1.275), border-color 0.2s cubic-bezier(.4,0,.2,1), background 0.2s cubic-bezier(.4,0,.2,1)',
                                   }}>
-                                    {isChecked && <span style={{ color: 'rgba(255,255,255,0.55)', lineHeight: 1 }}>✓</span>}
+                                    {isChecked && <span style={{ color: '#fff', lineHeight: 1 }}>✓</span>}
                                   </div>
 
                                   {/* Task text */}
@@ -300,7 +381,7 @@ export default function MemoireView({ chapters, questProgress, loadingKey, onSub
                     )
                   })}
                 </div>
-              )}
+              </div>
             </div>
           )
         })}

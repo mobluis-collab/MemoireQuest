@@ -12,12 +12,14 @@ interface Achievement {
 }
 
 import { SectionProgress } from '@/types/memoir'
+import { hexToRgba } from '@/lib/color-utils'
 
 interface AchievementsViewProps {
   totalPoints: number
   streak: { current: number; jokers: number }
   questProgress: Record<string, Record<string, SectionProgress>>
   chapters: Array<{ num: string; title: string; sections: number; done: number }>
+  accentColor?: string
 }
 
 /* ─── Build achievements ─────────────────────────────────── */
@@ -49,7 +51,7 @@ function buildAchievements(
 
 /* ─── Card component ─────────────────────────────────────── */
 
-function AchievementCard({ a }: { a: Achievement }) {
+function AchievementCard({ a, accentColor }: { a: Achievement; accentColor: string }) {
   const pct = a.progress ? Math.round((a.progress.current / a.progress.target) * 100) : null
 
   return (
@@ -57,17 +59,17 @@ function AchievementCard({ a }: { a: Achievement }) {
       display: 'flex', alignItems: 'center', gap: 10,
       padding: '7px 10px',
       borderRadius: 7,
-      background: a.unlocked ? 'rgba(255,255,255,0.05)' : 'transparent',
+      background: a.unlocked ? hexToRgba(accentColor, 0.08) : 'transparent',
     }}>
       {/* Status circle */}
       <div style={{
         width: 18, height: 18, borderRadius: '50%', flexShrink: 0,
         display: 'flex', alignItems: 'center', justifyContent: 'center',
-        background: a.unlocked ? 'rgba(255,255,255,0.12)' : 'transparent',
-        border: `1.5px solid rgba(255,255,255,${a.unlocked ? '0.25' : '0.07'})`,
+        background: a.unlocked ? hexToRgba(accentColor, 0.2) : 'transparent',
+        border: `1.5px solid ${a.unlocked ? hexToRgba(accentColor, 0.3) : 'rgba(255,255,255,0.07)'}`,
       }}>
         {a.unlocked && (
-          <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.70)', lineHeight: 1 }}>&#10003;</span>
+          <span style={{ fontSize: 10, color: accentColor, lineHeight: 1 }}>&#10003;</span>
         )}
       </div>
 
@@ -90,10 +92,11 @@ function AchievementCard({ a }: { a: Achievement }) {
           }}>
             <div style={{
               height: '100%', width: `${pct}%`, borderRadius: 99,
-              background: 'rgba(255,255,255,0.22)',
+              background: accentColor,
+              transition: 'width 0.6s cubic-bezier(.4,0,.2,1)',
             }} />
           </div>
-          <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.25)', minWidth: 22, textAlign: 'right' }}>
+          <span style={{ fontSize: 10, color: accentColor, minWidth: 22, textAlign: 'right' }}>
             {pct}%
           </span>
         </div>
@@ -104,7 +107,7 @@ function AchievementCard({ a }: { a: Achievement }) {
 
 /* ─── Main component ─────────────────────────────────────── */
 
-export default function AchievementsView({ totalPoints, streak, questProgress, chapters }: AchievementsViewProps) {
+export default function AchievementsView({ totalPoints, streak, questProgress, chapters, accentColor = '#7C3AED' }: AchievementsViewProps) {
   const achievements = buildAchievements(totalPoints, streak, questProgress, chapters)
   const unlocked = achievements.filter(a => a.unlocked).length
   const total = achievements.length
@@ -146,8 +149,8 @@ export default function AchievementsView({ totalPoints, streak, questProgress, c
         }}>
           <div style={{
             height: '100%', width: `${globalPct}%`, borderRadius: 99,
-            background: 'rgba(255,255,255,0.28)',
-            transition: 'width 0.6s ease',
+            background: accentColor,
+            transition: 'width 0.6s cubic-bezier(.4,0,.2,1)',
           }} />
         </div>
       </div>
@@ -188,7 +191,7 @@ export default function AchievementsView({ totalPoints, streak, questProgress, c
 
               {/* Achievements */}
               {items.map(a => (
-                <AchievementCard key={a.id} a={a} />
+                <AchievementCard key={a.id} a={a} accentColor={accentColor} />
               ))}
             </div>
           )
