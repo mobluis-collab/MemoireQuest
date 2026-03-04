@@ -206,8 +206,9 @@ export default function MemoireView({ chapters, questProgress, loadingKey, onSub
                 minHeight: '100%',
                 display: 'flex',
                 flexDirection: 'column',
-                padding: '28px 32px 20px',
+                padding: '24px 32px 16px',
                 boxSizing: 'border-box',
+                overflow: 'hidden',
               }}
             >
               {/* Chapter header: number + title */}
@@ -254,7 +255,7 @@ export default function MemoireView({ chapters, questProgress, loadingKey, onSub
                 </div>
 
                 <h2 style={{
-                  fontSize: 22,
+                  fontSize: 20,
                   fontWeight: 700,
                   letterSpacing: '-0.4px',
                   margin: 0,
@@ -306,11 +307,11 @@ export default function MemoireView({ chapters, questProgress, loadingKey, onSub
               {/* Chapter objective */}
               <div style={{
                 flexShrink: 0,
-                padding: '10px 14px',
+                padding: '8px 12px',
                 borderRadius: 8,
                 background: bg(0.03, isDark),
                 border: `1px solid ${bg(0.06, isDark)}`,
-                marginBottom: 12,
+                marginBottom: 8,
               }}>
                 <div style={{
                   fontSize: 10,
@@ -335,11 +336,11 @@ export default function MemoireView({ chapters, questProgress, loadingKey, onSub
               {ch.tips && (
                 <div style={{
                   flexShrink: 0,
-                  padding: '10px 14px',
+                  padding: '8px 12px',
                   borderRadius: 8,
                   background: bg(0.03, isDark),
                   borderLeft: `3px solid ${bg(0.10, isDark)}`,
-                  marginBottom: 12,
+                  marginBottom: 8,
                 }}>
                   <div style={{
                     fontSize: 10,
@@ -364,7 +365,7 @@ export default function MemoireView({ chapters, questProgress, loadingKey, onSub
 
               {/* Sections list — scrollable if overflow */}
               <div style={{
-                flex: 1,
+                flex: '1 1 0',
                 minHeight: 0,
                 overflowY: 'auto',
                 display: 'flex',
@@ -616,10 +617,10 @@ export default function MemoireView({ chapters, questProgress, loadingKey, onSub
                     width: isActive ? 10 : 7,
                     height: isActive ? 10 : 7,
                     borderRadius: '50%',
-                    background: isActive ? accentColor : bg(0.15, isDark),
+                    background: isActive ? tw(0.70, textIntensity, isDark) : bg(0.15, isDark),
                     cursor: 'grab',
                     transition: 'all 0.25s cubic-bezier(.4,0,.2,1)',
-                    boxShadow: isActive ? `0 0 8px ${accentColor}44` : 'none',
+                    boxShadow: isActive ? `0 0 8px ${bg(0.25, isDark)}` : 'none',
                     opacity: isDragged ? 0.4 : 1,
                   }}
                   title={`Chapitre ${localChapters[dotIdx].num} — glisser pour r\u00E9ordonner`}

@@ -852,24 +852,6 @@ export default function NewDashboard({
         opacity: focusMode ? 0 : 1,
         pointerEvents: focusMode ? 'none' : 'auto',
       }}>
-        {/* Collapse toggle */}
-        <button
-          onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-          style={{
-            position: 'absolute', top: 28, right: -12, zIndex: 20,
-            width: 24, height: 24, borderRadius: '50%',
-            background: 'var(--mq-card-bg)',
-            border: '1px solid var(--mq-border)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            cursor: 'pointer', fontSize: 10,
-            color: tw(0.5, textIntensity, isDark),
-            transition: 'transform 0.3s cubic-bezier(.4,0,.2,1)',
-            transform: sidebarCollapsed ? 'rotate(180deg)' : 'none',
-          }}
-        >
-          {'\u2039'}
-        </button>
-
         {/* Logo */}
         <div style={{ padding: '24px 18px 16px', borderBottom: '1px solid var(--mq-card-hover)' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
@@ -1088,6 +1070,36 @@ export default function NewDashboard({
           </button>
         </div>
       </aside>
+
+      {/* Sidebar collapse toggle — outside aside to avoid overflow:hidden clipping */}
+      {!focusMode && (
+        <button
+          onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+          aria-label={sidebarCollapsed ? 'Ouvrir le menu' : 'Fermer le menu'}
+          style={{
+            position: 'fixed',
+            top: 28,
+            left: sidebarCollapsed ? 44 : 204,
+            zIndex: 20,
+            width: 24,
+            height: 24,
+            borderRadius: '50%',
+            background: 'var(--mq-card-bg)',
+            border: '1px solid var(--mq-border)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            cursor: 'pointer',
+            fontSize: 10,
+            color: tw(0.5, textIntensity, isDark),
+            transition: 'left 0.35s cubic-bezier(.4,0,.2,1), transform 0.3s cubic-bezier(.4,0,.2,1)',
+            transform: sidebarCollapsed ? 'rotate(180deg)' : 'none',
+            boxShadow: `0 1px 4px ${bg(0.10, isDark)}`,
+          }}
+        >
+          {'\u2039'}
+        </button>
+      )}
 
       {/* ── MAIN ── */}
       <main className="mq-dashboard-scroll" style={{
@@ -1446,14 +1458,14 @@ export default function NewDashboard({
       {/* Re-upload loading overlay */}
       {isLoading && plan && <ReuploadOverlay accentColor={accentColor} textIntensity={textIntensity} isDark={isDark} />}
 
-      {/* Focus mode — floating exit button (bottom-right) */}
+      {/* Focus mode — floating exit button (top-right, same position as Focus button) */}
       {focusMode && (
         <button
           onClick={() => setFocusMode(false)}
           style={{
             position: 'fixed',
-            bottom: 24,
-            right: 24,
+            top: 14,
+            right: 20,
             zIndex: 100,
             display: 'flex',
             alignItems: 'center',
