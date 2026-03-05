@@ -78,8 +78,18 @@ export default function MemoireView({ chapters, questProgress, loadingKey, onSub
     const container = snapRef.current
     if (!container) return
     const slide = container.querySelector(`[data-idx="${idx}"]`) as HTMLElement
-    if (slide) slide.scrollIntoView({ behavior: 'smooth' })
-  }, [])
+    if (!slide) return
+
+    // Reset le scroll interne de la section qu'on quitte
+    const currentSlide = container.querySelector(`[data-idx="${activeChapterIdx}"]`) as HTMLElement
+    if (currentSlide) currentSlide.scrollTop = 0
+
+    // Scroll vers la nouvelle section
+    container.scrollTo({
+      top: slide.offsetTop,
+      behavior: 'smooth',
+    })
+  }, [activeChapterIdx])
 
   // IntersectionObserver for active chapter tracking
   useEffect(() => {
@@ -97,7 +107,7 @@ export default function MemoireView({ chapters, questProgress, loadingKey, onSub
           }
         })
       },
-      { root: container, threshold: 0.6 }
+      { root: container, threshold: 0.7 }
     )
 
     slides.forEach((s) => observer.observe(s))
@@ -130,6 +140,53 @@ export default function MemoireView({ chapters, questProgress, loadingKey, onSub
     }
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [viewMode, activeChapterIdx, chapters.length, scrollToChapter])
+
+  // Enhanced scroll-snap: wheel handler for stronger magnetic effect
+  useEffect(() => {
+    if (viewMode !== 'detail') return
+    const container = snapRef.current
+    if (!container) return
+
+    let isSnapping = false
+    let snapTimeout: ReturnType<typeof setTimeout> | null = null
+
+    const handleWheel = (e: WheelEvent) => {
+      const activeSlide = container.querySelector(`[data-idx="${activeChapterIdx}"]`) as HTMLElement
+      if (!activeSlide) return
+
+      const hasInternalScroll = activeSlide.scrollHeight > activeSlide.clientHeight + 2
+
+      if (hasInternalScroll) {
+        const atTop = activeSlide.scrollTop <= 1
+        const atBottom = activeSlide.scrollTop + activeSlide.clientHeight >= activeSlide.scrollHeight - 2
+
+        if (e.deltaY < 0 && !atTop) return
+        if (e.deltaY > 0 && !atBottom) return
+      }
+
+      e.preventDefault()
+
+      if (isSnapping) return
+      isSnapping = true
+
+      const direction = e.deltaY > 0 ? 1 : -1
+      const nextIdx = activeChapterIdx + direction
+
+      if (nextIdx >= 0 && nextIdx < chapters.length) {
+        scrollToChapter(nextIdx)
+      }
+
+      snapTimeout = setTimeout(() => {
+        isSnapping = false
+      }, 600)
+    }
+
+    container.addEventListener('wheel', handleWheel, { passive: false })
+    return () => {
+      container.removeEventListener('wheel', handleWheel)
+      if (snapTimeout) clearTimeout(snapTimeout)
+    }
   }, [viewMode, activeChapterIdx, chapters.length, scrollToChapter])
 
   /* ─── OVERVIEW MODE ─── */
@@ -299,7 +356,6 @@ export default function MemoireView({ chapters, questProgress, loadingKey, onSub
           minHeight: 0,
           overflowY: 'auto',
           scrollSnapType: 'y mandatory',
-          scrollBehavior: 'smooth',
         }}
       >
         {chapters.map((ch, idx) => {
@@ -314,6 +370,7 @@ export default function MemoireView({ chapters, questProgress, loadingKey, onSub
               data-idx={idx}
               style={{
                 scrollSnapAlign: 'start',
+                scrollSnapStop: 'always',
                 minHeight: '100%',
                 padding: '24px 24px 24px 24px',
                 display: 'flex',
