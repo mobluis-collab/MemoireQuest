@@ -1,18 +1,10 @@
-'use client'
+"use client";
 
-export default function DashboardError({
-  error,
-  reset,
-}: {
-  error: Error & { digest?: string }
-  reset: () => void
-}) {
+export default function DashboardError({ error, reset }: { error: Error & { digest?: string }; reset: () => void }) {
   return (
     <div className="min-h-screen bg-[#04030e] flex items-center justify-center px-4">
       <div className="text-center max-w-md">
-        <h2 className="text-xl font-semibold text-white mb-3">
-          Oups, quelque chose s&apos;est mal passé
-        </h2>
+        <h2 className="text-xl font-semibold text-white mb-3">Oups, quelque chose s&apos;est mal passé</h2>
         <p className="text-sm text-zinc-400 mb-6">
           Une erreur inattendue est survenue. Tu peux réessayer ou revenir à l&apos;accueil.
         </p>
@@ -32,5 +24,5 @@ export default function DashboardError({
         </div>
       </div>
     </div>
-  )
+  );
 }

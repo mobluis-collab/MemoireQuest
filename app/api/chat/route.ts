@@ -1,12 +1,12 @@
-import { createClient } from '@/lib/supabase/server'
-import { checkAndIncrement } from '@/lib/rate-limit'
-import Anthropic from '@anthropic-ai/sdk'
-import { NextResponse } from 'next/server'
-import { z } from 'zod'
+import { createClient } from "@/lib/supabase/server";
+import { checkAndIncrement } from "@/lib/rate-limit";
+import Anthropic from "@anthropic-ai/sdk";
+import { NextResponse } from "next/server";
+import { z } from "zod";
 
-const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
+const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
-const CHAT_LIMIT = 20
+const CHAT_LIMIT = 20;
 
 const RequestSchema = z.object({
   chapterNumber: z.string(),
@@ -14,7 +14,7 @@ const RequestSchema = z.object({
   chapterObjective: z.string(),
   sections: z.array(z.string()),
   question: z.string().min(1).max(2000),
-})
+});
 
 const SYSTEM_PROMPT = `Tu es un tuteur bienveillant spécialisé en méthodologie de mémoire universitaire.
 Ton rôle est de GUIDER l'étudiant dans sa réflexion, pas d'écrire à sa place.
@@ -25,53 +25,58 @@ Règles absolues :
 - Suggère des pistes, des angles d'approche, des méthodes
 - Encourage et valorise les idées de l'étudiant
 - Réponds en français, de manière concise (max 250 mots)
-- Si l'étudiant demande que tu écrives à sa place, rappelle-lui gentiment ton rôle de guide`
+- Si l'étudiant demande que tu écrives à sa place, rappelle-lui gentiment ton rôle de guide`;
 
 export async function POST(request: Request) {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
   if (!user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const rateLimit = await checkAndIncrement(supabase, user.id, '/api/chat', CHAT_LIMIT)
+  const rateLimit = await checkAndIncrement(supabase, user.id, "/api/chat", CHAT_LIMIT);
   if (!rateLimit.allowed) {
-    return NextResponse.json({ error: 'Limite atteinte pour aujourd\'hui.', remaining: 0 }, { status: 429 })
+    return NextResponse.json({ error: "Limite atteinte pour aujourd'hui.", remaining: 0 }, { status: 429 });
   }
 
-  let body
+  let body;
   try {
-    body = await request.json()
+    body = await request.json();
   } catch {
-    return NextResponse.json({ error: 'Invalid JSON body', remaining: rateLimit.remaining }, { status: 400 })
+    return NextResponse.json({ error: "Invalid JSON body", remaining: rateLimit.remaining }, { status: 400 });
   }
-  const parsed = RequestSchema.safeParse(body)
+  const parsed = RequestSchema.safeParse(body);
 
   if (!parsed.success) {
-    return NextResponse.json({ error: 'Invalid request', details: parsed.error.flatten(), remaining: rateLimit.remaining }, { status: 400 })
+    return NextResponse.json(
+      { error: "Invalid request", details: parsed.error.flatten(), remaining: rateLimit.remaining },
+      { status: 400 }
+    );
   }
 
-  const { chapterNumber, chapterTitle, chapterObjective, sections, question } = parsed.data
+  const { chapterNumber, chapterTitle, chapterObjective, sections, question } = parsed.data;
 
   const userMessage = `Contexte de mon mémoire :
 - Chapitre ${chapterNumber} : ${chapterTitle}
 - Objectif : ${chapterObjective}
-- Sections prévues : ${sections.join(', ')}
+- Sections prévues : ${sections.join(", ")}
 
-Ma question : ${question}`
+Ma question : ${question}`;
 
   const message = await anthropic.messages.create({
-    model: 'claude-sonnet-4-5-20250929',
+    model: "claude-sonnet-4-5-20250929",
     max_tokens: 1024,
     system: SYSTEM_PROMPT,
-    messages: [{ role: 'user', content: userMessage }],
-  })
+    messages: [{ role: "user", content: userMessage }],
+  });
 
-  const content = message.content[0]
-  if (content.type !== 'text') {
-    return NextResponse.json({ error: 'Unexpected response from Claude' }, { status: 500 })
+  const content = message.content[0];
+  if (content.type !== "text") {
+    return NextResponse.json({ error: "Unexpected response from Claude" }, { status: 500 });
   }
 
-  return NextResponse.json({ answer: content.text, remaining: rateLimit.remaining })
+  return NextResponse.json({ answer: content.text, remaining: rateLimit.remaining });
 }

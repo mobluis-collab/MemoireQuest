@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mockup — Bouton Focus</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: #04030e;
+    color: rgba(255,255,255,0.7);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    gap: 60px;
+    transition: background 0.4s, color 0.4s;
+  }
+  body.light {
+    background: #ffffff;
+    color: rgba(0,0,0,0.7);
+  }
+
+  .theme-toggle {
+    position: fixed; top: 12px; right: 12px;
+    padding: 6px 14px; border-radius: 99px; cursor: pointer;
+    font-size: 11px; font-weight: 500;
+    border: 1px solid rgba(255,255,255,0.12);
+    background: rgba(255,255,255,0.06);
+    color: rgba(255,255,255,0.5);
+  }
+  body.light .theme-toggle {
+    border: 1px solid rgba(0,0,0,0.12);
+    background: rgba(0,0,0,0.04);
+    color: rgba(0,0,0,0.5);
+  }
+
+  .label {
+    font-size: 10px; text-transform: uppercase; letter-spacing: 2px;
+    color: rgba(255,255,255,0.25);
+  }
+  body.light .label { color: rgba(0,0,0,0.25); }
+
+  .section {
+    display: flex; flex-direction: column; align-items: center; gap: 16px;
+  }
+
+  /* ═══ BEFORE: bouton actuel ═══ */
+  .btn-before {
+    display: flex; align-items: center; gap: 5px;
+    padding: 5px 12px; border-radius: 99px;
+    border: 1px solid rgba(255,255,255,0.10);
+    background: rgba(255,255,255,0.05);
+    color: rgba(255,255,255,0.45);
+    font-size: 11px; font-weight: 500; cursor: pointer;
+    font-family: inherit;
+  }
+  body.light .btn-before {
+    border: 1px solid rgba(0,0,0,0.10);
+    background: rgba(0,0,0,0.04);
+    color: rgba(0,0,0,0.45);
+  }
+
+  /* ═══ AFTER: nouveau bouton Focus ═══ */
+  .btn-focus-wrap {
+    position: relative;
+    display: inline-flex;
+  }
+
+  /* Halo glow pulsant derrière le bouton */
+  .btn-focus-glow {
+    position: absolute;
+    inset: -4px;
+    border-radius: 99px;
+    background: radial-gradient(ellipse at center, rgba(255,255,255,0.08) 0%, transparent 70%);
+    animation: focus-breathe 3s ease-in-out infinite;
+    pointer-events: none;
+  }
+  body.light .btn-focus-glow {
+    background: radial-gradient(ellipse at center, rgba(0,0,0,0.06) 0%, transparent 70%);
+  }
+
+  @keyframes focus-breathe {
+    0%, 100% { opacity: 0.4; transform: scale(1); }
+    50% { opacity: 1; transform: scale(1.12); }
+  }
+
+  .btn-focus {
+    position: relative;
+    display: flex; align-items: center; gap: 6px;
+    padding: 6px 14px; border-radius: 99px;
+    border: 1px solid rgba(255,255,255,0.14);
+    background: rgba(255,255,255,0.06);
+    color: rgba(255,255,255,0.55);
+    font-size: 11px; font-weight: 500; cursor: pointer;
+    font-family: inherit;
+    transition: all 0.3s cubic-bezier(.4,0,.2,1);
+    overflow: hidden;
+    z-index: 1;
+  }
+  body.light .btn-focus {
+    border: 1px solid rgba(0,0,0,0.12);
+    background: rgba(0,0,0,0.04);
+    color: rgba(0,0,0,0.55);
+  }
+  .btn-focus:hover {
+    border-color: rgba(255,255,255,0.22);
+    background: rgba(255,255,255,0.10);
+    color: rgba(255,255,255,0.75);
+    transform: scale(1.03);
+  }
+  body.light .btn-focus:hover {
+    border-color: rgba(0,0,0,0.18);
+    background: rgba(0,0,0,0.07);
+    color: rgba(0,0,0,0.75);
+  }
+
+  /* Ripple effect au clic */
+  .btn-focus .ripple {
+    position: absolute;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.20);
+    transform: scale(0);
+    animation: focus-ripple 0.5s ease-out forwards;
+    pointer-events: none;
+  }
+  body.light .btn-focus .ripple {
+    background: rgba(0,0,0,0.12);
+  }
+  @keyframes focus-ripple {
+    to { transform: scale(3); opacity: 0; }
+  }
+
+  /* Icone oeil SVG */
+  .focus-eye {
+    display: flex; align-items: center;
+    transition: transform 0.3s;
+  }
+  .btn-focus:hover .focus-eye {
+    transform: scale(1.15);
+  }
+
+  /* Orbit ring autour de l'icone */
+  .orbit-ring {
+    position: absolute;
+    left: 8px; top: 50%;
+    width: 18px; height: 18px;
+    margin-top: -9px;
+    border-radius: 50%;
+    border: 1px solid rgba(255,255,255,0.08);
+    animation: orbit-spin 4s linear infinite;
+    pointer-events: none;
+  }
+  body.light .orbit-ring {
+    border-color: rgba(0,0,0,0.06);
+  }
+  @keyframes orbit-spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+  .orbit-dot {
+    position: absolute;
+    top: -2px; left: 50%;
+    width: 3px; height: 3px;
+    margin-left: -1.5px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.35);
+  }
+  body.light .orbit-dot {
+    background: rgba(0,0,0,0.30);
+  }
+
+  /* ═══ ACTIVE STATE ═══ */
+  .btn-focus.active {
+    border-color: rgba(255,255,255,0.25);
+    background: rgba(255,255,255,0.12);
+    color: rgba(255,255,255,0.85);
+  }
+  body.light .btn-focus.active {
+    border-color: rgba(0,0,0,0.20);
+    background: rgba(0,0,0,0.08);
+    color: rgba(0,0,0,0.85);
+  }
+  .btn-focus.active .btn-focus-glow {
+    animation-duration: 2s;
+  }
+
+  /* Barre de contexte: les deux boutons ensemble */
+  .toolbar {
+    display: flex; gap: 8px; align-items: center;
+    padding: 8px 14px;
+    border-radius: 12px;
+    border: 1px solid rgba(255,255,255,0.04);
+    background: rgba(255,255,255,0.02);
+  }
+  body.light .toolbar {
+    border: 1px solid rgba(0,0,0,0.04);
+    background: rgba(0,0,0,0.015);
+  }
+</style>
+</head>
+<body>
+
+<button class="theme-toggle" onclick="document.body.classList.toggle('light'); this.textContent = document.body.classList.contains('light') ? 'Dark' : 'Light'">Light</button>
+
+<!-- BEFORE -->
+<div class="section">
+  <div class="label">Avant (bouton actuel)</div>
+  <div class="toolbar">
+    <button class="btn-before">
+      <span style="font-size:12px">&#9684;</span>
+      <span>Pomodoro</span>
+    </button>
+    <button class="btn-before">
+      <span style="font-size:12px">&#9673;</span>
+      <span>Focus</span>
+    </button>
+  </div>
+</div>
+
+<!-- AFTER -->
+<div class="section">
+  <div class="label">Apres (nouveau bouton Focus)</div>
+  <div class="toolbar">
+    <!-- Pomodoro reste pareil -->
+    <button class="btn-before">
+      <span style="font-size:12px">&#9684;</span>
+      <span>Pomodoro</span>
+    </button>
+
+    <!-- Nouveau Focus -->
+    <div class="btn-focus-wrap">
+      <div class="btn-focus-glow"></div>
+      <button class="btn-focus" id="focusBtn" onclick="handleFocusClick(event)">
+        <!-- Orbit ring -->
+        <div class="orbit-ring"><div class="orbit-dot"></div></div>
+        <!-- Eye icon -->
+        <span class="focus-eye">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
+            <path d="M1 12C1 12 5 4 12 4C19 4 23 12 23 12C23 12 19 20 12 20C5 20 1 12 1 12Z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+            <circle cx="12" cy="12" r="3.5" stroke="currentColor" stroke-width="1.8"/>
+          </svg>
+        </span>
+        <span>Focus</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ACTIVE STATE -->
+<div class="section">
+  <div class="label">Etat actif (focus on)</div>
+  <div class="toolbar">
+    <button class="btn-before">
+      <span style="font-size:12px">&#9684;</span>
+      <span>Pomodoro</span>
+    </button>
+    <div class="btn-focus-wrap">
+      <div class="btn-focus-glow" style="animation-duration:2s"></div>
+      <button class="btn-focus active">
+        <div class="orbit-ring" style="animation-duration:2s"><div class="orbit-dot"></div></div>
+        <span class="focus-eye">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
+            <path d="M1 12C1 12 5 4 12 4C19 4 23 12 23 12C23 12 19 20 12 20C5 20 1 12 1 12Z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+            <circle cx="12" cy="12" r="3.5" fill="currentColor" stroke="currentColor" stroke-width="1.8"/>
+          </svg>
+        </span>
+        <span>Focus</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+function handleFocusClick(e) {
+  const btn = e.currentTarget
+  // Ripple
+  const ripple = document.createElement('div')
+  ripple.className = 'ripple'
+  const rect = btn.getBoundingClientRect()
+  const x = e.clientX - rect.left
+  const y = e.clientY - rect.top
+  ripple.style.cssText = `left:${x}px; top:${y}px; width:40px; height:40px; margin-left:-20px; margin-top:-20px;`
+  btn.appendChild(ripple)
+  setTimeout(() => ripple.remove(), 500)
+
+  // Toggle active
+  btn.classList.toggle('active')
+}
+</script>
+</body>
+</html>

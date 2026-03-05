@@ -1,126 +1,160 @@
-import { createClient } from '@/lib/supabase/server'
-import { savePlan } from '@/lib/plans/queries'
-import Anthropic from '@anthropic-ai/sdk'
-import { NextResponse } from 'next/server'
-import { z } from 'zod'
+import { createClient } from "@/lib/supabase/server";
+import { savePlan } from "@/lib/plans/queries";
+import Anthropic from "@anthropic-ai/sdk";
+import { NextResponse } from "next/server";
+import { z } from "zod";
 
-const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
+const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
 // ─── REPAIR FUNCTION ───────────────────────────────────────────────
 // Normalise la réponse de Claude pour qu'elle passe la validation Zod.
 // Corrige silencieusement les erreurs courantes au lieu de planter.
 function repairPlan(raw: Record<string, unknown>): Record<string, unknown> {
   const DIFFICULTY_MAP: Record<string, string> = {
-    'facile': 'easy', 'simple': 'easy', 'basique': 'easy',
-    'moyen': 'medium', 'moyenne': 'medium', 'intermédiaire': 'medium', 'intermediaire': 'medium', 'moderate': 'medium',
-    'difficile': 'hard', 'complexe': 'hard', 'avancé': 'hard', 'avance': 'hard', 'expert': 'hard',
-    'Easy': 'easy', 'EASY': 'easy',
-    'Medium': 'medium', 'MEDIUM': 'medium',
-    'Hard': 'hard', 'HARD': 'hard',
-    'Facile': 'easy', 'Moyen': 'medium', 'Moyenne': 'medium',
-    'Difficile': 'hard', 'Complexe': 'hard',
-  }
+    facile: "easy",
+    simple: "easy",
+    basique: "easy",
+    moyen: "medium",
+    moyenne: "medium",
+    intermédiaire: "medium",
+    intermediaire: "medium",
+    moderate: "medium",
+    difficile: "hard",
+    complexe: "hard",
+    avancé: "hard",
+    avance: "hard",
+    expert: "hard",
+    Easy: "easy",
+    EASY: "easy",
+    Medium: "medium",
+    MEDIUM: "medium",
+    Hard: "hard",
+    HARD: "hard",
+    Facile: "easy",
+    Moyen: "medium",
+    Moyenne: "medium",
+    Difficile: "hard",
+    Complexe: "hard",
+  };
 
-  const VALID_DIFFICULTIES = new Set(['easy', 'medium', 'hard'])
+  const VALID_DIFFICULTIES = new Set(["easy", "medium", "hard"]);
 
   function repairDifficulty(val: unknown): string {
-    if (typeof val === 'string') {
-      const trimmed = val.trim()
-      if (VALID_DIFFICULTIES.has(trimmed)) return trimmed
-      if (DIFFICULTY_MAP[trimmed]) return DIFFICULTY_MAP[trimmed]
-      const lower = trimmed.toLowerCase()
-      if (VALID_DIFFICULTIES.has(lower)) return lower
-      if (DIFFICULTY_MAP[lower]) return DIFFICULTY_MAP[lower]
+    if (typeof val === "string") {
+      const trimmed = val.trim();
+      if (VALID_DIFFICULTIES.has(trimmed)) return trimmed;
+      if (DIFFICULTY_MAP[trimmed]) return DIFFICULTY_MAP[trimmed];
+      const lower = trimmed.toLowerCase();
+      if (VALID_DIFFICULTIES.has(lower)) return lower;
+      if (DIFFICULTY_MAP[lower]) return DIFFICULTY_MAP[lower];
     }
-    return 'medium'
+    return "medium";
   }
 
   function repairTasks(tasks: unknown): string[] {
-    if (!Array.isArray(tasks)) return ['Lire et analyser cette section', 'Rédiger le contenu']
+    if (!Array.isArray(tasks)) return ["Lire et analyser cette section", "Rédiger le contenu"];
 
-    const cleaned = tasks
-      .filter((t): t is string => typeof t === 'string' && t.trim().length > 0)
-      .map(t => t.trim())
+    const cleaned = tasks.filter((t): t is string => typeof t === "string" && t.trim().length > 0).map((t) => t.trim());
 
-    if (cleaned.length === 0) return ['Lire et analyser cette section', 'Rédiger le contenu']
-    if (cleaned.length === 1) return [...cleaned, 'Relire et vérifier la cohérence']
-    if (cleaned.length > 4) return cleaned.slice(0, 4)
-    return cleaned
+    if (cleaned.length === 0) return ["Lire et analyser cette section", "Rédiger le contenu"];
+    if (cleaned.length === 1) return [...cleaned, "Relire et vérifier la cohérence"];
+    if (cleaned.length > 4) return cleaned.slice(0, 4);
+    return cleaned;
   }
 
   function repairSection(section: Record<string, unknown>): Record<string, unknown> {
     return {
-      text: typeof section.text === 'string' && section.text.trim().length > 0
-        ? section.text.trim()
-        : (typeof section.title === 'string' ? section.title : 'Section sans titre'),
+      text:
+        typeof section.text === "string" && section.text.trim().length > 0
+          ? section.text.trim()
+          : typeof section.title === "string"
+            ? section.title
+            : "Section sans titre",
       difficulty: repairDifficulty(section.difficulty),
       tasks: repairTasks(section.tasks),
-    }
+    };
   }
 
   function repairChapter(chapter: Record<string, unknown>): Record<string, unknown> {
     let sections = Array.isArray(chapter.sections)
       ? chapter.sections.map((s: Record<string, unknown>) => repairSection(s ?? {}))
-      : []
+      : [];
 
     if (sections.length === 0) {
       sections = [
-        { text: 'Introduction du chapitre', difficulty: 'easy', tasks: ['Définir le contexte', 'Rédiger l\'introduction'] },
-        { text: 'Développement principal', difficulty: 'medium', tasks: ['Analyser les éléments clés', 'Rédiger le développement'] },
-      ]
+        {
+          text: "Introduction du chapitre",
+          difficulty: "easy",
+          tasks: ["Définir le contexte", "Rédiger l'introduction"],
+        },
+        {
+          text: "Développement principal",
+          difficulty: "medium",
+          tasks: ["Analyser les éléments clés", "Rédiger le développement"],
+        },
+      ];
     } else if (sections.length === 1) {
-      sections.push({ text: 'Synthèse et conclusion du chapitre', difficulty: 'easy', tasks: ['Synthétiser les points clés', 'Rédiger la conclusion du chapitre'] })
+      sections.push({
+        text: "Synthèse et conclusion du chapitre",
+        difficulty: "easy",
+        tasks: ["Synthétiser les points clés", "Rédiger la conclusion du chapitre"],
+      });
     }
 
-    if (sections.length > 10) sections = sections.slice(0, 10)
+    if (sections.length > 10) sections = sections.slice(0, 10);
 
     return {
-      number: typeof chapter.number === 'string' ? chapter.number
-        : typeof chapter.number === 'number' ? String(chapter.number)
-        : '?',
-      title: typeof chapter.title === 'string' && chapter.title.trim().length > 0
-        ? chapter.title.trim()
-        : 'Chapitre sans titre',
-      objective: typeof chapter.objective === 'string' && chapter.objective.trim().length > 0
-        ? chapter.objective.trim()
-        : 'Objectif non spécifié',
+      number:
+        typeof chapter.number === "string"
+          ? chapter.number
+          : typeof chapter.number === "number"
+            ? String(chapter.number)
+            : "?",
+      title:
+        typeof chapter.title === "string" && chapter.title.trim().length > 0
+          ? chapter.title.trim()
+          : "Chapitre sans titre",
+      objective:
+        typeof chapter.objective === "string" && chapter.objective.trim().length > 0
+          ? chapter.objective.trim()
+          : "Objectif non spécifié",
       sections,
-      tips: typeof chapter.tips === 'string' && chapter.tips.trim().length > 0
-        ? chapter.tips.trim()
-        : typeof chapter.tip === 'string' ? (chapter.tip as string).trim()
-        : 'Consulter les sources recommandées et structurer ses idées avant de rédiger.',
-    }
+      tips:
+        typeof chapter.tips === "string" && chapter.tips.trim().length > 0
+          ? chapter.tips.trim()
+          : typeof chapter.tip === "string"
+            ? (chapter.tip as string).trim()
+            : "Consulter les sources recommandées et structurer ses idées avant de rédiger.",
+    };
   }
 
   let chapters = Array.isArray(raw.chapters)
     ? raw.chapters.map((ch: Record<string, unknown>) => repairChapter(ch ?? {}))
-    : []
+    : [];
 
   if (chapters.length < 2) {
-    console.warn('[plan] repairPlan: fewer than 2 chapters, padding')
+    console.warn("[plan] repairPlan: fewer than 2 chapters, padding");
     while (chapters.length < 2) {
       chapters.push({
         number: String(chapters.length + 1),
-        title: 'Chapitre complémentaire',
-        objective: 'Compléter l\'analyse',
+        title: "Chapitre complémentaire",
+        objective: "Compléter l'analyse",
         sections: [
-          { text: 'Développement', difficulty: 'medium', tasks: ['Analyser', 'Rédiger'] },
-          { text: 'Conclusion', difficulty: 'easy', tasks: ['Synthétiser', 'Relire'] },
+          { text: "Développement", difficulty: "medium", tasks: ["Analyser", "Rédiger"] },
+          { text: "Conclusion", difficulty: "easy", tasks: ["Synthétiser", "Relire"] },
         ],
-        tips: 'Structurer ses idées avant de rédiger.',
-      })
+        tips: "Structurer ses idées avant de rédiger.",
+      });
     }
   }
 
-  if (chapters.length > 15) chapters = chapters.slice(0, 15)
+  if (chapters.length > 15) chapters = chapters.slice(0, 15);
 
   return {
-    title: typeof raw.title === 'string' && raw.title.trim().length > 0
-      ? raw.title.trim()
-      : 'Plan de mémoire',
+    title: typeof raw.title === "string" && raw.title.trim().length > 0 ? raw.title.trim() : "Plan de mémoire",
     chapters,
-    deadline: typeof raw.deadline === 'string' ? raw.deadline : null,
-  }
+    deadline: typeof raw.deadline === "string" ? raw.deadline : null,
+  };
 }
 
 const SYSTEM_PROMPT = `CONTEXTE VÉRIFIÉ PAR L'UTILISATEUR :
@@ -188,13 +222,13 @@ NOMBRE DE CHAPITRES :
 - Si les métadonnées indiquent une structure imposée, respecte-la EXACTEMENT.
 - Si le document précise un nombre de pages ou un volume (ex: "60 pages" → généralement 4-5 chapitres, "100 pages" → 5-7 chapitres), adapte le nombre de chapitres en conséquence.
 - Si aucune structure n'est précisée, génère un plan académique standard cohérent avec le niveau et le type de mémoire (généralement 4 à 6 chapitres).
-- Dans tous les cas : minimum 2 chapitres, maximum 15 chapitres. Chaque chapitre : minimum 2 sections, maximum 10 sections. Pas de texte en dehors du JSON.`
+- Dans tous les cas : minimum 2 chapitres, maximum 15 chapitres. Chaque chapitre : minimum 2 sections, maximum 10 sections. Pas de texte en dehors du JSON.`;
 
 const SectionSchema = z.object({
   text: z.string(),
-  difficulty: z.enum(['easy', 'medium', 'hard']),
+  difficulty: z.enum(["easy", "medium", "hard"]),
   tasks: z.array(z.string().min(1)).min(1).max(5),
-})
+});
 
 const ChapterSchema = z.object({
   number: z.string(),
@@ -202,66 +236,68 @@ const ChapterSchema = z.object({
   objective: z.string(),
   sections: z.array(SectionSchema).min(1).max(12),
   tips: z.string(),
-})
+});
 
 const MemoirePlanSchema = z.object({
   title: z.string(),
   chapters: z.array(ChapterSchema).min(2).max(15),
   deadline: z.string().nullable().optional(),
-})
+});
 
 export async function POST(request: Request) {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
   if (!user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   // No rate-limit here — already consumed in /api/plan/extract
 
-  let body: { pdfBase64: string; extraction: Record<string, unknown> }
+  let body: { pdfBase64: string; extraction: Record<string, unknown> };
   try {
-    body = await request.json()
+    body = await request.json();
   } catch {
-    return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 })
+    return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
   }
 
-  const { pdfBase64, extraction } = body
+  const { pdfBase64, extraction } = body;
   if (!pdfBase64 || !extraction) {
-    return NextResponse.json({ error: 'Missing pdfBase64 or extraction' }, { status: 400 })
+    return NextResponse.json({ error: "Missing pdfBase64 or extraction" }, { status: 400 });
   }
 
-  const encoder = new TextEncoder()
+  const encoder = new TextEncoder();
 
   const stream = new ReadableStream({
     async start(controller) {
       const sendEvent = (data: string) => {
-        controller.enqueue(encoder.encode(`data: ${data}\n\n`))
-      }
+        controller.enqueue(encoder.encode(`data: ${data}\n\n`));
+      };
 
       try {
-        let fullText = ''
-        let stopReason = ''
+        let fullText = "";
+        let stopReason = "";
 
         const anthropicStream = anthropic.messages.stream({
-          model: 'claude-sonnet-4-5-20250929',
+          model: "claude-sonnet-4-5-20250929",
           max_tokens: 16384,
           system: SYSTEM_PROMPT,
           messages: [
             {
-              role: 'user',
+              role: "user",
               content: [
                 {
-                  type: 'document',
+                  type: "document",
                   source: {
-                    type: 'base64',
-                    media_type: 'application/pdf',
+                    type: "base64",
+                    media_type: "application/pdf",
                     data: pdfBase64,
                   },
                 },
                 {
-                  type: 'text',
+                  type: "text",
                   text: `MÉTADONNÉES VÉRIFIÉES PAR L'UTILISATEUR :
 ${JSON.stringify(extraction, null, 2)}
 
@@ -278,97 +314,99 @@ INSTRUCTIONS CRITIQUES :
               ],
             },
           ],
-        })
+        });
 
-        let chunkCount = 0
-        anthropicStream.on('text', (text) => {
-          fullText += text
-          chunkCount++
+        let chunkCount = 0;
+        anthropicStream.on("text", (text) => {
+          fullText += text;
+          chunkCount++;
           if (chunkCount % 20 === 0) {
-            sendEvent(JSON.stringify({ type: 'progress', chars: fullText.length }))
+            sendEvent(JSON.stringify({ type: "progress", chars: fullText.length }));
           }
-        })
+        });
 
-        const SAFETY_TIMEOUT = 290_000
+        const SAFETY_TIMEOUT = 290_000;
         const timeoutPromise = new Promise<never>((_, reject) =>
-          setTimeout(() => reject(new Error('TIMEOUT')), SAFETY_TIMEOUT)
-        )
+          setTimeout(() => reject(new Error("TIMEOUT")), SAFETY_TIMEOUT)
+        );
 
-        let finalMessage
+        let finalMessage;
         try {
-          finalMessage = await Promise.race([
-            anthropicStream.finalMessage(),
-            timeoutPromise,
-          ])
+          finalMessage = await Promise.race([anthropicStream.finalMessage(), timeoutPromise]);
         } catch (raceErr) {
-          if (raceErr instanceof Error && raceErr.message === 'TIMEOUT') {
-            console.error('[plan] Anthropic timeout after 290s. Chars received:', fullText.length)
-            sendEvent(JSON.stringify({ type: 'error', error: 'La génération a pris trop de temps. Réessaie avec un PDF plus court.' }))
-            controller.close()
-            return
+          if (raceErr instanceof Error && raceErr.message === "TIMEOUT") {
+            console.error("[plan] Anthropic timeout after 290s. Chars received:", fullText.length);
+            sendEvent(
+              JSON.stringify({
+                type: "error",
+                error: "La génération a pris trop de temps. Réessaie avec un PDF plus court.",
+              })
+            );
+            controller.close();
+            return;
           }
-          throw raceErr
+          throw raceErr;
         }
-        stopReason = finalMessage.stop_reason ?? ''
+        stopReason = finalMessage.stop_reason ?? "";
 
-        if (stopReason === 'max_tokens') {
-          console.error('[plan] Response truncated. Length:', fullText.length)
-          sendEvent(JSON.stringify({ type: 'error', error: 'Le plan généré était trop long. Réessaie.' }))
-          controller.close()
-          return
+        if (stopReason === "max_tokens") {
+          console.error("[plan] Response truncated. Length:", fullText.length);
+          sendEvent(JSON.stringify({ type: "error", error: "Le plan généré était trop long. Réessaie." }));
+          controller.close();
+          return;
         }
 
-        const jsonMatch = fullText.match(/\{[\s\S]*\}/)
+        const jsonMatch = fullText.match(/\{[\s\S]*\}/);
         if (!jsonMatch) {
-          console.error('[plan] No JSON in response. Start:', fullText.slice(0, 200))
-          sendEvent(JSON.stringify({ type: 'error', error: 'Impossible d\'extraire le plan. Réessaie.' }))
-          controller.close()
-          return
+          console.error("[plan] No JSON in response. Start:", fullText.slice(0, 200));
+          sendEvent(JSON.stringify({ type: "error", error: "Impossible d'extraire le plan. Réessaie." }));
+          controller.close();
+          return;
         }
 
-        let rawJson: Record<string, unknown>
+        let rawJson: Record<string, unknown>;
         try {
-          rawJson = JSON.parse(jsonMatch[0])
+          rawJson = JSON.parse(jsonMatch[0]);
         } catch {
-          console.error('[plan] JSON parse error. Start:', jsonMatch[0].slice(0, 300))
-          sendEvent(JSON.stringify({ type: 'error', error: 'Le plan généré contenait du JSON invalide. Réessaie.' }))
-          controller.close()
-          return
+          console.error("[plan] JSON parse error. Start:", jsonMatch[0].slice(0, 300));
+          sendEvent(JSON.stringify({ type: "error", error: "Le plan généré contenait du JSON invalide. Réessaie." }));
+          controller.close();
+          return;
         }
 
         // Réparer la réponse de Claude avant la validation Zod
-        const repaired = repairPlan(rawJson)
+        const repaired = repairPlan(rawJson);
 
-        const parsed = MemoirePlanSchema.safeParse(repaired)
+        const parsed = MemoirePlanSchema.safeParse(repaired);
 
         if (!parsed.success) {
-          console.error('[plan] Zod error AFTER repair:', JSON.stringify(parsed.error.flatten()))
-          console.error('[plan] Repaired plan was:', JSON.stringify(repaired).slice(0, 500))
-          sendEvent(JSON.stringify({ type: 'error', error: 'Structure du plan invalide. Réessaie.' }))
-          controller.close()
-          return
+          console.error("[plan] Zod error AFTER repair:", JSON.stringify(parsed.error.flatten()));
+          console.error("[plan] Repaired plan was:", JSON.stringify(repaired).slice(0, 500));
+          sendEvent(JSON.stringify({ type: "error", error: "Structure du plan invalide. Réessaie." }));
+          controller.close();
+          return;
         }
 
-        const plan = parsed.data
-        console.log('[plan] Deadline detected:', plan.deadline ?? 'null (not found in PDF)')
-        console.log('[plan] Plan title:', plan.title)
-        await savePlan(supabase, user.id, plan.title, plan)
+        const plan = parsed.data;
+        console.log("[plan] Deadline detected:", plan.deadline ?? "null (not found in PDF)");
+        console.log("[plan] Plan title:", plan.title);
+        await savePlan(supabase, user.id, plan.title, plan);
 
-        sendEvent(JSON.stringify({ type: 'done', plan, remaining: null }))
-        controller.close()
+        sendEvent(JSON.stringify({ type: "done", plan, remaining: null }));
+        controller.close();
       } catch (err) {
-        console.error('[plan] Stream error:', err)
-        sendEvent(JSON.stringify({ type: 'error', error: 'Erreur lors de la génération du plan. Réessaie.' }))
-        controller.close()
+        console.error("[plan] Stream error:", err);
+        sendEvent(JSON.stringify({ type: "error", error: "Erreur lors de la génération du plan. Réessaie." }));
+        controller.close();
       }
     },
-  })
+  });
 
   return new Response(stream, {
     headers: {
-      'Content-Type': 'text/event-stream',
-      'Cache-Control': 'no-cache',
-      'Connection': 'keep-alive',
+      "Content-Type": "text/event-stream",
+      "Cache-Control": "no-cache",
+      Connection: "keep-alive",
     },
-  })
+  });
 }

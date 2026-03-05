@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mockup — Pomodoro Compact</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+
+  /* Theme toggle */
+  .theme-toggle {
+    position: fixed; top: 12px; right: 12px; z-index: 10000;
+    padding: 6px 14px; border-radius: 99px; cursor: pointer;
+    font-size: 11px; font-weight: 500;
+    border: 1px solid rgba(255,255,255,0.12);
+    background: rgba(255,255,255,0.06);
+    color: rgba(255,255,255,0.5);
+    transition: all 0.3s;
+  }
+  body.light .theme-toggle {
+    border: 1px solid rgba(0,0,0,0.12);
+    background: rgba(0,0,0,0.04);
+    color: rgba(0,0,0,0.5);
+  }
+
+  /* Dashboard simulation */
+  .dashboard {
+    display: flex; height: 100vh; width: 100vw;
+    background: #04030e; color: rgba(255,255,255,0.7);
+    transition: background 0.3s, color 0.3s;
+  }
+  body.light .dashboard {
+    background: #ffffff; color: rgba(0,0,0,0.7);
+  }
+
+  .sidebar {
+    width: 220px; flex-shrink: 0;
+    border-right: 1px solid rgba(255,255,255,0.06);
+    padding: 20px 16px;
+    display: flex; flex-direction: column; gap: 6px;
+  }
+  body.light .sidebar {
+    border-right: 1px solid rgba(0,0,0,0.06);
+  }
+
+  .sidebar-logo {
+    font-size: 14px; font-weight: 700; letter-spacing: -0.5px;
+    color: rgba(255,255,255,0.85);
+    margin-bottom: 24px;
+  }
+  body.light .sidebar-logo { color: rgba(0,0,0,0.85); }
+
+  .sidebar-item {
+    padding: 8px 12px; border-radius: 8px; font-size: 12px;
+    color: rgba(255,255,255,0.35); cursor: pointer;
+    transition: all 0.15s;
+  }
+  .sidebar-item:hover { color: rgba(255,255,255,0.55); background: rgba(255,255,255,0.03); }
+  .sidebar-item.active { color: rgba(255,255,255,0.70); background: rgba(255,255,255,0.06); }
+  body.light .sidebar-item { color: rgba(0,0,0,0.35); }
+  body.light .sidebar-item:hover { color: rgba(0,0,0,0.55); background: rgba(0,0,0,0.03); }
+  body.light .sidebar-item.active { color: rgba(0,0,0,0.70); background: rgba(0,0,0,0.06); }
+
+  .main-content {
+    flex: 1; padding: 20px 28px; overflow-y: auto;
+    position: relative;
+  }
+
+  /* Fake grid content */
+  .grid-2x2 {
+    display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr;
+    gap: 12px; height: calc(100vh - 40px);
+  }
+  .card {
+    border-radius: 12px; padding: 14px;
+    border: 1px solid rgba(255,255,255,0.06);
+    background: rgba(255,255,255,0.02);
+  }
+  body.light .card {
+    border: 1px solid rgba(0,0,0,0.06);
+    background: rgba(0,0,0,0.02);
+  }
+  .card-title {
+    font-size: 10px; font-weight: 600; text-transform: uppercase;
+    letter-spacing: 0.8px; color: rgba(255,255,255,0.25);
+    margin-bottom: 12px;
+  }
+  body.light .card-title { color: rgba(0,0,0,0.25); }
+  .card-placeholder {
+    width: 100%; height: 60%;
+    border-radius: 6px;
+    background: rgba(255,255,255,0.02);
+  }
+  body.light .card-placeholder { background: rgba(0,0,0,0.02); }
+
+  /* ══════════════════════════════════════════════
+     POMODORO COMPACT BLOCK — top-right floating
+     ══════════════════════════════════════════════ */
+  .pomodoro-compact {
+    position: fixed;
+    top: 16px;
+    right: 60px; /* space for theme toggle */
+    z-index: 9998;
+    width: 260px;
+    border-radius: 14px;
+    border: 1px solid rgba(255,255,255,0.10);
+    background: rgba(4,3,14,0.70);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    padding: 16px 18px 14px;
+    animation: pomo-in 0.25s ease both;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+  }
+  body.light .pomodoro-compact {
+    border: 1px solid rgba(0,0,0,0.10);
+    background: rgba(255,255,255,0.70);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.08);
+  }
+
+  @keyframes pomo-in {
+    from { opacity: 0; transform: translateY(-8px) scale(0.97); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+  }
+
+  /* Header row: label + close */
+  .pomo-header {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 14px;
+  }
+  .pomo-mode-label {
+    font-size: 10px; font-weight: 600; text-transform: uppercase;
+    letter-spacing: 1.5px; color: rgba(255,255,255,0.30);
+  }
+  body.light .pomo-mode-label { color: rgba(0,0,0,0.30); }
+
+  .pomo-header-btns {
+    display: flex; gap: 4px;
+  }
+  .pomo-icon-btn {
+    width: 24px; height: 24px; border-radius: 6px;
+    border: 1px solid rgba(255,255,255,0.08);
+    background: rgba(255,255,255,0.04);
+    color: rgba(255,255,255,0.30);
+    font-size: 10px; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.15s;
+  }
+  .pomo-icon-btn:hover {
+    background: rgba(255,255,255,0.08);
+    color: rgba(255,255,255,0.50);
+  }
+  body.light .pomo-icon-btn {
+    border: 1px solid rgba(0,0,0,0.08);
+    background: rgba(0,0,0,0.03);
+    color: rgba(0,0,0,0.30);
+  }
+  body.light .pomo-icon-btn:hover {
+    background: rgba(0,0,0,0.06);
+    color: rgba(0,0,0,0.50);
+  }
+
+  /* Timer row: circle + time + controls */
+  .pomo-timer-row {
+    display: flex; align-items: center; gap: 14px;
+    margin-bottom: 12px;
+  }
+
+  .pomo-circle-wrap {
+    position: relative; width: 52px; height: 52px; flex-shrink: 0;
+  }
+  .pomo-circle-wrap svg { position: absolute; top: 0; left: 0; }
+
+  .pomo-time {
+    font-size: 32px; font-weight: 300; font-family: 'SF Mono', 'Fira Code', monospace;
+    letter-spacing: -1px; color: rgba(255,255,255,0.85);
+    line-height: 1;
+    flex: 1;
+  }
+  body.light .pomo-time { color: rgba(0,0,0,0.85); }
+
+  /* Action buttons row */
+  .pomo-actions {
+    display: flex; gap: 6px;
+  }
+  .pomo-btn {
+    padding: 5px 12px; border-radius: 99px;
+    border: 1px solid rgba(255,255,255,0.10);
+    background: rgba(255,255,255,0.06);
+    color: rgba(255,255,255,0.50);
+    font-size: 11px; font-weight: 500; cursor: pointer;
+    transition: all 0.15s;
+    display: flex; align-items: center; gap: 4px;
+  }
+  .pomo-btn:hover {
+    background: rgba(255,255,255,0.10);
+    color: rgba(255,255,255,0.70);
+  }
+  .pomo-btn.primary {
+    background: rgba(255,255,255,0.10);
+    color: rgba(255,255,255,0.75);
+  }
+  body.light .pomo-btn {
+    border: 1px solid rgba(0,0,0,0.10);
+    background: rgba(0,0,0,0.04);
+    color: rgba(0,0,0,0.50);
+  }
+  body.light .pomo-btn:hover {
+    background: rgba(0,0,0,0.08);
+    color: rgba(0,0,0,0.70);
+  }
+  body.light .pomo-btn.primary {
+    background: rgba(0,0,0,0.08);
+    color: rgba(0,0,0,0.75);
+  }
+
+  /* Bottom row: dots + fullscreen */
+  .pomo-footer {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-top: 10px;
+  }
+  .pomo-dots {
+    display: flex; gap: 5px; align-items: center;
+  }
+  .pomo-dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: rgba(255,255,255,0.10);
+    transition: background 0.3s;
+  }
+  .pomo-dot.filled { background: rgba(255,255,255,0.45); }
+  body.light .pomo-dot { background: rgba(0,0,0,0.10); }
+  body.light .pomo-dot.filled { background: rgba(0,0,0,0.45); }
+
+  .pomo-cycle-count {
+    font-size: 10px; color: rgba(255,255,255,0.25); margin-left: 6px;
+  }
+  body.light .pomo-cycle-count { color: rgba(0,0,0,0.25); }
+
+  /* ══════════════════════════════════════════════
+     POMODORO FULLSCREEN (when user clicks expand)
+     ══════════════════════════════════════════════ */
+  .pomodoro-fullscreen {
+    position: fixed; inset: 0; z-index: 9999;
+    display: none; /* hidden by default */
+    align-items: center; justify-content: center; flex-direction: column;
+    background: rgba(4,3,14,0.55);
+    backdrop-filter: blur(40px);
+    -webkit-backdrop-filter: blur(40px);
+    animation: pomo-in 0.25s ease both;
+  }
+  body.light .pomodoro-fullscreen {
+    background: rgba(255,255,255,0.45);
+  }
+  .pomodoro-fullscreen.visible { display: flex; }
+
+  .fs-mode-label {
+    font-size: 13px; font-weight: 600; text-transform: uppercase;
+    letter-spacing: 2px; color: rgba(255,255,255,0.30); margin-bottom: 32px;
+  }
+  body.light .fs-mode-label { color: rgba(0,0,0,0.30); }
+
+  .fs-circle-wrap {
+    position: relative; width: 220px; height: 220px;
+    display: flex; align-items: center; justify-content: center;
+    margin-bottom: 40px;
+  }
+  .fs-circle-wrap svg { position: absolute; top: 0; left: 0; }
+
+  .fs-time {
+    font-size: 72px; font-weight: 200; font-family: 'SF Mono', 'Fira Code', monospace;
+    letter-spacing: -2px; color: rgba(255,255,255,0.85);
+    position: relative; z-index: 1;
+  }
+  body.light .fs-time { color: rgba(0,0,0,0.85); }
+
+  .fs-actions {
+    display: flex; gap: 10px; margin-bottom: 32px;
+  }
+  .fs-btn {
+    padding: 10px 20px; border-radius: 99px;
+    border: 1px solid rgba(255,255,255,0.10);
+    background: rgba(255,255,255,0.06);
+    color: rgba(255,255,255,0.55);
+    font-size: 12px; font-weight: 500; cursor: pointer;
+    transition: all 0.15s;
+  }
+  .fs-btn:hover {
+    background: rgba(255,255,255,0.10);
+    color: rgba(255,255,255,0.70);
+  }
+  body.light .fs-btn {
+    border: 1px solid rgba(0,0,0,0.10);
+    background: rgba(0,0,0,0.04);
+    color: rgba(0,0,0,0.55);
+  }
+  body.light .fs-btn:hover {
+    background: rgba(0,0,0,0.08);
+    color: rgba(0,0,0,0.70);
+  }
+
+  .fs-close-btn {
+    position: absolute; top: 20px; right: 24px;
+    width: 32px; height: 32px; border-radius: 8px;
+    border: 1px solid rgba(255,255,255,0.08);
+    background: rgba(255,255,255,0.04);
+    color: rgba(255,255,255,0.35);
+    font-size: 14px; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.15s;
+  }
+  .fs-close-btn:hover {
+    background: rgba(255,255,255,0.08);
+    color: rgba(255,255,255,0.55);
+  }
+  body.light .fs-close-btn {
+    border: 1px solid rgba(0,0,0,0.08);
+    background: rgba(0,0,0,0.03);
+    color: rgba(0,0,0,0.35);
+  }
+  body.light .fs-close-btn:hover {
+    background: rgba(0,0,0,0.06);
+    color: rgba(0,0,0,0.55);
+  }
+
+  .fs-dots {
+    display: flex; gap: 8px; align-items: center;
+  }
+  .fs-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: rgba(255,255,255,0.10);
+  }
+  .fs-dot.filled { background: rgba(255,255,255,0.45); }
+  body.light .fs-dot { background: rgba(0,0,0,0.10); }
+  body.light .fs-dot.filled { background: rgba(0,0,0,0.45); }
+</style>
+</head>
+<body>
+
+<!-- Theme toggle -->
+<button class="theme-toggle" onclick="document.body.classList.toggle('light'); this.textContent = document.body.classList.contains('light') ? 'Dark' : 'Light'">Light</button>
+
+<!-- Dashboard (background) -->
+<div class="dashboard">
+  <div class="sidebar">
+    <div class="sidebar-logo">MemoireQuest</div>
+    <div class="sidebar-item">Mon m&eacute;moire</div>
+    <div class="sidebar-item active">Progression</div>
+    <div class="sidebar-item">Achievements</div>
+    <div class="sidebar-item">Param&egrave;tres</div>
+  </div>
+  <div class="main-content">
+    <div class="grid-2x2">
+      <div class="card">
+        <div class="card-title">Statistiques</div>
+        <div class="card-placeholder"></div>
+      </div>
+      <div class="card">
+        <div class="card-title">R&eacute;cr&eacute;ation</div>
+        <div class="card-placeholder"></div>
+      </div>
+      <div class="card">
+        <div class="card-title">Chapitres</div>
+        <div class="card-placeholder"></div>
+      </div>
+      <div class="card">
+        <div class="card-title">Streak</div>
+        <div class="card-placeholder"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     POMODORO COMPACT (default view)
+     ══════════════════════════════════════ -->
+<div class="pomodoro-compact" id="pomoCompact">
+  <!-- Header -->
+  <div class="pomo-header">
+    <span class="pomo-mode-label">Concentration</span>
+    <div class="pomo-header-btns">
+      <!-- Fullscreen button -->
+      <button class="pomo-icon-btn" onclick="goFullscreen()" title="Plein &eacute;cran">
+        <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+          <path d="M1 3.5V1H3.5M6.5 1H9V3.5M9 6.5V9H6.5M3.5 9H1V6.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
+      <!-- Close button -->
+      <button class="pomo-icon-btn" onclick="closePomo()" title="Fermer">&times;</button>
+    </div>
+  </div>
+
+  <!-- Timer row -->
+  <div class="pomo-timer-row">
+    <!-- Mini circle -->
+    <div class="pomo-circle-wrap">
+      <svg width="52" height="52" viewBox="0 0 52 52">
+        <circle cx="26" cy="26" r="23" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="2"/>
+        <circle cx="26" cy="26" r="23" fill="none" stroke="rgba(255,255,255,0.25)" stroke-width="2"
+          stroke-linecap="round"
+          stroke-dasharray="144.51"
+          stroke-dashoffset="0"
+          transform="rotate(-90 26 26)"
+          id="compactCircle"
+          style="transition: stroke-dashoffset 1s linear"/>
+      </svg>
+    </div>
+
+    <!-- Time display — ONE LINE -->
+    <div class="pomo-time" id="compactTime">25:00</div>
+  </div>
+
+  <!-- Action buttons -->
+  <div class="pomo-actions">
+    <button class="pomo-btn primary" id="compactPlayBtn" onclick="toggleTimer()">&#9654; Play</button>
+    <button class="pomo-btn" onclick="resetTimer()">&#8634; Reset</button>
+    <button class="pomo-btn" onclick="skipTimer()">&#9197; Skip</button>
+  </div>
+
+  <!-- Footer: dots + cycle count -->
+  <div class="pomo-footer">
+    <div class="pomo-dots">
+      <div class="pomo-dot" id="dot0"></div>
+      <div class="pomo-dot" id="dot1"></div>
+      <div class="pomo-dot" id="dot2"></div>
+      <div class="pomo-dot" id="dot3"></div>
+      <span class="pomo-cycle-count" id="cycleCount"></span>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     POMODORO FULLSCREEN (optional view)
+     ══════════════════════════════════════ -->
+<div class="pomodoro-fullscreen" id="pomoFullscreen">
+  <button class="fs-close-btn" onclick="exitFullscreen()">&times;</button>
+
+  <div class="fs-mode-label" id="fsLabel">Concentration</div>
+
+  <div class="fs-circle-wrap">
+    <svg width="220" height="220" viewBox="0 0 100 100">
+      <circle cx="50" cy="50" r="44" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="2"/>
+      <circle cx="50" cy="50" r="44" fill="none" stroke="rgba(255,255,255,0.25)" stroke-width="2"
+        stroke-linecap="round"
+        stroke-dasharray="276.46"
+        stroke-dashoffset="0"
+        transform="rotate(-90 50 50)"
+        id="fsCircle"
+        style="transition: stroke-dashoffset 1s linear"/>
+    </svg>
+    <div class="fs-time" id="fsTime">25:00</div>
+  </div>
+
+  <div class="fs-actions">
+    <button class="fs-btn" id="fsPlayBtn" onclick="toggleTimer()">&#9654; Play</button>
+    <button class="fs-btn" onclick="resetTimer()">&#8634; Reset</button>
+    <button class="fs-btn" onclick="skipTimer()">&#9197; Skip</button>
+  </div>
+
+  <div class="fs-dots">
+    <div class="fs-dot" id="fsDot0"></div>
+    <div class="fs-dot" id="fsDot1"></div>
+    <div class="fs-dot" id="fsDot2"></div>
+    <div class="fs-dot" id="fsDot3"></div>
+  </div>
+</div>
+
+<script>
+  // ── Timer state ──
+  let mode = 'work' // 'work' | 'break'
+  let timeLeft = 25 * 60
+  let isRunning = false
+  let completedCycles = 0
+  let interval = null
+
+  const WORK_TIME = 25 * 60
+  const BREAK_TIME = 5 * 60
+
+  function getTotalTime() { return mode === 'work' ? WORK_TIME : BREAK_TIME }
+
+  function formatTime(s) {
+    const m = Math.floor(s / 60)
+    const sec = s % 60
+    return String(m).padStart(2, '0') + ':' + String(sec).padStart(2, '0')
+  }
+
+  function updateDisplay() {
+    const str = formatTime(timeLeft)
+    document.getElementById('compactTime').textContent = str
+    document.getElementById('fsTime').textContent = str
+
+    // Progress circles
+    const progress = timeLeft / getTotalTime()
+    const compactCirc = 2 * Math.PI * 23
+    const fsCirc = 2 * Math.PI * 44
+    document.getElementById('compactCircle').setAttribute('stroke-dashoffset', compactCirc * (1 - progress))
+    document.getElementById('fsCircle').setAttribute('stroke-dashoffset', fsCirc * (1 - progress))
+
+    // Mode labels
+    const label = mode === 'work' ? 'Concentration' : 'Pause'
+    document.querySelector('.pomo-mode-label').textContent = label
+    document.getElementById('fsLabel').textContent = label
+
+    // Play/Pause buttons
+    const playText = isRunning ? '\u23F8 Pause' : '\u25B6 Play'
+    document.getElementById('compactPlayBtn').textContent = playText
+    document.getElementById('fsPlayBtn').textContent = playText
+
+    // Dots
+    const filled = completedCycles % 4
+    for (let i = 0; i < 4; i++) {
+      document.getElementById('dot' + i).className = 'pomo-dot' + (i < filled ? ' filled' : '')
+      document.getElementById('fsDot' + i).className = 'fs-dot' + (i < filled ? ' filled' : '')
+    }
+
+    // Cycle count
+    const countEl = document.getElementById('cycleCount')
+    if (completedCycles > 0) {
+      countEl.textContent = completedCycles + ' pomodoro' + (completedCycles > 1 ? 's' : '')
+    } else {
+      countEl.textContent = ''
+    }
+  }
+
+  function tick() {
+    if (timeLeft <= 1) {
+      timeLeft = 0
+      isRunning = false
+      clearInterval(interval)
+      interval = null
+
+      if (mode === 'work') {
+        completedCycles++
+        mode = 'break'
+        timeLeft = BREAK_TIME
+        isRunning = true
+        interval = setInterval(tick, 1000)
+      } else {
+        mode = 'work'
+        timeLeft = WORK_TIME
+      }
+    } else {
+      timeLeft--
+    }
+    updateDisplay()
+  }
+
+  function toggleTimer() {
+    isRunning = !isRunning
+    if (isRunning) {
+      interval = setInterval(tick, 1000)
+    } else {
+      clearInterval(interval)
+      interval = null
+    }
+    updateDisplay()
+  }
+
+  function resetTimer() {
+    isRunning = false
+    clearInterval(interval)
+    interval = null
+    mode = 'work'
+    timeLeft = WORK_TIME
+    updateDisplay()
+  }
+
+  function skipTimer() {
+    isRunning = false
+    clearInterval(interval)
+    interval = null
+    if (mode === 'work') {
+      mode = 'break'
+      timeLeft = BREAK_TIME
+    } else {
+      mode = 'work'
+      timeLeft = WORK_TIME
+    }
+    updateDisplay()
+  }
+
+  // ── View switching ──
+  function goFullscreen() {
+    document.getElementById('pomoCompact').style.display = 'none'
+    document.getElementById('pomoFullscreen').classList.add('visible')
+  }
+
+  function exitFullscreen() {
+    document.getElementById('pomoFullscreen').classList.remove('visible')
+    document.getElementById('pomoCompact').style.display = 'block'
+  }
+
+  function closePomo() {
+    document.getElementById('pomoCompact').style.display = 'none'
+    document.getElementById('pomoFullscreen').classList.remove('visible')
+    // Show a "reopen" hint briefly
+    setTimeout(() => {
+      if (confirm('Pomodoro fermé. Rouvrir ?')) {
+        document.getElementById('pomoCompact').style.display = 'block'
+      }
+    }, 300)
+  }
+
+  // ── Init ──
+  updateDisplay()
+</script>
+</body>
+</html>

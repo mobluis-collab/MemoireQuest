@@ -1,10 +1,10 @@
-'use client'
+"use client";
 
-import { CookieBanner } from '@/components/layout/CookieBanner'
-import HeroSection from '@/components/landing/HeroSection'
-import HowItWorks from '@/components/landing/HowItWorks'
-import FeaturesSection from '@/components/landing/FeaturesSection'
-import FooterCTA from '@/components/landing/FooterCTA'
+import { CookieBanner } from "@/components/layout/CookieBanner";
+import HeroSection from "@/components/landing/HeroSection";
+import HowItWorks from "@/components/landing/HowItWorks";
+import FeaturesSection from "@/components/landing/FeaturesSection";
+import FooterCTA from "@/components/landing/FooterCTA";
 
 export default function LandingPage() {
   return (
@@ -19,5 +19,5 @@ export default function LandingPage() {
         maimouarkwest · Thesis OS v1.0
       </div>
     </main>
-  )
+  );
 }
