@@ -8,6 +8,8 @@ import UploadZone from '@/components/dashboard/UploadZone'
 import RateLimitWarning from '@/components/ui/RateLimitWarning'
 import MemoireView from './MemoireView'
 import PomodoroTimer from './PomodoroTimer'
+import ExtractionConfirm from './ExtractionConfirm'
+import type { ExtractionResult } from '@/types/extraction'
 import ProgressionView from './ProgressionView'
 import AchievementsView from './AchievementsView'
 import { useTheme as useThemeToggle } from '@/context/ThemeProvider'
@@ -47,6 +49,10 @@ export interface NewDashboardProps {
   onAccentChange?: (color: string) => void
   textIntensity: number
   onTextIntensityChange: (intensity: number) => void
+  extractionResult?: ExtractionResult | null
+  extractionLoading?: boolean
+  onConfirmExtraction?: (extraction: ExtractionResult) => void
+  onReanalyze?: () => void
 }
 
 /* ─── Palette ─────────────────────────────────────────────────── */
@@ -604,6 +610,10 @@ export default function NewDashboard({
   accentColor,
   textIntensity,
   onTextIntensityChange,
+  extractionResult,
+  extractionLoading,
+  onConfirmExtraction,
+  onReanalyze,
 }: NewDashboardProps) {
   const [activeView, setActiveView] = useState<ActiveView>('dashboard')
   const [showIntensity, setShowIntensity] = useState(false)
@@ -1506,11 +1516,55 @@ export default function NewDashboard({
             </>
           )}
           </div>
+        ) : isLoading && !plan ? (
+          /* Phase 2 loading — generating plan */
+          <div style={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            minHeight: '100vh',
+            gap: 20,
+            background: isDark ? '#04030e' : '#ffffff',
+          }}>
+            <div style={{
+              width: 36,
+              height: 36,
+              borderRadius: '50%',
+              border: `2px solid ${bg(0.08, isDark)}`,
+              borderTopColor: tw(0.40, textIntensity, isDark),
+              animation: 'mq-spin 0.8s linear infinite',
+            }} />
+            <div style={{ fontSize: 14, color: tw(0.50, textIntensity, isDark), fontWeight: 500 }}>
+              G{'\u00e9'}n{'\u00e9'}ration du plan en cours...
+            </div>
+            <div style={{ fontSize: 12, color: tw(0.25, textIntensity, isDark) }}>
+              L{'\u0027'}IA utilise tes m{'\u00e9'}tadonn{'\u00e9'}es v{'\u00e9'}rifi{'\u00e9'}es pour cr{'\u00e9'}er un plan sur mesure.
+            </div>
+          </div>
+        ) : extractionResult && onConfirmExtraction && onReanalyze ? (
+          /* Phase intermédiaire : confirmation des métadonnées */
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            minHeight: '100vh',
+            background: isDark ? '#04030e' : '#ffffff',
+          }}>
+            <ExtractionConfirm
+              extraction={extractionResult}
+              onConfirm={onConfirmExtraction}
+              onReanalyze={onReanalyze}
+              isDark={isDark}
+              textIntensity={textIntensity}
+              accentColor={accentColor}
+            />
+          </div>
         ) : (
           <OnboardingScreen
             firstName={firstName}
             onUpload={onUpload}
-            isLoading={isLoading}
+            isLoading={isLoading || (extractionLoading ?? false)}
             textIntensity={textIntensity}
             isDark={isDark}
           />

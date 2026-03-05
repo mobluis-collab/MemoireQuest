@@ -3,6 +3,7 @@
 import { useState, useMemo, useEffect, useCallback } from 'react'
 import type { MemoirePlan, QuestProgress, StreakData, SectionProgress } from '@/types/memoir'
 import { isSectionDone } from '@/types/memoir'
+import type { ExtractionResult } from '@/types/extraction'
 import type { ComboState } from '@/lib/combo'
 import NewDashboard from './new/NewDashboard'
 import { tw, bg } from '@/lib/color-utils'
@@ -55,6 +56,9 @@ export default function DashboardContent({
   )
   const [accentColor, setAccentColor] = useState('#6366f1')
   const [textIntensity, setTextIntensity] = useState(1.0)
+  const [extractionResult, setExtractionResult] = useState<ExtractionResult | null>(null)
+  const [pdfBase64, setPdfBase64] = useState<string | null>(null)
+  const [extractionLoading, setExtractionLoading] = useState(false)
 
   // Load accent color and text intensity from preferences API
   useEffect(() => {
@@ -110,20 +114,47 @@ export default function DashboardContent({
     prestigeCount: plan?.prestige_count || 0,
   })
 
+  // Phase 1 — Extract metadata from PDF
   const handleUpload = async (file: File) => {
-    setIsLoading(true)
+    setExtractionLoading(true)
     setError(null)
     try {
       const formData = new FormData()
       formData.append('file', file)
-      const res = await fetch('/api/plan', { method: 'POST', body: formData })
+      const res = await fetch('/api/plan/extract', { method: 'POST', body: formData })
+      const data = await res.json()
 
-      // Non-streaming error responses (rate limit, validation, auth)
+      if (!res.ok) throw new Error(data.error ?? 'Erreur lors de l\'analyse du document.')
+
+      setExtractionResult(data.extraction)
+      setPdfBase64(data.pdfBase64)
+      if (data.remaining !== undefined) setPlanRemaining(data.remaining)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Une erreur est survenue.')
+    } finally {
+      setExtractionLoading(false)
+    }
+  }
+
+  // Phase 2 — Generate plan with confirmed metadata
+  const handleGeneratePlan = async (confirmedExtraction: ExtractionResult) => {
+    if (!pdfBase64) return
+    setIsLoading(true)
+    setError(null)
+    setExtractionResult(null)
+
+    try {
+      const res = await fetch('/api/plan', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ pdfBase64, extraction: confirmedExtraction }),
+      })
+
+      // Non-streaming error
       const ct = res.headers.get('content-type') ?? ''
-      if (ct.includes('application/json')) {
+      if (ct.includes('application/json') && !ct.includes('text/event-stream')) {
         const data = await res.json()
         if (!res.ok) throw new Error(data.error ?? 'Erreur lors de la génération du plan.')
-        // Fallback: if server somehow responds with plain JSON
         setPlan(data.plan)
         if (data.remaining !== undefined) setPlanRemaining(data.remaining)
         return
@@ -141,7 +172,6 @@ export default function DashboardContent({
         if (done) break
         buffer += decoder.decode(value, { stream: true })
 
-        // Process complete SSE messages
         const lines = buffer.split('\n\n')
         buffer = lines.pop() ?? ''
 
@@ -157,18 +187,24 @@ export default function DashboardContent({
             } else if (msg.type === 'error') {
               throw new Error(msg.error)
             }
-            // 'progress' events are ignored (keepalive only)
           } catch (parseErr) {
             if (parseErr instanceof Error && parseErr.message !== match[1]) throw parseErr
           }
         }
       }
-      if (!planReceived) throw new Error('Le plan n\'a pas pu être généré. Réessaie dans quelques instants.')
+      if (!planReceived) throw new Error('Le plan n\'a pas pu être généré. Réessaie.')
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Une erreur est survenue.')
     } finally {
       setIsLoading(false)
+      setPdfBase64(null)
     }
+  }
+
+  // Reset extraction to allow re-upload
+  const handleReanalyze = () => {
+    setExtractionResult(null)
+    setPdfBase64(null)
   }
 
   const handleQuestComplete = async (chapterNumber: string, sectionIndex: number) => {
@@ -301,6 +337,10 @@ export default function DashboardContent({
         accentColor={accentColor}
         textIntensity={textIntensity}
         onTextIntensityChange={handleTextIntensityChange}
+        extractionResult={extractionResult}
+        extractionLoading={extractionLoading}
+        onConfirmExtraction={handleGeneratePlan}
+        onReanalyze={handleReanalyze}
       />
       {plan && (
         <PrestigeModal

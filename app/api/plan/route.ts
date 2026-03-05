@@ -1,6 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
 import { savePlan } from '@/lib/plans/queries'
-import { checkAndIncrement } from '@/lib/rate-limit'
 import Anthropic from '@anthropic-ai/sdk'
 import { NextResponse } from 'next/server'
 import { z } from 'zod'
@@ -9,9 +8,10 @@ export const maxDuration = 300
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
 
-const PLAN_LIMIT = 10
+const SYSTEM_PROMPT = `CONTEXTE VÉRIFIÉ PAR L'UTILISATEUR :
+Les métadonnées ci-dessous ont été extraites du document puis VALIDÉES/CORRIGÉES par l'utilisateur. Tu DOIS les respecter comme source de vérité absolue. Ne les contredis JAMAIS.
 
-const SYSTEM_PROMPT = `Tu es un expert en méthodologie de mémoire académique et professionnel. Tu analyses le cahier des charges fourni par l'étudiant et tu génères un plan de rédaction personnalisé, structuré et actionnable, adapté au type de mémoire décrit dans le document.
+Tu es un expert en méthodologie de mémoire académique et professionnel. Tu analyses le cahier des charges fourni par l'étudiant et tu génères un plan de rédaction personnalisé, structuré et actionnable, adapté au type de mémoire décrit dans le document.
 
 RÈGLES STRICTES ANTI-HALLUCINATION :
 - NE PAS inventer de contenu ou d'informations qui ne sont pas dans le document PDF
@@ -20,16 +20,15 @@ RÈGLES STRICTES ANTI-HALLUCINATION :
 - Ne jamais inventer de contraintes, deadlines, ou exigences qui ne sont pas explicitement mentionnées
 
 DEADLINE / DATE DE RENDU :
-- Cherche ATTENTIVEMENT dans le document toute mention de date de rendu, deadline, date limite, date de soutenance, date de remise.
-- Si une date est trouvée, inclus-la dans le champ "deadline" au format "YYYY-MM-DD".
-- Si AUCUNE date n'est mentionnée dans le document, mets "deadline": null.
-- NE JAMAIS inventer une date. Si tu n'es pas sûr, mets null.
+- Utilise la deadline fournie dans les métadonnées vérifiées par l'utilisateur.
+- Si la deadline est null dans les métadonnées, mets "deadline": null.
+- NE JAMAIS inventer une date.
 
 INSTRUCTIONS :
 - Lis attentivement le document pour identifier : le type de mémoire (professionnel, académique, recherche, stage, projet, etc.), le niveau d'études (BTS, Licence, Bachelor, Master, Ingénieur, etc.), la discipline ou domaine (communication, droit, gestion, informatique, marketing, sciences, etc.), les objectifs pédagogiques ou compétences à valider, la structure et le nombre de pages attendus, les deadlines et contraintes formelles (police, interligne, bibliographie, etc.), et les critères d'évaluation si mentionnés.
 - Génère un plan de rédaction couvrant l'ensemble du mémoire, du début à la fin, adapté au contexte spécifique identifié.
 - Chaque chapitre doit avoir un objectif clair, des sous-sections concrètes et des conseils pratiques (tips) directement actionnables pour l'étudiant.
-- Respecte la structure attendue par l'établissement si elle est précisée dans le document. Sinon, propose une structure académique standard adaptée au type de mémoire.
+- Respecte la structure attendue par l'établissement si elle est précisée dans le document ou dans les métadonnées. Sinon, propose une structure académique standard adaptée au type de mémoire.
 - Les tips doivent être concrets et utiles (ex: "Commence par une revue de littérature sur 3-4 sources clés avant de rédiger ta problématique").
 
 SOUS-TACHES PAR SECTION (tasks) :
@@ -71,12 +70,10 @@ Réponds UNIQUEMENT en JSON valide selon ce schéma exact :
 }
 
 NOMBRE DE CHAPITRES :
-- Si le cahier des charges mentionne explicitement un nombre de chapitres, parties, ou une structure attendue (ex: "3 parties", "5 chapitres", "plan en 4 temps"), génère EXACTEMENT ce nombre de chapitres.
+- Si les métadonnées indiquent une structure imposée, respecte-la EXACTEMENT.
 - Si le document précise un nombre de pages ou un volume (ex: "60 pages" → généralement 4-5 chapitres, "100 pages" → 5-7 chapitres), adapte le nombre de chapitres en conséquence.
 - Si aucune structure n'est précisée, génère un plan académique standard cohérent avec le niveau et le type de mémoire (généralement 4 à 6 chapitres).
 - Dans tous les cas : minimum 2 chapitres, maximum 15 chapitres. Chaque chapitre : minimum 2 sections, maximum 10 sections. Pas de texte en dehors du JSON.`
-
-const MAX_FILE_SIZE = 10 * 1024 * 1024 // 10 MB
 
 const SectionSchema = z.object({
   text: z.string(),
@@ -95,7 +92,7 @@ const ChapterSchema = z.object({
 const MemoirePlanSchema = z.object({
   title: z.string(),
   chapters: z.array(ChapterSchema).min(2).max(15),
-  deadline: z.string().nullable().optional(), // format "YYYY-MM-DD" or null
+  deadline: z.string().nullable().optional(),
 })
 
 export async function POST(request: Request) {
@@ -106,28 +103,19 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  const rateLimit = await checkAndIncrement(supabase, user.id, '/api/plan', PLAN_LIMIT)
-  if (!rateLimit.allowed) {
-    return NextResponse.json({ error: 'Limite atteinte pour aujourd\'hui.', remaining: 0 }, { status: 429 })
+  // No rate-limit here — already consumed in /api/plan/extract
+
+  let body: { pdfBase64: string; extraction: Record<string, unknown> }
+  try {
+    body = await request.json()
+  } catch {
+    return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 })
   }
 
-  const formData = await request.formData()
-  const file = formData.get('file')
-
-  if (!(file instanceof File)) {
-    return NextResponse.json({ error: 'Missing file', remaining: rateLimit.remaining }, { status: 400 })
+  const { pdfBase64, extraction } = body
+  if (!pdfBase64 || !extraction) {
+    return NextResponse.json({ error: 'Missing pdfBase64 or extraction' }, { status: 400 })
   }
-
-  if (file.type !== 'application/pdf') {
-    return NextResponse.json({ error: 'Invalid file type (PDF only)', remaining: rateLimit.remaining }, { status: 400 })
-  }
-
-  if (file.size > MAX_FILE_SIZE) {
-    return NextResponse.json({ error: 'File too large (max 10MB)', remaining: rateLimit.remaining }, { status: 400 })
-  }
-
-  const buffer = await file.arrayBuffer()
-  const base64 = Buffer.from(buffer).toString('base64')
 
   const encoder = new TextEncoder()
 
@@ -138,7 +126,6 @@ export async function POST(request: Request) {
       }
 
       try {
-        // Start streaming from Anthropic
         let fullText = ''
         let stopReason = ''
 
@@ -155,26 +142,29 @@ export async function POST(request: Request) {
                   source: {
                     type: 'base64',
                     media_type: 'application/pdf',
-                    data: base64,
+                    data: pdfBase64,
                   },
                 },
                 {
                   type: 'text',
-                  text: `Génère le plan de mémoire en JSON.
+                  text: `MÉTADONNÉES VÉRIFIÉES PAR L'UTILISATEUR :
+${JSON.stringify(extraction, null, 2)}
+
+En te basant sur ces métadonnées vérifiées ET le document PDF ci-dessus, génère le plan de mémoire en JSON.
 
 INSTRUCTIONS CRITIQUES :
-1. Chaque section DOIT obligatoirement inclure un champ "tasks" avec un tableau de 2 à 4 sous-tâches concrètes et actionnables.
-2. DEADLINE OBLIGATOIRE : Avant de générer le plan, relis le document UNE DEUXIÈME FOIS en cherchant spécifiquement toute mention de : "date de rendu", "deadline", "date limite", "date de soutenance", "date de remise", "à remettre avant le", "échéance", "date butoir", "rendu le", "pour le", ou toute date future mentionnée dans le contexte d'une remise de travail.
-   - Si tu trouves une date, mets-la dans "deadline" au format "YYYY-MM-DD".
-   - Si tu ne trouves AUCUNE date après cette double vérification, mets "deadline": null.
-   - NE JAMAIS inventer de date.`,
+1. Chaque section DOIT inclure un champ "tasks" avec 2 à 4 sous-tâches concrètes.
+2. Respecte OBLIGATOIREMENT la structure imposée si elle est renseignée dans les métadonnées.
+3. Le nombre de chapitres doit être cohérent avec le nombre de pages indiqué.
+4. La deadline dans le JSON DOIT correspondre à celle des métadonnées.
+5. Les compétences à valider doivent être intégrées dans les objectifs des chapitres.
+6. NE PAS inventer de contraintes ou exigences qui ne sont ni dans le PDF ni dans les métadonnées.`,
                 },
               ],
             },
           ],
         })
 
-        // Send keepalive pings every few chunks so the connection stays open
         let chunkCount = 0
         anthropicStream.on('text', (text) => {
           fullText += text
@@ -184,7 +174,7 @@ INSTRUCTIONS CRITIQUES :
           }
         })
 
-        const SAFETY_TIMEOUT = 290_000 // 290s — close cleanly before Vercel's 300s kill (Pro)
+        const SAFETY_TIMEOUT = 290_000
         const timeoutPromise = new Promise<never>((_, reject) =>
           setTimeout(() => reject(new Error('TIMEOUT')), SAFETY_TIMEOUT)
         )
@@ -213,7 +203,6 @@ INSTRUCTIONS CRITIQUES :
           return
         }
 
-        // Extract and validate JSON
         const jsonMatch = fullText.match(/\{[\s\S]*\}/)
         if (!jsonMatch) {
           console.error('[plan] No JSON in response. Start:', fullText.slice(0, 200))
@@ -240,13 +229,11 @@ INSTRUCTIONS CRITIQUES :
         }
 
         const plan = parsed.data
-        // Log deadline detection for debugging
         console.log('[plan] Deadline detected:', plan.deadline ?? 'null (not found in PDF)')
         console.log('[plan] Plan title:', plan.title)
         await savePlan(supabase, user.id, plan.title, plan)
 
-        // Send the final result
-        sendEvent(JSON.stringify({ type: 'done', plan, remaining: rateLimit.remaining }))
+        sendEvent(JSON.stringify({ type: 'done', plan, remaining: null }))
         controller.close()
       } catch (err) {
         console.error('[plan] Stream error:', err)
