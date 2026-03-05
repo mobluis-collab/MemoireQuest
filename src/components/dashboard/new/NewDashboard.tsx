@@ -69,6 +69,29 @@ const addDays = (d: Date, n: number) => { const x = new Date(d); x.setDate(x.get
 const fmt = (d: Date, m: 'short' | 'long' = 'short') =>
   d.toLocaleDateString('fr-FR', { day: 'numeric', month: m })
 
+/* ─── Focus Timer ────────────────────────────────────────────── */
+function FocusTimer({ startTime, isDark, textIntensity }: { startTime: number | null; isDark: boolean; textIntensity: number }) {
+  const [elapsed, setElapsed] = useState(0)
+  useEffect(() => {
+    if (!startTime) return
+    const interval = setInterval(() => {
+      setElapsed(Math.floor((Date.now() - startTime) / 1000))
+    }, 1000)
+    return () => clearInterval(interval)
+  }, [startTime])
+  const mins = Math.floor(elapsed / 60)
+  const secs = elapsed % 60
+  return (
+    <span style={{
+      fontSize: 11, fontFamily: 'inherit',
+      color: tw(0.30, textIntensity, isDark),
+      letterSpacing: '0.5px',
+    }}>
+      {String(mins).padStart(2, '0')}:{String(secs).padStart(2, '0')} de focus
+    </span>
+  )
+}
+
 /* ─── Gradient border ─────────────────────────────────────────── */
 function GBorder({
   gradient,
@@ -624,6 +647,8 @@ export default function NewDashboard({
   const [showShortcuts, setShowShortcuts] = useState(false)
   const [hoveredNav, setHoveredNav] = useState<number | null>(null)
   const [focusMode, setFocusMode] = useState(false)
+  const [focusSection, setFocusSection] = useState<{ chapterIdx: number; sectionIdx: number } | null>(null)
+  const [focusStartTime, setFocusStartTime] = useState<number | null>(null)
   const [pomodoroOpen, setPomodoroOpen] = useState(false)
   const [manualDeadline, setManualDeadline] = useState('')
   const prevChaptersRef = useRef<ChapterData[]>([])
@@ -676,6 +701,8 @@ export default function NewDashboard({
         case 'Escape':
           if (focusMode) {
             setFocusMode(false)
+            setFocusSection(null)
+            setFocusStartTime(null)
           } else if (showShortcuts) {
             setShowShortcuts(false)
           } else {
@@ -687,7 +714,10 @@ export default function NewDashboard({
           break
         case 'f':
         case 'F':
-          setFocusMode(prev => !prev)
+          setFocusMode(prev => {
+            if (prev) { setFocusSection(null); setFocusStartTime(null) }
+            return !prev
+          })
           break
         case 'p':
         case 'P':
@@ -848,6 +878,17 @@ export default function NewDashboard({
         }
         @keyframes mq-overlay-in { from { opacity: 0; } to { opacity: 1; } }
         @keyframes mq-spin { to { transform: rotate(360deg); } }
+        @keyframes mq-focus-breathe {
+          0%, 100% { opacity: 0.4; transform: scale(1); }
+          50% { opacity: 1; transform: scale(1.15); }
+        }
+        @keyframes mq-focus-ripple {
+          to { transform: scale(3); opacity: 0; }
+        }
+        @keyframes mq-orbit-spin {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
+        }
       `}</style>
 
       <ScrollbarStyle isDark={isDark} />
@@ -1171,23 +1212,70 @@ export default function NewDashboard({
               <span style={{ fontSize: 12 }}>{'\u25D4'}</span>
               <span>Pomodoro</span>
             </button>
-            <button
-              onClick={() => setFocusMode(true)}
-              style={{
-                display: 'flex', alignItems: 'center', gap: 5,
-                padding: '5px 12px', borderRadius: 99,
-                border: `1px solid ${bg(0.10, isDark)}`,
-                background: bg(0.05, isDark),
-                color: tw(0.45, textIntensity, isDark),
-                fontSize: 11, fontWeight: 500, cursor: 'pointer',
-                transition: 'all 0.2s cubic-bezier(.4,0,.2,1)',
-                backdropFilter: 'blur(8px)',
-              }}
-              title="Mode focus (F)"
-            >
-              <span style={{ fontSize: 12 }}>{'\u25C9'}</span>
-              <span>Focus</span>
-            </button>
+            <div style={{ position: 'relative', display: 'inline-flex' }}>
+              <button
+                onClick={(e) => {
+                  const btn = e.currentTarget
+                  const rect = btn.getBoundingClientRect()
+                  const ripple = document.createElement('div')
+                  const x = e.clientX - rect.left
+                  const y = e.clientY - rect.top
+                  ripple.style.cssText = `
+                    position:absolute; border-radius:50%; pointer-events:none;
+                    left:${x}px; top:${y}px; width:40px; height:40px;
+                    margin-left:-20px; margin-top:-20px;
+                    background:${isDark ? 'rgba(255,255,255,0.20)' : 'rgba(0,0,0,0.12)'};
+                    transform:scale(0);
+                    animation: mq-focus-ripple 0.5s ease-out forwards;
+                  `
+                  btn.appendChild(ripple)
+                  setTimeout(() => ripple.remove(), 500)
+                  setFocusMode(true)
+                }}
+                style={{
+                  position: 'relative',
+                  display: 'flex', alignItems: 'center', gap: 6,
+                  padding: '6px 14px', borderRadius: 99,
+                  border: `1px solid ${bg(0.14, isDark)}`,
+                  background: bg(0.06, isDark),
+                  color: tw(0.55, textIntensity, isDark),
+                  fontSize: 11, fontWeight: 500, cursor: 'pointer',
+                  transition: 'all 0.3s cubic-bezier(.4,0,.2,1)',
+                  overflow: 'hidden',
+                  zIndex: 1,
+                }}
+                title="Mode focus (F)"
+              >
+                <span style={{ position: 'relative', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <span style={{
+                    position: 'absolute', inset: -6, borderRadius: '50%',
+                    background: isDark
+                      ? 'radial-gradient(circle, rgba(255,255,255,0.12) 0%, transparent 70%)'
+                      : 'radial-gradient(circle, rgba(0,0,0,0.08) 0%, transparent 70%)',
+                    animation: 'mq-focus-breathe 3s ease-in-out infinite',
+                    pointerEvents: 'none',
+                  }} />
+                  <span style={{
+                    position: 'absolute', inset: -4, borderRadius: '50%',
+                    border: `1px solid ${bg(0.08, isDark)}`,
+                    animation: 'mq-orbit-spin 4s linear infinite',
+                    pointerEvents: 'none',
+                  }}>
+                    <span style={{
+                      position: 'absolute', top: -1.5, left: '50%',
+                      width: 3, height: 3, marginLeft: -1.5,
+                      borderRadius: '50%',
+                      background: tw(0.35, textIntensity, isDark),
+                    }} />
+                  </span>
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" style={{ position: 'relative', zIndex: 1 }}>
+                    <path d="M1 12C1 12 5 4 12 4C19 4 23 12 23 12C23 12 19 20 12 20C5 20 1 12 1 12Z" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+                    <circle cx="12" cy="12" r="3.5" fill="none" stroke="currentColor" strokeWidth="1.8"/>
+                  </svg>
+                </span>
+                <span>Focus</span>
+              </button>
+            </div>
           </div>
         )}
         {planRemaining !== null && <RateLimitWarning remaining={planRemaining} endpoint="plan" />}
@@ -1595,39 +1683,264 @@ export default function NewDashboard({
       {/* Re-upload loading overlay */}
       {isLoading && plan && <ReuploadOverlay accentColor={accentColor} textIntensity={textIntensity} isDark={isDark} />}
 
-      {/* Focus mode — floating exit button (top-right, same position as Focus button) */}
-      {focusMode && (
-        <button
-          onClick={() => setFocusMode(false)}
-          style={{
-            position: 'fixed',
-            top: 14,
-            right: 20,
-            zIndex: 100,
-            display: 'flex',
-            alignItems: 'center',
-            gap: 6,
-            padding: '7px 14px',
-            borderRadius: 99,
-            border: `1px solid ${bg(0.12, isDark)}`,
-            background: bg(0.06, isDark),
-            backdropFilter: 'blur(12px)',
-            color: tw(0.50, textIntensity, isDark),
-            fontSize: 11,
-            fontWeight: 500,
-            cursor: 'pointer',
-            opacity: 0.7,
-            transition: 'opacity 0.2s cubic-bezier(.4,0,.2,1), transform 0.2s cubic-bezier(.4,0,.2,1)',
-            animation: 'mq-overlay-in 0.3s ease both',
-          }}
-          onMouseEnter={(e) => { e.currentTarget.style.opacity = '1' }}
-          onMouseLeave={(e) => { e.currentTarget.style.opacity = '0.7' }}
-          title="Quitter le mode focus (Esc)"
-        >
-          <span style={{ fontSize: 12 }}>{'\u2715'}</span>
-          <span>Quitter focus</span>
-        </button>
+      {/* Focus mode — section selection overlay */}
+      {focusMode && !focusSection && (
+        <div style={{
+          position: 'fixed', inset: 0, zIndex: 9990,
+          background: isDark ? 'rgba(4,3,14,0.85)' : 'rgba(255,255,255,0.85)',
+          backdropFilter: 'blur(20px)',
+          WebkitBackdropFilter: 'blur(20px)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          flexDirection: 'column',
+          animation: 'mq-overlay-in 0.25s ease both',
+        }}>
+          <div style={{
+            fontSize: 11, fontWeight: 600, textTransform: 'uppercase',
+            letterSpacing: '2px', color: tw(0.30, textIntensity, isDark),
+            marginBottom: 24,
+          }}>
+            Sur quoi veux-tu te concentrer ?
+          </div>
+          <div style={{
+            display: 'flex', flexDirection: 'column', gap: 6,
+            maxHeight: '60vh', overflowY: 'auto',
+            width: 400, maxWidth: '90vw',
+          }}>
+            {chapters.map((chapter, ci) =>
+              chapter.sectionList.map((section, si) => (
+                <button
+                  key={`${ci}-${si}`}
+                  onClick={() => {
+                    setFocusSection({ chapterIdx: ci, sectionIdx: si })
+                    setFocusStartTime(Date.now())
+                    setPomodoroOpen(true)
+                  }}
+                  style={{
+                    textAlign: 'left',
+                    padding: '12px 16px', borderRadius: 10,
+                    border: `1px solid ${bg(0.08, isDark)}`,
+                    background: bg(0.04, isDark),
+                    color: tw(0.65, textIntensity, isDark),
+                    fontSize: 13, cursor: 'pointer',
+                    transition: 'all 0.15s',
+                  }}
+                  onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = bg(0.08, isDark) }}
+                  onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = bg(0.04, isDark) }}
+                >
+                  <div style={{ fontSize: 10, color: tw(0.30, textIntensity, isDark), marginBottom: 4 }}>
+                    {chapter.num} — {chapter.title}
+                  </div>
+                  <div style={{ fontWeight: 500 }}>
+                    {section.text}
+                  </div>
+                </button>
+              ))
+            )}
+          </div>
+          <button
+            onClick={() => { setFocusMode(false) }}
+            style={{
+              marginTop: 20,
+              padding: '6px 16px', borderRadius: 99,
+              border: `1px solid ${bg(0.08, isDark)}`,
+              background: 'transparent',
+              color: tw(0.35, textIntensity, isDark),
+              fontSize: 11, cursor: 'pointer',
+            }}
+          >
+            Annuler
+          </button>
+        </div>
       )}
+
+      {/* Focus mode — immersive view */}
+      {focusMode && focusSection && (() => {
+        const focusChapter = chapters[focusSection.chapterIdx]
+        const focusSec = focusChapter?.sectionList[focusSection.sectionIdx]
+        if (!focusChapter || !focusSec) return null
+
+        const chProgress = questProgress[focusChapter.num] ?? {}
+        const secProgress = chProgress[focusSection.sectionIdx]
+        const hasTasks = Array.isArray(focusSec.tasks) && focusSec.tasks.length > 0
+        let taskStates: boolean[] = []
+        if (hasTasks) {
+          if (secProgress === 'done') {
+            taskStates = focusSec.tasks!.map(() => true)
+          } else if (secProgress && typeof secProgress === 'object' && 'tasks' in secProgress) {
+            taskStates = secProgress.tasks
+          } else {
+            taskStates = focusSec.tasks!.map(() => false)
+          }
+        }
+
+        return (
+          <div style={{
+            position: 'fixed', inset: 0, zIndex: 9990,
+            background: isDark ? '#030210' : '#fafafa',
+            display: 'flex', flexDirection: 'column',
+            animation: 'mq-overlay-in 0.25s ease both',
+          }}>
+            {/* Header bar */}
+            <div style={{
+              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+              padding: '12px 20px',
+              borderBottom: `1px solid ${bg(0.06, isDark)}`,
+              flexShrink: 0,
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <span style={{ fontSize: 10, color: tw(0.25, textIntensity, isDark), textTransform: 'uppercase', letterSpacing: '1px', fontWeight: 600 }}>
+                  Focus
+                </span>
+                <span style={{ fontSize: 12, color: tw(0.50, textIntensity, isDark) }}>
+                  {focusChapter.title} — {focusSec.text}
+                </span>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                <FocusTimer startTime={focusStartTime} isDark={isDark} textIntensity={textIntensity} />
+                <button
+                  onClick={() => {
+                    setFocusMode(false)
+                    setFocusSection(null)
+                    setFocusStartTime(null)
+                  }}
+                  style={{
+                    padding: '5px 12px', borderRadius: 99,
+                    border: `1px solid ${bg(0.10, isDark)}`,
+                    background: bg(0.06, isDark),
+                    color: tw(0.45, textIntensity, isDark),
+                    fontSize: 11, fontWeight: 500, cursor: 'pointer',
+                  }}
+                >
+                  Quitter focus
+                </button>
+              </div>
+            </div>
+
+            {/* Main content */}
+            <div style={{
+              flex: 1, overflow: 'auto',
+              display: 'flex', justifyContent: 'center',
+              padding: '40px 20px',
+            }}>
+              <div style={{ maxWidth: 640, width: '100%' }}>
+                <h2 style={{
+                  fontSize: 22, fontWeight: 600,
+                  color: tw(0.85, textIntensity, isDark),
+                  marginBottom: 16, margin: 0,
+                }}>
+                  {focusSec.text}
+                </h2>
+
+                {/* Difficulty badge */}
+                <div style={{ marginTop: 8, marginBottom: 20 }}>
+                  <span style={{
+                    fontSize: 10, fontWeight: 600, padding: '3px 10px', borderRadius: 99,
+                    background: bg(0.06, isDark),
+                    border: `1px solid ${bg(0.08, isDark)}`,
+                    color: tw(0.50, textIntensity, isDark),
+                  }}>
+                    {focusSec.difficulty === 'hard' ? 'Difficile' : focusSec.difficulty === 'medium' ? 'Moyen' : 'Facile'}
+                  </span>
+                </div>
+
+                {/* Hint */}
+                {focusSec.hint && (
+                  <div style={{
+                    padding: '14px 18px', borderRadius: 10,
+                    border: `1px solid ${bg(0.08, isDark)}`,
+                    background: bg(0.04, isDark),
+                    color: tw(0.55, textIntensity, isDark),
+                    fontSize: 13, lineHeight: '1.6',
+                    marginBottom: 24,
+                  }}>
+                    <div style={{
+                      fontSize: 9, fontWeight: 600, textTransform: 'uppercase',
+                      letterSpacing: '1.5px', color: tw(0.25, textIntensity, isDark),
+                      marginBottom: 8,
+                    }}>
+                      Conseil de r{'\u00E9'}daction
+                    </div>
+                    {focusSec.hint}
+                  </div>
+                )}
+
+                {/* Tips from chapter */}
+                {focusChapter.tips && (
+                  <div style={{
+                    padding: '14px 18px', borderRadius: 10,
+                    borderLeft: `3px solid ${bg(0.10, isDark)}`,
+                    background: bg(0.03, isDark),
+                    color: tw(0.45, textIntensity, isDark),
+                    fontSize: 12, lineHeight: '1.6', fontStyle: 'italic',
+                    marginBottom: 24,
+                  }}>
+                    <div style={{
+                      fontSize: 9, fontWeight: 600, textTransform: 'uppercase',
+                      letterSpacing: '1.5px', color: tw(0.25, textIntensity, isDark),
+                      marginBottom: 8, fontStyle: 'normal',
+                    }}>
+                      Conseils du chapitre
+                    </div>
+                    {focusChapter.tips}
+                  </div>
+                )}
+
+                {/* Subtasks */}
+                {hasTasks && (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                    <div style={{
+                      fontSize: 9, fontWeight: 600, textTransform: 'uppercase',
+                      letterSpacing: '1.5px', color: tw(0.25, textIntensity, isDark),
+                      marginBottom: 4,
+                    }}>
+                      Sous-t{'\u00E2'}ches
+                    </div>
+                    {focusSec.tasks!.map((taskText, idx) => {
+                      const isComplete = taskStates[idx] ?? false
+                      const isTaskLoading = loadingKey === `${focusChapter.num}:${focusSection.sectionIdx}:${idx}`
+                      return (
+                        <button
+                          key={idx}
+                          onClick={() => {
+                            if (!isTaskLoading) onSubtaskToggle(focusChapter.num, focusSection.sectionIdx, idx)
+                          }}
+                          style={{
+                            textAlign: 'left',
+                            display: 'flex', alignItems: 'center', gap: 12,
+                            padding: '12px 16px', borderRadius: 10,
+                            border: `1px solid ${bg(isComplete ? 0.12 : 0.06, isDark)}`,
+                            background: bg(isComplete ? 0.06 : 0.02, isDark),
+                            color: tw(isComplete ? 0.35 : 0.70, textIntensity, isDark),
+                            fontSize: 14, cursor: isTaskLoading ? 'default' : 'pointer',
+                            transition: 'all 0.15s',
+                            opacity: isTaskLoading ? 0.5 : 1,
+                          }}
+                        >
+                          <div style={{
+                            width: 20, height: 20, borderRadius: 5, flexShrink: 0,
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            border: `1.5px solid ${isComplete ? bg(0.25, isDark) : bg(0.15, isDark)}`,
+                            background: isComplete ? bg(0.70, isDark) : 'transparent',
+                            fontSize: 11,
+                          }}>
+                            {isComplete && <span style={{ color: tw(0.92, textIntensity, isDark) }}>&#10003;</span>}
+                          </div>
+                          <span style={{
+                            textDecoration: isComplete ? 'line-through' : 'none',
+                            textDecorationColor: bg(0.15, isDark),
+                          }}>
+                            {taskText}
+                          </span>
+                        </button>
+                      )
+                    })}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )
+      })()}
 
       {/* Keyboard shortcuts overlay */}
       {showShortcuts && (
