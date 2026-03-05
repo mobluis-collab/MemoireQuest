@@ -1548,7 +1548,7 @@ export default function NewDashboard({
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            minHeight: '100vh',
+            height: '100%',
             background: isDark ? '#04030e' : '#ffffff',
           }}>
             <ExtractionConfirm
