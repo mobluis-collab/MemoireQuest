@@ -55,7 +55,7 @@ export default function DashboardContent({
     initialComboState || { count: 0, lastQuestTime: null }
   )
   const [accentColor, setAccentColor] = useState('#6366f1')
-  const [textIntensity, setTextIntensity] = useState(1.0)
+  const [textIntensity, setTextIntensity] = useState(1.2)
   const [extractionResult, setExtractionResult] = useState<ExtractionResult | null>(null)
   const [pdfBase64, setPdfBase64] = useState<string | null>(null)
   const [extractionLoading, setExtractionLoading] = useState(false)

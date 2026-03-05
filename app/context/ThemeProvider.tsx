@@ -14,14 +14,11 @@ const ThemeContext = createContext<ThemeContextValue | null>(null);
 export function ThemeProvider({ children }: { children: ReactNode }) {
   const [mode, setMode] = useState<ThemeMode>("light");
 
-  // Init depuis localStorage ou prefers-color-scheme au mount
+  // Init depuis localStorage (défaut = light)
   useEffect(() => {
     const stored = localStorage.getItem("theme") as ThemeMode | null;
     if (stored === "light" || stored === "dark") {
       setMode(stored);
-    } else {
-      const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-      setMode(prefersDark ? "dark" : "light");
     }
   }, []);
 

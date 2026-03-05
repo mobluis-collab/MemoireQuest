@@ -2,7 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
 
 const DEFAULT_ACCENT_COLOR = '#6366f1'
-const DEFAULT_TEXT_INTENSITY = 1.0
+const DEFAULT_TEXT_INTENSITY = 1.2
 const HEX_COLOR_REGEX = /^#[0-9A-Fa-f]{6}$/
 const TEXT_INTENSITY_MIN = 0.5
 const TEXT_INTENSITY_MAX = 1.5
