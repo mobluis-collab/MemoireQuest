@@ -12,9 +12,7 @@ interface NotesViewProps {
 
 /* ─── Helpers ─── */
 function stripHtml(html: string): string {
-  const div = document.createElement("div");
-  div.innerHTML = html;
-  return div.textContent || div.innerText || "";
+  return html.replace(/<[^>]*>/g, "");
 }
 
 function formatDate(dateStr: string, mode: "relative" | "full" = "relative"): string {
