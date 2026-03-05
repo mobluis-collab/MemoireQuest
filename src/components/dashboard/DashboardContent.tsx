@@ -122,13 +122,54 @@ export default function DashboardContent({
       const formData = new FormData()
       formData.append('file', file)
       const res = await fetch('/api/plan/extract', { method: 'POST', body: formData })
-      const data = await res.json()
 
-      if (!res.ok) throw new Error(data.error ?? 'Erreur lors de l\'analyse du document.')
+      // Si la réponse est du JSON, c'est une erreur pré-streaming (401, 429, 400)
+      const ct = res.headers.get('content-type') ?? ''
+      if (ct.includes('application/json')) {
+        const data = await res.json()
+        throw new Error(data.error ?? 'Erreur lors de l\'analyse du document.')
+      }
 
-      setExtractionResult(data.extraction)
-      setPdfBase64(data.pdfBase64)
-      if (data.remaining !== undefined) setPlanRemaining(data.remaining)
+      // Lire le SSE stream
+      const reader = res.body?.getReader()
+      if (!reader) throw new Error('Impossible de lire la réponse.')
+
+      const decoder = new TextDecoder()
+      let buffer = ''
+
+      while (true) {
+        const { done, value } = await reader.read()
+        if (done) break
+
+        buffer += decoder.decode(value, { stream: true })
+        const lines = buffer.split('\n')
+        buffer = lines.pop() ?? ''
+
+        let currentEvent = ''
+        for (const line of lines) {
+          if (line.startsWith('event: ')) {
+            currentEvent = line.slice(7)
+          } else if (line.startsWith('data: ') && currentEvent) {
+            try {
+              const payload = JSON.parse(line.slice(6))
+
+              if (currentEvent === 'error') {
+                throw new Error(payload.error ?? 'Erreur lors de l\'analyse.')
+              }
+              if (currentEvent === 'result') {
+                setExtractionResult(payload.extraction)
+                setPdfBase64(payload.pdfBase64)
+                if (payload.remaining !== undefined) setPlanRemaining(payload.remaining)
+              }
+            } catch (parseErr) {
+              if (parseErr instanceof Error && parseErr.message.startsWith('Erreur')) {
+                throw parseErr
+              }
+            }
+            currentEvent = ''
+          }
+        }
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Une erreur est survenue.')
     } finally {

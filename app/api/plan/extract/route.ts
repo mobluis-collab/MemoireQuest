@@ -1,10 +1,9 @@
 import { createClient } from '@/lib/supabase/server'
 import { checkAndIncrement } from '@/lib/rate-limit'
 import Anthropic from '@anthropic-ai/sdk'
-import { NextResponse } from 'next/server'
 import { z } from 'zod'
 
-export const maxDuration = 120
+export const maxDuration = 60
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
 
@@ -81,76 +80,140 @@ export async function POST(request: Request) {
   const { data: { user } } = await supabase.auth.getUser()
 
   if (!user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+      status: 401,
+      headers: { 'Content-Type': 'application/json' },
+    })
   }
 
   const rateLimit = await checkAndIncrement(supabase, user.id, '/api/plan', PLAN_LIMIT)
   if (!rateLimit.allowed) {
-    return NextResponse.json({ error: 'Limite atteinte pour aujourd\'hui.', remaining: 0 }, { status: 429 })
+    return new Response(JSON.stringify({ error: 'Limite atteinte pour aujourd\'hui.', remaining: 0 }), {
+      status: 429,
+      headers: { 'Content-Type': 'application/json' },
+    })
   }
 
   const formData = await request.formData()
   const file = formData.get('file')
 
   if (!(file instanceof File)) {
-    return NextResponse.json({ error: 'Missing file', remaining: rateLimit.remaining }, { status: 400 })
+    return new Response(JSON.stringify({ error: 'Missing file', remaining: rateLimit.remaining }), {
+      status: 400,
+      headers: { 'Content-Type': 'application/json' },
+    })
   }
   if (file.type !== 'application/pdf') {
-    return NextResponse.json({ error: 'Invalid file type (PDF only)', remaining: rateLimit.remaining }, { status: 400 })
+    return new Response(JSON.stringify({ error: 'Invalid file type (PDF only)', remaining: rateLimit.remaining }), {
+      status: 400,
+      headers: { 'Content-Type': 'application/json' },
+    })
   }
   if (file.size > MAX_FILE_SIZE) {
-    return NextResponse.json({ error: 'File too large (max 25MB)', remaining: rateLimit.remaining }, { status: 400 })
+    return new Response(JSON.stringify({ error: 'File too large (max 25MB)', remaining: rateLimit.remaining }), {
+      status: 400,
+      headers: { 'Content-Type': 'application/json' },
+    })
   }
 
   const buffer = await file.arrayBuffer()
   const base64 = Buffer.from(buffer).toString('base64')
 
-  try {
-    const response = await anthropic.messages.create({
-      model: 'claude-sonnet-4-5-20250929',
-      max_tokens: 4096,
-      system: EXTRACT_PROMPT,
-      messages: [
-        {
-          role: 'user',
-          content: [
+  // SSE streaming pour éviter le timeout Vercel Hobby (10s)
+  const encoder = new TextEncoder()
+  const stream = new ReadableStream({
+    async start(controller) {
+      const send = (event: string, data: unknown) => {
+        controller.enqueue(encoder.encode(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`))
+      }
+
+      try {
+        send('status', { message: 'Analyse du document en cours...' })
+
+        // Appel Claude en streaming
+        const streamResponse = anthropic.messages.stream({
+          model: 'claude-sonnet-4-5-20250929',
+          max_tokens: 4096,
+          system: EXTRACT_PROMPT,
+          messages: [
             {
-              type: 'document',
-              source: { type: 'base64', media_type: 'application/pdf', data: base64 },
-            },
-            {
-              type: 'text',
-              text: 'Analyse ce document et extrais les métadonnées structurées en JSON. Ne génère PAS de plan, uniquement les métadonnées.',
+              role: 'user',
+              content: [
+                {
+                  type: 'document',
+                  source: { type: 'base64', media_type: 'application/pdf', data: base64 },
+                },
+                {
+                  type: 'text',
+                  text: 'Analyse ce document et extrais les métadonnées structurées en JSON. Ne génère PAS de plan, uniquement les métadonnées.',
+                },
+              ],
             },
           ],
-        },
-      ],
-    })
+        })
 
-    const text = response.content
-      .filter((b): b is Anthropic.TextBlock => b.type === 'text')
-      .map(b => b.text)
-      .join('')
+        // Collecter le texte complet en streamant des heartbeats
+        let fullText = ''
+        let chunkCount = 0
 
-    const jsonMatch = text.match(/\{[\s\S]*\}/)
-    if (!jsonMatch) {
-      console.error('[extract] No JSON found. Start:', text.slice(0, 200))
-      return NextResponse.json({ error: 'Impossible d\'extraire les métadonnées.' }, { status: 500 })
-    }
+        streamResponse.on('text', (text) => {
+          fullText += text
+          chunkCount++
+          if (chunkCount % 5 === 0) {
+            send('progress', { chunks: chunkCount })
+          }
+        })
 
-    const parsed = ExtractionSchema.safeParse(JSON.parse(jsonMatch[0]))
-    if (!parsed.success) {
-      console.error('[extract] Zod error:', JSON.stringify(parsed.error.flatten()))
-      return NextResponse.json({ error: 'Structure des métadonnées invalide.' }, { status: 500 })
-    }
+        await streamResponse.finalMessage()
 
-    return NextResponse.json({
-      extraction: parsed.data,
-      pdfBase64: base64,
-      remaining: rateLimit.remaining,
-    })
-  } catch (err) {
-    console.error('[extract] Error:', err)
-    return NextResponse.json({ error: 'Erreur lors de l\'analyse du document.' }, { status: 500 })
-  }
+        send('status', { message: 'Validation des métadonnées...' })
+
+        // Extraire le JSON
+        const jsonMatch = fullText.match(/\{[\s\S]*\}/)
+        if (!jsonMatch) {
+          console.error('[extract] No JSON found. Start:', fullText.slice(0, 200))
+          send('error', { error: 'Impossible d\'extraire les métadonnées.' })
+          controller.close()
+          return
+        }
+
+        let parsed
+        try {
+          parsed = ExtractionSchema.safeParse(JSON.parse(jsonMatch[0]))
+        } catch {
+          console.error('[extract] JSON parse error:', fullText.slice(0, 200))
+          send('error', { error: 'Réponse IA invalide.' })
+          controller.close()
+          return
+        }
+
+        if (!parsed.success) {
+          console.error('[extract] Zod error:', JSON.stringify(parsed.error.flatten()))
+          send('error', { error: 'Structure des métadonnées invalide.' })
+          controller.close()
+          return
+        }
+
+        // Succès — envoyer le résultat final
+        send('result', {
+          extraction: parsed.data,
+          pdfBase64: base64,
+          remaining: rateLimit.remaining,
+        })
+      } catch (err) {
+        console.error('[extract] Error:', err)
+        send('error', { error: 'Erreur lors de l\'analyse du document.' })
+      } finally {
+        controller.close()
+      }
+    },
+  })
+
+  return new Response(stream, {
+    headers: {
+      'Content-Type': 'text/event-stream',
+      'Cache-Control': 'no-cache',
+      Connection: 'keep-alive',
+    },
+  })
 }
