@@ -1145,64 +1145,50 @@ export default function NewDashboard({
         position: 'relative', zIndex: 1,
         display: 'flex', flexDirection: 'column', gap: 10,
       }}>
-        {/* Pomodoro button — next to Focus */}
+        {/* Barre d'outils — dans le flux, plus d'absolute */}
         {!focusMode && plan && (
-          <button
-            onClick={() => setPomodoroOpen(true)}
-            style={{
-              position: 'absolute',
-              top: 14,
-              right: 100,
-              zIndex: 20,
-              display: 'flex',
-              alignItems: 'center',
-              gap: 5,
-              padding: '5px 12px',
-              borderRadius: 99,
-              border: `1px solid ${bg(0.10, isDark)}`,
-              background: bg(0.05, isDark),
-              color: tw(0.45, textIntensity, isDark),
-              fontSize: 11,
-              fontWeight: 500,
-              cursor: 'pointer',
-              transition: 'all 0.2s cubic-bezier(.4,0,.2,1)',
-              backdropFilter: 'blur(8px)',
-            }}
-            title="Pomodoro (P)"
-          >
-            <span style={{ fontSize: 12 }}>{'\u25D4'}</span>
-            <span>Pomodoro</span>
-          </button>
-        )}
-
-        {/* Focus mode toggle — top-right pill */}
-        {!focusMode && plan && (
-          <button
-            onClick={() => setFocusMode(true)}
-            style={{
-              position: 'absolute',
-              top: 14,
-              right: 20,
-              zIndex: 20,
-              display: 'flex',
-              alignItems: 'center',
-              gap: 5,
-              padding: '5px 12px',
-              borderRadius: 99,
-              border: `1px solid ${bg(0.10, isDark)}`,
-              background: bg(0.05, isDark),
-              color: tw(0.45, textIntensity, isDark),
-              fontSize: 11,
-              fontWeight: 500,
-              cursor: 'pointer',
-              transition: 'all 0.2s cubic-bezier(.4,0,.2,1)',
-              backdropFilter: 'blur(8px)',
-            }}
-            title="Mode focus (F)"
-          >
-            <span style={{ fontSize: 12 }}>{'\u25C9'}</span>
-            <span>Focus</span>
-          </button>
+          <div style={{
+            display: 'flex',
+            justifyContent: 'flex-end',
+            gap: 8,
+            flexShrink: 0,
+            marginBottom: 4,
+          }}>
+            <button
+              onClick={() => setPomodoroOpen(true)}
+              style={{
+                display: 'flex', alignItems: 'center', gap: 5,
+                padding: '5px 12px', borderRadius: 99,
+                border: `1px solid ${bg(0.10, isDark)}`,
+                background: bg(0.05, isDark),
+                color: tw(0.45, textIntensity, isDark),
+                fontSize: 11, fontWeight: 500, cursor: 'pointer',
+                transition: 'all 0.2s cubic-bezier(.4,0,.2,1)',
+                backdropFilter: 'blur(8px)',
+              }}
+              title="Pomodoro (P)"
+            >
+              <span style={{ fontSize: 12 }}>{'\u25D4'}</span>
+              <span>Pomodoro</span>
+            </button>
+            <button
+              onClick={() => setFocusMode(true)}
+              style={{
+                display: 'flex', alignItems: 'center', gap: 5,
+                padding: '5px 12px', borderRadius: 99,
+                border: `1px solid ${bg(0.10, isDark)}`,
+                background: bg(0.05, isDark),
+                color: tw(0.45, textIntensity, isDark),
+                fontSize: 11, fontWeight: 500, cursor: 'pointer',
+                transition: 'all 0.2s cubic-bezier(.4,0,.2,1)',
+                backdropFilter: 'blur(8px)',
+              }}
+              title="Mode focus (F)"
+            >
+              <span style={{ fontSize: 12 }}>{'\u25C9'}</span>
+              <span>Focus</span>
+            </button>
+          </div>
         )}
         {planRemaining !== null && <RateLimitWarning remaining={planRemaining} endpoint="plan" />}
         {error && (
