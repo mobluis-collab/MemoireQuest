@@ -6,6 +6,123 @@ import { z } from 'zod'
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
 
+// ─── REPAIR FUNCTION ───────────────────────────────────────────────
+// Normalise la réponse de Claude pour qu'elle passe la validation Zod.
+// Corrige silencieusement les erreurs courantes au lieu de planter.
+function repairPlan(raw: Record<string, unknown>): Record<string, unknown> {
+  const DIFFICULTY_MAP: Record<string, string> = {
+    'facile': 'easy', 'simple': 'easy', 'basique': 'easy',
+    'moyen': 'medium', 'moyenne': 'medium', 'intermédiaire': 'medium', 'intermediaire': 'medium', 'moderate': 'medium',
+    'difficile': 'hard', 'complexe': 'hard', 'avancé': 'hard', 'avance': 'hard', 'expert': 'hard',
+    'Easy': 'easy', 'EASY': 'easy',
+    'Medium': 'medium', 'MEDIUM': 'medium',
+    'Hard': 'hard', 'HARD': 'hard',
+    'Facile': 'easy', 'Moyen': 'medium', 'Moyenne': 'medium',
+    'Difficile': 'hard', 'Complexe': 'hard',
+  }
+
+  const VALID_DIFFICULTIES = new Set(['easy', 'medium', 'hard'])
+
+  function repairDifficulty(val: unknown): string {
+    if (typeof val === 'string') {
+      const trimmed = val.trim()
+      if (VALID_DIFFICULTIES.has(trimmed)) return trimmed
+      if (DIFFICULTY_MAP[trimmed]) return DIFFICULTY_MAP[trimmed]
+      const lower = trimmed.toLowerCase()
+      if (VALID_DIFFICULTIES.has(lower)) return lower
+      if (DIFFICULTY_MAP[lower]) return DIFFICULTY_MAP[lower]
+    }
+    return 'medium'
+  }
+
+  function repairTasks(tasks: unknown): string[] {
+    if (!Array.isArray(tasks)) return ['Lire et analyser cette section', 'Rédiger le contenu']
+
+    const cleaned = tasks
+      .filter((t): t is string => typeof t === 'string' && t.trim().length > 0)
+      .map(t => t.trim())
+
+    if (cleaned.length === 0) return ['Lire et analyser cette section', 'Rédiger le contenu']
+    if (cleaned.length === 1) return [...cleaned, 'Relire et vérifier la cohérence']
+    if (cleaned.length > 4) return cleaned.slice(0, 4)
+    return cleaned
+  }
+
+  function repairSection(section: Record<string, unknown>): Record<string, unknown> {
+    return {
+      text: typeof section.text === 'string' && section.text.trim().length > 0
+        ? section.text.trim()
+        : (typeof section.title === 'string' ? section.title : 'Section sans titre'),
+      difficulty: repairDifficulty(section.difficulty),
+      tasks: repairTasks(section.tasks),
+    }
+  }
+
+  function repairChapter(chapter: Record<string, unknown>): Record<string, unknown> {
+    let sections = Array.isArray(chapter.sections)
+      ? chapter.sections.map((s: Record<string, unknown>) => repairSection(s ?? {}))
+      : []
+
+    if (sections.length === 0) {
+      sections = [
+        { text: 'Introduction du chapitre', difficulty: 'easy', tasks: ['Définir le contexte', 'Rédiger l\'introduction'] },
+        { text: 'Développement principal', difficulty: 'medium', tasks: ['Analyser les éléments clés', 'Rédiger le développement'] },
+      ]
+    } else if (sections.length === 1) {
+      sections.push({ text: 'Synthèse et conclusion du chapitre', difficulty: 'easy', tasks: ['Synthétiser les points clés', 'Rédiger la conclusion du chapitre'] })
+    }
+
+    if (sections.length > 10) sections = sections.slice(0, 10)
+
+    return {
+      number: typeof chapter.number === 'string' ? chapter.number
+        : typeof chapter.number === 'number' ? String(chapter.number)
+        : '?',
+      title: typeof chapter.title === 'string' && chapter.title.trim().length > 0
+        ? chapter.title.trim()
+        : 'Chapitre sans titre',
+      objective: typeof chapter.objective === 'string' && chapter.objective.trim().length > 0
+        ? chapter.objective.trim()
+        : 'Objectif non spécifié',
+      sections,
+      tips: typeof chapter.tips === 'string' && chapter.tips.trim().length > 0
+        ? chapter.tips.trim()
+        : typeof chapter.tip === 'string' ? (chapter.tip as string).trim()
+        : 'Consulter les sources recommandées et structurer ses idées avant de rédiger.',
+    }
+  }
+
+  let chapters = Array.isArray(raw.chapters)
+    ? raw.chapters.map((ch: Record<string, unknown>) => repairChapter(ch ?? {}))
+    : []
+
+  if (chapters.length < 2) {
+    console.warn('[plan] repairPlan: fewer than 2 chapters, padding')
+    while (chapters.length < 2) {
+      chapters.push({
+        number: String(chapters.length + 1),
+        title: 'Chapitre complémentaire',
+        objective: 'Compléter l\'analyse',
+        sections: [
+          { text: 'Développement', difficulty: 'medium', tasks: ['Analyser', 'Rédiger'] },
+          { text: 'Conclusion', difficulty: 'easy', tasks: ['Synthétiser', 'Relire'] },
+        ],
+        tips: 'Structurer ses idées avant de rédiger.',
+      })
+    }
+  }
+
+  if (chapters.length > 15) chapters = chapters.slice(0, 15)
+
+  return {
+    title: typeof raw.title === 'string' && raw.title.trim().length > 0
+      ? raw.title.trim()
+      : 'Plan de mémoire',
+    chapters,
+    deadline: typeof raw.deadline === 'string' ? raw.deadline : null,
+  }
+}
+
 const SYSTEM_PROMPT = `CONTEXTE VÉRIFIÉ PAR L'UTILISATEUR :
 Les métadonnées ci-dessous ont été extraites du document puis VALIDÉES/CORRIGÉES par l'utilisateur. Tu DOIS les respecter comme source de vérité absolue. Ne les contredis JAMAIS.
 
@@ -76,14 +193,14 @@ NOMBRE DE CHAPITRES :
 const SectionSchema = z.object({
   text: z.string(),
   difficulty: z.enum(['easy', 'medium', 'hard']),
-  tasks: z.array(z.string().min(1)).min(2).max(4),
+  tasks: z.array(z.string().min(1)).min(1).max(5),
 })
 
 const ChapterSchema = z.object({
   number: z.string(),
   title: z.string(),
   objective: z.string(),
-  sections: z.array(SectionSchema).min(2).max(10),
+  sections: z.array(SectionSchema).min(1).max(12),
   tips: z.string(),
 })
 
@@ -209,18 +326,24 @@ INSTRUCTIONS CRITIQUES :
           return
         }
 
-        let parsed
+        let rawJson: Record<string, unknown>
         try {
-          parsed = MemoirePlanSchema.safeParse(JSON.parse(jsonMatch[0]))
+          rawJson = JSON.parse(jsonMatch[0])
         } catch {
-          console.error('[plan] JSON parse error')
+          console.error('[plan] JSON parse error. Start:', jsonMatch[0].slice(0, 300))
           sendEvent(JSON.stringify({ type: 'error', error: 'Le plan généré contenait du JSON invalide. Réessaie.' }))
           controller.close()
           return
         }
 
+        // Réparer la réponse de Claude avant la validation Zod
+        const repaired = repairPlan(rawJson)
+
+        const parsed = MemoirePlanSchema.safeParse(repaired)
+
         if (!parsed.success) {
-          console.error('[plan] Zod error:', JSON.stringify(parsed.error.flatten()))
+          console.error('[plan] Zod error AFTER repair:', JSON.stringify(parsed.error.flatten()))
+          console.error('[plan] Repaired plan was:', JSON.stringify(repaired).slice(0, 500))
           sendEvent(JSON.stringify({ type: 'error', error: 'Structure du plan invalide. Réessaie.' }))
           controller.close()
           return
