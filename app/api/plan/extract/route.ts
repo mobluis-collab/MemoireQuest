@@ -202,9 +202,33 @@ export async function POST(request: Request) {
           pdfBase64: base64,
           remaining: rateLimit.remaining,
         });
-      } catch (err) {
+      } catch (err: unknown) {
         console.error("[extract] Error:", err);
-        send("error", { error: "Erreur lors de l'analyse du document." });
+
+        let userMessage = "Erreur lors de l'analyse du document.";
+
+        if (err instanceof Anthropic.APIError) {
+          console.error("[extract] Anthropic status:", err.status, "type:", err.error);
+          if (err.status === 401) {
+            userMessage = "Clé API Anthropic invalide. Contacte l'administrateur.";
+          } else if (err.status === 429) {
+            userMessage = "L'API Anthropic est surchargée. Réessaie dans quelques minutes.";
+          } else if (err.status === 529) {
+            userMessage = "L'API Anthropic est temporairement indisponible. Réessaie dans quelques minutes.";
+          } else if (err.status === 400) {
+            userMessage = "Requête invalide vers l'API. Le document est peut-être trop volumineux.";
+          } else {
+            userMessage = `Erreur API (${err.status}). Réessaie dans quelques instants.`;
+          }
+        } else if (err instanceof Error) {
+          if (err.message === "TIMEOUT") {
+            userMessage = "L'analyse a pris trop de temps. Essaie avec un document plus court.";
+          } else {
+            userMessage = `Erreur : ${err.message}`;
+          }
+        }
+
+        send("error", { error: userMessage });
       } finally {
         controller.close();
       }
