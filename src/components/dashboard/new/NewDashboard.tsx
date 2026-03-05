@@ -679,8 +679,10 @@ export default function NewDashboard({
   /* ── Keyboard shortcuts ── */
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      const tag = document.activeElement?.tagName
+      const el = document.activeElement
+      const tag = el?.tagName
       if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return
+      if (el instanceof HTMLElement && el.isContentEditable) return
 
       switch (e.key) {
         case '1':
