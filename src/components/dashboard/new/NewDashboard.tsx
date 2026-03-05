@@ -889,6 +889,26 @@ export default function NewDashboard({
           from { transform: rotate(0deg); }
           to { transform: rotate(360deg); }
         }
+        /* Fix I-beam cursor on non-editable text */
+        .mq-dashboard-scroll,
+        .mq-dashboard-scroll * {
+          cursor: default;
+        }
+        .mq-dashboard-scroll button,
+        .mq-dashboard-scroll a,
+        .mq-dashboard-scroll [role="button"],
+        .mq-dashboard-scroll input,
+        .mq-dashboard-scroll textarea,
+        .mq-dashboard-scroll select {
+          cursor: pointer;
+        }
+        .mq-dashboard-scroll input[type="text"],
+        .mq-dashboard-scroll input[type="search"],
+        .mq-dashboard-scroll input[type="email"],
+        .mq-dashboard-scroll input[type="number"],
+        .mq-dashboard-scroll textarea {
+          cursor: text;
+        }
       `}</style>
 
       <ScrollbarStyle isDark={isDark} />
