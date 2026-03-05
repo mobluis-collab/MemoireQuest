@@ -224,6 +224,11 @@ textarea:focus-visible,
   top: 0;
 }
 
+/* Notes scrollbar */
+.mq-notes-scroll::-webkit-scrollbar { width: 4px; }
+.mq-notes-scroll::-webkit-scrollbar-track { background: transparent; }
+.mq-notes-scroll::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 2px; }
+
 /* Boss Battle shake animation */
 @keyframes shake {
   0%, 100% { transform: translateX(0); }

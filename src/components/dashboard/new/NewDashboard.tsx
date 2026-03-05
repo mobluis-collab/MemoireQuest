@@ -12,6 +12,7 @@ import ExtractionConfirm from './ExtractionConfirm'
 import type { ExtractionResult } from '@/types/extraction'
 import ProgressionView from './ProgressionView'
 import AchievementsView from './AchievementsView'
+import NotesView from './NotesView'
 import { useTheme as useThemeToggle } from '@/context/ThemeProvider'
 import { hexToRgba, tw, bg } from '@/lib/color-utils'
 
@@ -607,12 +608,13 @@ function ScrollbarStyle({ isDark = true }: { isDark?: boolean }) {
 }
 
 /* ─── Nav items ───────────────────────────────────────────────── */
-type ActiveView = 'dashboard' | 'memoire' | 'progression' | 'achievements'
+type ActiveView = 'dashboard' | 'memoire' | 'progression' | 'achievements' | 'notes'
 const NAV: Array<{ icon: string; label: string; view: ActiveView }> = [
   { icon: '⊞', label: 'Dashboard',     view: 'dashboard'     },
   { icon: '◎', label: 'Mon mémoire',   view: 'memoire'       },
   { icon: '◈', label: 'Progression',   view: 'progression'   },
   { icon: '◇', label: 'Trophées',      view: 'achievements'  },
+  { icon: '▤', label: 'Pense-bêtes',   view: 'notes'         },
 ]
 
 /* ─── MAIN COMPONENT ──────────────────────────────────────────── */
@@ -651,6 +653,7 @@ export default function NewDashboard({
   const [focusStartTime, setFocusStartTime] = useState<number | null>(null)
   const [pomodoroOpen, setPomodoroOpen] = useState(false)
   const [manualDeadline, setManualDeadline] = useState('')
+  const [notesCount, setNotesCount] = useState(0)
   const prevChaptersRef = useRef<ChapterData[]>([])
   const reuploadRef = useRef<HTMLInputElement>(null)
 
@@ -691,6 +694,9 @@ export default function NewDashboard({
           break
         case '4':
           handleViewChange('achievements')
+          break
+        case '5':
+          handleViewChange('notes')
           break
         case '[':
           setSidebarCollapsed(prev => !prev)
@@ -1042,7 +1048,18 @@ export default function NewDashboard({
                   color: active ? tw(0.60, textIntensity, isDark) : tw(0.25, textIntensity, isDark),
                   transition: 'color 0.3s cubic-bezier(.4,0,.2,1)',
                 }}>{item.icon}</span>
-                {!sidebarCollapsed && <span>{item.label}</span>}
+                {!sidebarCollapsed && (
+                  <>
+                    <span>{item.label}</span>
+                    {item.view === 'notes' && notesCount > 0 && (
+                      <span style={{
+                        marginLeft: 'auto', fontSize: 11,
+                        background: bg(0.08, isDark), color: tw(0.45, textIntensity, isDark),
+                        padding: '1px 7px', borderRadius: 8,
+                      }}>{notesCount}</span>
+                    )}
+                  </>
+                )}
               </button>
             )
           })}
@@ -1367,6 +1384,13 @@ export default function NewDashboard({
                   accentColor={accentColor}
                   textIntensity={textIntensity}
                   isDark={isDark}
+                />
+              )}
+              {activeView === 'notes' && (
+                <NotesView
+                  textIntensity={textIntensity}
+                  isDark={isDark}
+                  onCountChange={setNotesCount}
                 />
               )}
             </div>
@@ -2019,6 +2043,7 @@ export default function NewDashboard({
                 { keys: '2', desc: 'Mon m\u00E9moire' },
                 { keys: '3', desc: 'Progression' },
                 { keys: '4', desc: 'Troph\u00E9es' },
+                { keys: '5', desc: 'Pense-b\u00EAtes' },
                 { keys: '[ ]', desc: 'Ouvrir / fermer la sidebar' },
                 { keys: 'F', desc: 'Mode focus' },
                 { keys: 'P', desc: 'Pomodoro' },
