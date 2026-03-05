@@ -1079,10 +1079,11 @@ export default function NewDashboard({
   /* ── Dates ── */
   const startDate = useMemo(() => {
     if (planCreatedAt) return new Date(planCreatedAt);
-    const d = new Date();
+    if (!today) return null;
+    const d = new Date(today);
     d.setMonth(d.getMonth() - 3);
     return d;
-  }, [planCreatedAt]);
+  }, [planCreatedAt, today]);
 
   const deadlineDate = useMemo(() => {
     if (plan?.deadline) {
@@ -1092,8 +1093,8 @@ export default function NewDashboard({
     return null;
   }, [plan]);
 
-  const total = deadlineDate ? daysBetween(startDate, deadlineDate) : 0;
-  const elapsed = deadlineDate && today ? Math.min(Math.max(daysBetween(startDate, today), 0), total) : 0;
+  const total = deadlineDate && startDate ? daysBetween(startDate, deadlineDate) : 0;
+  const elapsed = deadlineDate && startDate && today ? Math.min(Math.max(daysBetween(startDate, today), 0), total) : 0;
   const remaining = deadlineDate ? Math.max(total - elapsed, 0) : 0;
   const timePct = deadlineDate && total > 0 ? Math.round((elapsed / total) * 100) : 0;
 
@@ -1957,7 +1958,7 @@ export default function NewDashboard({
                     chapters={chapters}
                     totalPoints={totalPoints}
                     streak={streak}
-                    startDate={startDate}
+                    startDate={startDate!}
                     deadlineDate={deadlineDate ?? undefined}
                     accentColor={accentColor}
                     textIntensity={textIntensity}
@@ -2116,7 +2117,7 @@ export default function NewDashboard({
                             </div>
                           </div>
                           <div style={{ padding: "4px 0" }}>
-                            <DotGrid start={startDate} deadline={deadlineDate} accentColor={accentColor} />
+                            <DotGrid start={startDate!} deadline={deadlineDate} accentColor={accentColor} />
                           </div>
                           {/* Timeline bar */}
                           <div>
@@ -2154,7 +2155,7 @@ export default function NewDashboard({
                             </div>
                             <div style={{ display: "flex", justifyContent: "space-between" }}>
                               <span style={{ fontSize: 10, color: tw(0.5, textIntensity, isDark) }}>
-                                {fmt(startDate)}
+                                {startDate && fmt(startDate)}
                               </span>
                               <span style={{ fontSize: 10, color: tw(0.65, textIntensity, isDark), fontWeight: 600 }}>
                                 {timePct}% du temps écoul{"\u00E9"}
