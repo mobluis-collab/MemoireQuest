@@ -81,27 +81,43 @@ export default function MemoireView({ chapters, questProgress, loadingKey, onSub
     if (slide) slide.scrollIntoView({ behavior: 'smooth' })
   }, [])
 
-  // IntersectionObserver for active chapter tracking
+  // Scroll-based active chapter tracking (fonctionne avec toutes les tailles de chapitre)
   useEffect(() => {
     if (viewMode !== 'detail') return
     const container = snapRef.current
     if (!container) return
 
-    const slides = container.querySelectorAll<HTMLElement>('[data-idx]')
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            const idx = parseInt(entry.target.getAttribute('data-idx') || '0')
-            setActiveChapterIdx(idx)
-          }
-        })
-      },
-      { root: container, threshold: 0.7 }
-    )
+    const handleScroll = () => {
+      const slides = container.querySelectorAll<HTMLElement>('[data-idx]')
+      const containerTop = container.scrollTop
+      const containerHeight = container.clientHeight
+      const midPoint = containerTop + containerHeight * 0.3
 
-    slides.forEach((s) => observer.observe(s))
-    return () => observer.disconnect()
+      let closestIdx = 0
+      let closestDist = Infinity
+
+      slides.forEach((slide) => {
+        const slideTop = slide.offsetTop
+        const slideBottom = slideTop + slide.offsetHeight
+        if (slideTop <= midPoint && slideBottom > midPoint) {
+          closestIdx = parseInt(slide.getAttribute('data-idx') || '0')
+          closestDist = 0
+        } else {
+          const dist = Math.abs(slideTop - midPoint)
+          if (dist < closestDist) {
+            closestDist = dist
+            closestIdx = parseInt(slide.getAttribute('data-idx') || '0')
+          }
+        }
+      })
+
+      setActiveChapterIdx(closestIdx)
+    }
+
+    container.addEventListener('scroll', handleScroll, { passive: true })
+    handleScroll()
+
+    return () => container.removeEventListener('scroll', handleScroll)
   }, [viewMode, chapters.length])
 
   // Scroll to selected chapter on open
@@ -298,7 +314,7 @@ export default function MemoireView({ chapters, questProgress, loadingKey, onSub
           flex: '1 1 0',
           minHeight: 0,
           overflowY: 'auto',
-          scrollSnapType: 'y mandatory',
+          scrollSnapType: 'y proximity',
           scrollBehavior: 'smooth',
         }}
       >
@@ -570,8 +586,10 @@ export default function MemoireView({ chapters, questProgress, loadingKey, onSub
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
-        gap: 6,
+        gap: chapters.length > 8 ? 4 : 6,
         zIndex: 10,
+        maxHeight: '60%',
+        overflowY: 'hidden',
       }}>
         {chapters.map((_, idx) => (
           <div
@@ -579,7 +597,7 @@ export default function MemoireView({ chapters, questProgress, loadingKey, onSub
             onClick={() => scrollToChapter(idx)}
             style={{
               width: activeChapterIdx === idx ? 6 : 5,
-              height: activeChapterIdx === idx ? 18 : 5,
+              height: activeChapterIdx === idx ? (chapters.length > 8 ? 12 : 18) : 5,
               borderRadius: 99,
               background: activeChapterIdx === idx
                 ? tw(0.6, textIntensity, isDark)
