@@ -140,16 +140,16 @@ function TrophyCard({
         ...(isSummit ? { maxWidth: 220 } : {}),
         // Background & border
         background: isHovered
-          ? (u ? bg(0.06, isDark) : bg(0.03, isDark))
-          : (u ? bg(0.04, isDark) : bg(0.015, isDark)),
+          ? (u ? bg(0.10, isDark) : bg(0.07, isDark))
+          : (u ? bg(0.08, isDark) : bg(0.05, isDark)),
         border: `1px solid ${isHovered
-          ? (u ? bg(0.10, isDark) : bg(0.08, isDark))
+          ? (u ? bg(0.35, isDark) : bg(0.20, isDark))
           : (u
-            ? bg(isSummit ? 0.14 : 0.10, isDark)
-            : bg(0.05, isDark))
+            ? bg(0.30, isDark)
+            : bg(0.15, isDark))
         }`,
         transform: isHovered ? 'translateY(-3px)' : 'translateY(0)',
-        boxShadow: isHovered && u ? `0 4px 30px ${bg(0.04, isDark)}` : 'none',
+        boxShadow: isHovered && u ? `0 4px 30px ${bg(0.08, isDark)}` : 'none',
       }}
     >
       {/* Icon container with hexagon background */}
@@ -165,8 +165,8 @@ function TrophyCard({
         <svg viewBox="0 0 48 48" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%' }}>
           <polygon
             points="24,3 44,14 44,34 24,45 4,34 4,14"
-            fill={u ? bg(0.06, isDark) : bg(0.03, isDark)}
-            stroke={u ? bg(0.12, isDark) : bg(0.06, isDark)}
+            fill={u ? bg(0.08, isDark) : bg(0.08, isDark)}
+            stroke={u ? bg(0.25, isDark) : bg(0.25, isDark)}
             strokeWidth="0.8"
           />
         </svg>
@@ -176,7 +176,7 @@ function TrophyCard({
           <TrophyIcon
             id={achievement.id}
             size={iconSize}
-            color={u ? tw(0.70, textIntensity, isDark) : tw(0.15, textIntensity, isDark)}
+            color={u ? tw(0.90, textIntensity, isDark) : tw(0.70, textIntensity, isDark)}
           />
         </div>
 
@@ -184,7 +184,7 @@ function TrophyCard({
         {!u && (
           <svg
             width="14" height="14" viewBox="0 0 24 24" fill="none"
-            stroke={tw(0.12, textIntensity, isDark)} strokeWidth="1.5"
+            stroke={tw(0.40, textIntensity, isDark)} strokeWidth="1.5"
             strokeLinecap="round" strokeLinejoin="round"
             style={{ position: 'absolute', bottom: 0, right: 0, zIndex: 2 }}
           >
@@ -199,7 +199,7 @@ function TrophyCard({
         fontSize: 12,
         fontWeight: 600,
         letterSpacing: '-0.1px',
-        color: u ? tw(0.70, textIntensity, isDark) : tw(0.22, textIntensity, isDark),
+        color: u ? tw(0.90, textIntensity, isDark) : tw(0.60, textIntensity, isDark),
         lineHeight: '1.3',
       }}>
         {achievement.title}
@@ -208,7 +208,7 @@ function TrophyCard({
       {/* Description */}
       <div style={{
         fontSize: 11,
-        color: u ? tw(0.30, textIntensity, isDark) : tw(0.13, textIntensity, isDark),
+        color: u ? tw(0.70, textIntensity, isDark) : tw(0.45, textIntensity, isDark),
         lineHeight: '1.4',
       }}>
         {achievement.description}
@@ -221,14 +221,14 @@ function TrophyCard({
             width: '100%',
             height: 2,
             borderRadius: 99,
-            background: bg(0.05, isDark),
+            background: bg(0.10, isDark),
             overflow: 'hidden',
             marginTop: 2,
           }}>
             <div style={{
               height: '100%',
               borderRadius: 99,
-              background: tw(0.20, textIntensity, isDark),
+              background: tw(0.50, textIntensity, isDark),
               width: `${pct}%`,
               transition: 'width 0.6s cubic-bezier(.4,0,.2,1)',
             }} />
@@ -236,7 +236,7 @@ function TrophyCard({
           <span style={{
             fontSize: 10,
             fontWeight: 500,
-            color: tw(0.18, textIntensity, isDark),
+            color: tw(0.50, textIntensity, isDark),
             fontVariantNumeric: 'tabular-nums',
           }}>
             {achievement.progress!.current} / {achievement.progress!.target}
@@ -248,7 +248,7 @@ function TrophyCard({
       {u && (
         <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginTop: 2 }}>
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none"
-            stroke={tw(0.40, textIntensity, isDark)} strokeWidth="2"
+            stroke={tw(0.90, textIntensity, isDark)} strokeWidth="2"
             strokeLinecap="round" strokeLinejoin="round">
             <polyline points="20 6 9 17 4 12"/>
           </svg>
@@ -257,7 +257,7 @@ function TrophyCard({
             fontWeight: 600,
             letterSpacing: '0.6px',
             textTransform: 'uppercase',
-            color: tw(0.30, textIntensity, isDark),
+            color: tw(0.90, textIntensity, isDark),
           }}>
             d{'\u00e9'}bloqu{'\u00e9'}
           </span>
@@ -338,7 +338,7 @@ export default function AchievementsView({
             {i > 0 && (
               <div style={{
                 height: 1,
-                background: `linear-gradient(90deg, transparent, ${bg(0.05, isDark)} 30%, ${bg(0.05, isDark)} 70%, transparent)`,
+                background: `linear-gradient(90deg, transparent, ${bg(0.10, isDark)} 30%, ${bg(0.10, isDark)} 70%, transparent)`,
                 margin: '4px 0 24px 0',
               }} />
             )}
@@ -349,7 +349,7 @@ export default function AchievementsView({
               fontWeight: 600,
               letterSpacing: '1.2px',
               textTransform: 'uppercase',
-              color: tw(0.20, textIntensity, isDark),
+              color: tw(0.60, textIntensity, isDark),
               marginBottom: 12,
               paddingLeft: 2,
             }}>

@@ -1,0 +1,771 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MemoireView — Scroll Snap TikTok</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #04030e; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; color: rgba(255,255,255,0.9); overflow: hidden; height: 100vh; }
+
+  .container {
+    display: flex;
+    height: 100vh;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  /* Sidebar placeholder */
+  .sidebar {
+    width: 200px;
+    flex-shrink: 0;
+    border-right: 1px solid rgba(255,255,255,0.06);
+    padding: 20px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .sidebar-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: rgba(255,255,255,0.9);
+    margin-bottom: 16px;
+  }
+  .sidebar-item {
+    font-size: 12px;
+    color: rgba(255,255,255,0.4);
+    padding: 8px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+  }
+  .sidebar-item.active {
+    color: rgba(255,255,255,0.85);
+    background: rgba(255,255,255,0.06);
+  }
+
+  /* Main content area */
+  .main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    position: relative;
+  }
+
+  /* Top bar — fixed */
+  .topbar {
+    flex-shrink: 0;
+    padding: 14px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+    background: #04030e;
+    z-index: 10;
+  }
+  .back-btn {
+    background: none;
+    border: none;
+    color: rgba(255,255,255,0.5);
+    font-size: 12px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-family: inherit;
+  }
+  .back-btn:hover { color: rgba(255,255,255,0.7); }
+
+  .chapter-counter {
+    font-size: 11px;
+    color: rgba(255,255,255,0.4);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .chapter-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.1);
+    transition: all 0.3s ease;
+  }
+  .chapter-dot.active {
+    background: rgba(255,255,255,0.6);
+    width: 18px;
+    border-radius: 3px;
+  }
+  .chapter-dot.done {
+    background: rgba(255,255,255,0.25);
+  }
+
+  /* Scroll snap container — THIS IS THE KEY */
+  .snap-container {
+    flex: 1;
+    overflow-y: auto;
+    scroll-snap-type: y mandatory;
+    scroll-behavior: smooth;
+  }
+
+  /* Each chapter = one snap target */
+  .chapter-slide {
+    scroll-snap-align: start;
+    min-height: 100%;
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    /* Allow internal scroll when content overflows */
+    overflow-y: auto;
+  }
+
+  /* Scroll indicator */
+  .scroll-hint {
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    opacity: 0.3;
+    animation: bounce 2s infinite;
+    pointer-events: none;
+    z-index: 5;
+  }
+  .scroll-hint span {
+    font-size: 10px;
+    color: rgba(255,255,255,0.5);
+  }
+  .scroll-arrow {
+    width: 20px;
+    height: 20px;
+    border-left: 1.5px solid rgba(255,255,255,0.4);
+    border-bottom: 1.5px solid rgba(255,255,255,0.4);
+    transform: rotate(-45deg);
+  }
+  @keyframes bounce {
+    0%, 100% { transform: translateX(-50%) translateY(0); }
+    50% { transform: translateX(-50%) translateY(6px); }
+  }
+
+  /* Chapter content styling */
+  .ch-number {
+    font-size: 11px;
+    font-weight: 600;
+    color: rgba(255,255,255,0.35);
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+  }
+  .ch-title {
+    font-size: 20px;
+    font-weight: 700;
+    color: rgba(255,255,255,0.9);
+    letter-spacing: -0.4px;
+    line-height: 1.3;
+    margin: 8px 0 12px;
+  }
+  .ch-progress-bar {
+    height: 4px;
+    border-radius: 99px;
+    background: rgba(255,255,255,0.06);
+    overflow: hidden;
+    margin-bottom: 4px;
+  }
+  .ch-progress-fill {
+    height: 100%;
+    border-radius: 99px;
+    background: #6366f1;
+    transition: width 0.6s cubic-bezier(.4,0,.2,1);
+  }
+  .ch-stats {
+    font-size: 11px;
+    color: rgba(255,255,255,0.35);
+    margin-bottom: 16px;
+  }
+  .ch-stats strong { color: rgba(255,255,255,0.6); font-weight: 600; }
+
+  .objective-box {
+    padding: 8px 12px;
+    border-radius: 8px;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.06);
+    margin-bottom: 8px;
+  }
+  .objective-label {
+    font-size: 10px;
+    font-weight: 600;
+    color: rgba(255,255,255,0.25);
+    letter-spacing: 0.3px;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+  .objective-text {
+    font-size: 13px;
+    line-height: 1.5;
+    color: rgba(255,255,255,0.65);
+  }
+
+  .tips-box {
+    padding: 8px 12px;
+    border-radius: 8px;
+    background: rgba(255,255,255,0.03);
+    border-left: 3px solid rgba(255,255,255,0.10);
+    margin-bottom: 12px;
+  }
+  .tips-label {
+    font-size: 10px;
+    color: rgba(255,255,255,0.25);
+    font-weight: 600;
+    letter-spacing: 0.3px;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+  .tips-text {
+    font-size: 12px;
+    line-height: 1.55;
+    color: rgba(255,255,255,0.40);
+    font-style: italic;
+  }
+
+  /* Section card */
+  .section-card {
+    border-radius: 10px;
+    border: 1px solid rgba(255,255,255,0.06);
+    background: rgba(255,255,255,0.04);
+    margin-bottom: 8px;
+    overflow: hidden;
+  }
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 11px 16px;
+  }
+  .section-num {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1.5px solid rgba(255,255,255,0.12);
+    font-size: 10px;
+    color: rgba(255,255,255,0.45);
+    flex-shrink: 0;
+  }
+  .section-num.done {
+    background: rgba(255,255,255,0.60);
+    border-color: rgba(255,255,255,0.25);
+    color: rgba(255,255,255,0.92);
+  }
+  .section-title {
+    font-size: 13px;
+    font-weight: 500;
+    color: rgba(255,255,255,0.85);
+    flex: 1;
+  }
+  .section-difficulty {
+    font-size: 9px;
+    font-weight: 600;
+    padding: 2px 7px;
+    border-radius: 99px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.08);
+    color: rgba(255,255,255,0.35);
+  }
+
+  /* Subtasks */
+  .subtasks {
+    padding: 0 16px 12px 52px;
+  }
+  .subtask {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 7px 0;
+    border-top: 1px solid rgba(255,255,255,0.04);
+    cursor: pointer;
+  }
+  .subtask:first-child { border-top: none; }
+  .checkbox {
+    width: 16px;
+    height: 16px;
+    border-radius: 4px;
+    border: 1.5px solid rgba(255,255,255,0.15);
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 9px;
+  }
+  .checkbox.checked {
+    background: rgba(255,255,255,0.70);
+    border-color: rgba(255,255,255,0.25);
+    color: rgba(255,255,255,0.92);
+  }
+  .subtask-text {
+    font-size: 12px;
+    line-height: 1.4;
+    color: rgba(255,255,255,0.45);
+  }
+  .subtask-text.checked {
+    color: rgba(255,255,255,0.30);
+    text-decoration: line-through;
+    text-decoration-color: rgba(255,255,255,0.15);
+  }
+
+  /* Chapter divider between slides */
+  .chapter-slide + .chapter-slide {
+    border-top: 1px solid rgba(255,255,255,0.04);
+  }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    .sidebar { display: none; }
+    .chapter-slide { padding: 16px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <div class="sidebar-title">maimouarkwest</div>
+    <div class="sidebar-item">Dashboard</div>
+    <div class="sidebar-item active">Mon mémoire</div>
+    <div class="sidebar-item">Progression</div>
+    <div class="sidebar-item">Trophées</div>
+  </div>
+
+  <!-- Main -->
+  <div class="main">
+    <!-- Top bar -->
+    <div class="topbar">
+      <button class="back-btn" onclick="document.getElementById('snap').style.scrollSnapType='none'; setTimeout(()=>{document.getElementById('snap').scrollTop=0; document.getElementById('snap').style.scrollSnapType='y mandatory';},50);">
+        <span style="font-size:14px">‹</span> Vue d'ensemble
+      </button>
+      <div class="chapter-counter" id="dots">
+        <!-- Dots generated by JS -->
+      </div>
+    </div>
+
+    <!-- Scroll snap container -->
+    <div class="snap-container" id="snap">
+      <!-- Chapter 1 -->
+      <div class="chapter-slide" data-idx="0">
+        <div class="ch-number">1</div>
+        <div class="ch-title">Introduction et présentation du contexte</div>
+        <div class="ch-progress-bar"><div class="ch-progress-fill" style="width:0%"></div></div>
+        <div class="ch-stats">0/2 sections · <strong>0%</strong></div>
+
+        <div class="objective-box">
+          <div class="objective-label">Objectif</div>
+          <div class="objective-text">Présenter le cadre général du projet professionnel de communication, définir la problématique et annoncer la structure du mémoire.</div>
+        </div>
+
+        <div class="tips-box">
+          <div class="tips-label">Conseils du cahier des charges</div>
+          <div class="tips-text">Soigne ton accroche : elle doit capter l'attention du lecteur et poser le cadre de ton projet. Reste concis et professionnel.</div>
+        </div>
+
+        <div class="section-card">
+          <div class="section-header">
+            <div class="section-num">1</div>
+            <div class="section-title">Introduction générale</div>
+            <div class="section-difficulty">facile</div>
+          </div>
+          <div class="subtasks">
+            <div class="subtask"><div class="checkbox"></div><span class="subtask-text">Rédiger une accroche contextualisante</span></div>
+            <div class="subtask"><div class="checkbox"></div><span class="subtask-text">Présenter l'objectif du mémoire</span></div>
+            <div class="subtask"><div class="checkbox"></div><span class="subtask-text">Annoncer le plan du document</span></div>
+          </div>
+        </div>
+
+        <div class="section-card">
+          <div class="section-header">
+            <div class="section-num">2</div>
+            <div class="section-title">Contexte et enjeux du projet</div>
+            <div class="section-difficulty">facile</div>
+          </div>
+          <div class="subtasks">
+            <div class="subtask"><div class="checkbox"></div><span class="subtask-text">Décrire le contexte dans lequel s'inscrit le projet</span></div>
+            <div class="subtask"><div class="checkbox"></div><span class="subtask-text">Identifier les enjeux de communication du client</span></div>
+            <div class="subtask"><div class="checkbox"></div><span class="subtask-text">Justifier l'importance du projet professionnel</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Chapter 2 -->
+      <div class="chapter-slide" data-idx="1">
+        <div class="ch-number">2</div>
+        <div class="ch-title">Analyse stratégique et diagnostic</div>
+        <div class="ch-progress-bar"><div class="ch-progress-fill" style="width:33%"></div></div>
+        <div class="ch-stats">1/3 sections · <strong>33%</strong></div>
+
+        <div class="objective-box">
+          <div class="objective-label">Objectif</div>
+          <div class="objective-text">Analyser l'environnement, le marché et la concurrence pour établir un diagnostic stratégique complet.</div>
+        </div>
+
+        <div class="section-card">
+          <div class="section-header">
+            <div class="section-num done">✓</div>
+            <div class="section-title" style="color:rgba(255,255,255,0.5)">Analyse de l'existant</div>
+            <div class="section-difficulty">moyen</div>
+          </div>
+          <div class="subtasks">
+            <div class="subtask"><div class="checkbox checked">✓</div><span class="subtask-text checked">Étudier la communication actuelle du client</span></div>
+            <div class="subtask"><div class="checkbox checked">✓</div><span class="subtask-text checked">Analyser les forces et faiblesses</span></div>
+            <div class="subtask"><div class="checkbox checked">✓</div><span class="subtask-text checked">Benchmark concurrentiel</span></div>
+          </div>
+        </div>
+
+        <div class="section-card">
+          <div class="section-header">
+            <div class="section-num">2</div>
+            <div class="section-title">Étude de marché</div>
+            <div class="section-difficulty">difficile</div>
+          </div>
+          <div class="subtasks">
+            <div class="subtask"><div class="checkbox"></div><span class="subtask-text">Identifier les tendances du secteur</span></div>
+            <div class="subtask"><div class="checkbox"></div><span class="subtask-text">Analyser le comportement des cibles</span></div>
+            <div class="subtask"><div class="checkbox"></div><span class="subtask-text">Synthétiser les opportunités</span></div>
+          </div>
+        </div>
+
+        <div class="section-card">
+          <div class="section-header">
+            <div class="section-num">3</div>
+            <div class="section-title">Diagnostic SWOT</div>
+            <div class="section-difficulty">moyen</div>
+          </div>
+          <div class="subtasks">
+            <div class="subtask"><div class="checkbox"></div><span class="subtask-text">Construire la matrice SWOT</span></div>
+            <div class="subtask"><div class="checkbox"></div><span class="subtask-text">Formuler les axes stratégiques</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Chapter 3 -->
+      <div class="chapter-slide" data-idx="2">
+        <div class="ch-number">3</div>
+        <div class="ch-title">Stratégie de communication</div>
+        <div class="ch-progress-bar"><div class="ch-progress-fill" style="width:0%"></div></div>
+        <div class="ch-stats">0/3 sections · <strong>0%</strong></div>
+
+        <div class="objective-box">
+          <div class="objective-label">Objectif</div>
+          <div class="objective-text">Définir la stratégie de communication en cohérence avec le diagnostic établi et les objectifs du client.</div>
+        </div>
+
+        <div class="tips-box">
+          <div class="tips-label">Conseils du cahier des charges</div>
+          <div class="tips-text">Assure-toi que ta stratégie découle logiquement de ton diagnostic. Le jury attend une cohérence entre l'analyse et les recommandations.</div>
+        </div>
+
+        <div class="section-card">
+          <div class="section-header">
+            <div class="section-num">1</div>
+            <div class="section-title">Objectifs de communication</div>
+            <div class="section-difficulty">moyen</div>
+          </div>
+          <div class="subtasks">
+            <div class="subtask"><div class="checkbox"></div><span class="subtask-text">Définir les objectifs cognitifs, affectifs et conatifs</span></div>
+            <div class="subtask"><div class="checkbox"></div><span class="subtask-text">Hiérarchiser les objectifs</span></div>
+          </div>
+        </div>
+
+        <div class="section-card">
+          <div class="section-header">
+            <div class="section-num">2</div>
+            <div class="section-title">Cibles et positionnement</div>
+            <div class="section-difficulty">moyen</div>
+          </div>
+          <div class="subtasks">
+            <div class="subtask"><div class="checkbox"></div><span class="subtask-text">Identifier et caractériser les cibles</span></div>
+            <div class="subtask"><div class="checkbox"></div><span class="subtask-text">Définir le positionnement souhaité</span></div>
+            <div class="subtask"><div class="checkbox"></div><span class="subtask-text">Formuler l'axe de communication</span></div>
+          </div>
+        </div>
+
+        <div class="section-card">
+          <div class="section-header">
+            <div class="section-num">3</div>
+            <div class="section-title">Mix de communication</div>
+            <div class="section-difficulty">difficile</div>
+          </div>
+          <div class="subtasks">
+            <div class="subtask"><div class="checkbox"></div><span class="subtask-text">Choisir les canaux et supports</span></div>
+            <div class="subtask"><div class="checkbox"></div><span class="subtask-text">Planifier les actions</span></div>
+            <div class="subtask"><div class="checkbox"></div><span class="subtask-text">Établir le budget prévisionnel</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Chapters 4-11 (simplified for mockup) -->
+      <div class="chapter-slide" data-idx="3">
+        <div class="ch-number">4</div>
+        <div class="ch-title">Plan d'actions opérationnel</div>
+        <div class="ch-progress-bar"><div class="ch-progress-fill" style="width:0%"></div></div>
+        <div class="ch-stats">0/2 sections · <strong>0%</strong></div>
+        <div class="objective-box">
+          <div class="objective-label">Objectif</div>
+          <div class="objective-text">Détailler les actions concrètes à mettre en œuvre pour déployer la stratégie de communication.</div>
+        </div>
+        <div class="section-card">
+          <div class="section-header">
+            <div class="section-num">1</div>
+            <div class="section-title">Planning et rétro-planning</div>
+            <div class="section-difficulty">moyen</div>
+          </div>
+        </div>
+        <div class="section-card">
+          <div class="section-header">
+            <div class="section-num">2</div>
+            <div class="section-title">Livrables et KPIs</div>
+            <div class="section-difficulty">difficile</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="chapter-slide" data-idx="4">
+        <div class="ch-number">5</div>
+        <div class="ch-title">Créations et productions</div>
+        <div class="ch-progress-bar"><div class="ch-progress-fill" style="width:50%"></div></div>
+        <div class="ch-stats">1/2 sections · <strong>50%</strong></div>
+        <div class="objective-box">
+          <div class="objective-label">Objectif</div>
+          <div class="objective-text">Présenter les créations graphiques et rédactionnelles produites dans le cadre du projet.</div>
+        </div>
+        <div class="section-card">
+          <div class="section-header">
+            <div class="section-num done">✓</div>
+            <div class="section-title" style="color:rgba(255,255,255,0.5)">Charte graphique</div>
+            <div class="section-difficulty">difficile</div>
+          </div>
+        </div>
+        <div class="section-card">
+          <div class="section-header">
+            <div class="section-num">2</div>
+            <div class="section-title">Supports de communication</div>
+            <div class="section-difficulty">difficile</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="chapter-slide" data-idx="5">
+        <div class="ch-number">6</div>
+        <div class="ch-title">Mise en œuvre et suivi</div>
+        <div class="ch-progress-bar"><div class="ch-progress-fill" style="width:0%"></div></div>
+        <div class="ch-stats">0/2 sections · <strong>0%</strong></div>
+        <div class="objective-box">
+          <div class="objective-label">Objectif</div>
+          <div class="objective-text">Documenter la mise en œuvre des actions et le suivi des résultats obtenus.</div>
+        </div>
+        <div class="section-card">
+          <div class="section-header">
+            <div class="section-num">1</div>
+            <div class="section-title">Déploiement des actions</div>
+            <div class="section-difficulty">moyen</div>
+          </div>
+        </div>
+        <div class="section-card">
+          <div class="section-header">
+            <div class="section-num">2</div>
+            <div class="section-title">Mesure des résultats</div>
+            <div class="section-difficulty">moyen</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="chapter-slide" data-idx="6">
+        <div class="ch-number">7</div>
+        <div class="ch-title">Bilan et analyse critique</div>
+        <div class="ch-progress-bar"><div class="ch-progress-fill" style="width:0%"></div></div>
+        <div class="ch-stats">0/2 sections · <strong>0%</strong></div>
+        <div class="objective-box">
+          <div class="objective-label">Objectif</div>
+          <div class="objective-text">Tirer les enseignements du projet et proposer une analyse réflexive de la démarche.</div>
+        </div>
+        <div class="section-card">
+          <div class="section-header">
+            <div class="section-num">1</div>
+            <div class="section-title">Bilan quantitatif et qualitatif</div>
+            <div class="section-difficulty">moyen</div>
+          </div>
+        </div>
+        <div class="section-card">
+          <div class="section-header">
+            <div class="section-num">2</div>
+            <div class="section-title">Analyse critique personnelle</div>
+            <div class="section-difficulty">facile</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="chapter-slide" data-idx="7">
+        <div class="ch-number">8</div>
+        <div class="ch-title">Compétences développées en alternance</div>
+        <div class="ch-progress-bar"><div class="ch-progress-fill" style="width:0%"></div></div>
+        <div class="ch-stats">0/3 sections · <strong>0%</strong></div>
+        <div class="objective-box">
+          <div class="objective-label">Objectif</div>
+          <div class="objective-text">Valoriser les compétences professionnelles acquises durant l'alternance en lien avec le référentiel.</div>
+        </div>
+        <div class="section-card">
+          <div class="section-header">
+            <div class="section-num">1</div>
+            <div class="section-title">Compétences techniques</div>
+            <div class="section-difficulty">moyen</div>
+          </div>
+        </div>
+        <div class="section-card">
+          <div class="section-header">
+            <div class="section-num">2</div>
+            <div class="section-title">Compétences transversales</div>
+            <div class="section-difficulty">facile</div>
+          </div>
+        </div>
+        <div class="section-card">
+          <div class="section-header">
+            <div class="section-num">3</div>
+            <div class="section-title">Auto-évaluation et progression</div>
+            <div class="section-difficulty">facile</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="chapter-slide" data-idx="8">
+        <div class="ch-number">9</div>
+        <div class="ch-title">Recommandations et perspectives</div>
+        <div class="ch-progress-bar"><div class="ch-progress-fill" style="width:0%"></div></div>
+        <div class="ch-stats">0/2 sections · <strong>0%</strong></div>
+        <div class="objective-box">
+          <div class="objective-label">Objectif</div>
+          <div class="objective-text">Formuler des recommandations pour la suite du projet et les perspectives d'évolution.</div>
+        </div>
+        <div class="section-card">
+          <div class="section-header">
+            <div class="section-num">1</div>
+            <div class="section-title">Recommandations stratégiques</div>
+            <div class="section-difficulty">difficile</div>
+          </div>
+        </div>
+        <div class="section-card">
+          <div class="section-header">
+            <div class="section-num">2</div>
+            <div class="section-title">Perspectives et évolutions</div>
+            <div class="section-difficulty">moyen</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="chapter-slide" data-idx="9">
+        <div class="ch-number">10</div>
+        <div class="ch-title">Conclusion générale</div>
+        <div class="ch-progress-bar"><div class="ch-progress-fill" style="width:0%"></div></div>
+        <div class="ch-stats">0/1 sections · <strong>0%</strong></div>
+        <div class="objective-box">
+          <div class="objective-label">Objectif</div>
+          <div class="objective-text">Conclure le mémoire en synthétisant la démarche, les résultats et l'apport personnel.</div>
+        </div>
+        <div class="tips-box">
+          <div class="tips-label">Conseils du cahier des charges</div>
+          <div class="tips-text">Ta conclusion doit répondre à la problématique posée en introduction. Fais le lien entre ton analyse et les résultats concrets.</div>
+        </div>
+        <div class="section-card">
+          <div class="section-header">
+            <div class="section-num">1</div>
+            <div class="section-title">Synthèse et ouverture</div>
+            <div class="section-difficulty">moyen</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="chapter-slide" data-idx="10">
+        <div class="ch-number">11</div>
+        <div class="ch-title">Annexes et bibliographie</div>
+        <div class="ch-progress-bar"><div class="ch-progress-fill" style="width:0%"></div></div>
+        <div class="ch-stats">0/2 sections · <strong>0%</strong></div>
+        <div class="objective-box">
+          <div class="objective-label">Objectif</div>
+          <div class="objective-text">Compiler les documents annexes et les références bibliographiques utilisées.</div>
+        </div>
+        <div class="section-card">
+          <div class="section-header">
+            <div class="section-num">1</div>
+            <div class="section-title">Bibliographie et sitographie</div>
+            <div class="section-difficulty">facile</div>
+          </div>
+        </div>
+        <div class="section-card">
+          <div class="section-header">
+            <div class="section-num">2</div>
+            <div class="section-title">Annexes documentaires</div>
+            <div class="section-difficulty">facile</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Scroll hint -->
+    <div class="scroll-hint" id="scrollHint">
+      <div class="scroll-arrow"></div>
+      <span>scroll</span>
+    </div>
+  </div>
+</div>
+
+<script>
+  const snap = document.getElementById('snap');
+  const dotsContainer = document.getElementById('dots');
+  const scrollHint = document.getElementById('scrollHint');
+  const slides = document.querySelectorAll('.chapter-slide');
+  const totalSlides = slides.length;
+
+  // Generate dots
+  for (let i = 0; i < totalSlides; i++) {
+    const dot = document.createElement('div');
+    dot.className = 'chapter-dot' + (i === 0 ? ' active' : '');
+    dot.dataset.idx = i;
+    dot.style.cursor = 'pointer';
+    dot.addEventListener('click', () => {
+      slides[i].scrollIntoView({ behavior: 'smooth' });
+    });
+    dotsContainer.appendChild(dot);
+  }
+
+  // Update dots + counter on scroll
+  let currentIdx = 0;
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const idx = parseInt(entry.target.dataset.idx);
+        currentIdx = idx;
+        document.querySelectorAll('.chapter-dot').forEach((d, i) => {
+          d.className = 'chapter-dot' + (i === idx ? ' active' : '');
+        });
+        // Hide scroll hint after first scroll
+        if (idx > 0) scrollHint.style.opacity = '0';
+      }
+    });
+  }, { root: snap, threshold: 0.6 });
+
+  slides.forEach(s => observer.observe(s));
+
+  // Keyboard nav
+  window.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowDown' || e.key === 'ArrowRight') {
+      e.preventDefault();
+      if (currentIdx < totalSlides - 1) slides[currentIdx + 1].scrollIntoView({ behavior: 'smooth' });
+    } else if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') {
+      e.preventDefault();
+      if (currentIdx > 0) slides[currentIdx - 1].scrollIntoView({ behavior: 'smooth' });
+    }
+  });
+</script>
+
+</body>
+</html>
