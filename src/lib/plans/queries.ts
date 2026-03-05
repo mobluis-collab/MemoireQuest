@@ -31,8 +31,14 @@ export async function getUserPlan(userId: string): Promise<PlanRow | null> {
 
 export async function savePlan(client: SupabaseClient, userId: string, title: string, planData: MemoirePlan) {
   const supabase = client
-  // Upsert : supprime l'ancien plan et insère le nouveau
-  await supabase.from('memoir_plans').delete().eq('user_id', userId)
+
+  // Récupérer les IDs des anciens plans AVANT d'insérer le nouveau
+  const { data: oldPlans } = await supabase
+    .from('memoir_plans')
+    .select('id')
+    .eq('user_id', userId)
+
+  // Insérer le nouveau plan d'abord (si ça échoue, l'ancien reste intact)
   const { data, error } = await supabase
     .from('memoir_plans')
     .insert({
@@ -48,5 +54,12 @@ export async function savePlan(client: SupabaseClient, userId: string, title: st
     .select()
     .single()
   if (error) throw error
+
+  // Supprimer les anciens plans seulement après succès de l'insert
+  if (oldPlans && oldPlans.length > 0) {
+    const oldIds = oldPlans.map(p => p.id)
+    await supabase.from('memoir_plans').delete().in('id', oldIds)
+  }
+
   return data
 }

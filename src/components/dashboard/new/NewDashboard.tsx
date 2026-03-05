@@ -815,10 +815,13 @@ export default function NewDashboard({
   /* ── Re-upload ── */
   const handleReupload = useCallback((e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
-    if (file) {
-      onUpload(file)
-      if (reuploadRef.current) reuploadRef.current.value = ''
-    }
+    if (!file) return
+    if (reuploadRef.current) reuploadRef.current.value = ''
+    const confirmed = window.confirm(
+      'Attention : ré-importer un PDF va réinitialiser ton plan et ta progression. Continuer ?'
+    )
+    if (!confirmed) return
+    onUpload(file)
   }, [onUpload])
 
   /* ── Save manual deadline ── */

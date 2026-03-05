@@ -8,7 +8,7 @@ export const maxDuration = 120
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
 
-const PLAN_LIMIT = 10
+const PLAN_LIMIT = 3
 
 const EXTRACT_PROMPT = `Tu es un expert en méthodologie de mémoire académique. Ton UNIQUE rôle est d'analyser le cahier des charges / document PDF fourni et d'en EXTRAIRE les métadonnées structurées.
 
