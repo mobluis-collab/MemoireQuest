@@ -111,8 +111,9 @@ export default function PomodoroTimer({ isOpen, onClose, textIntensity = 1.0, is
       alignItems: 'center',
       justifyContent: 'center',
       flexDirection: 'column',
-      background: isDark ? 'rgba(4,3,14,0.92)' : 'rgba(255,255,255,0.95)',
-      backdropFilter: 'blur(20px)',
+      background: isDark ? 'rgba(4,3,14,0.55)' : 'rgba(255,255,255,0.45)',
+      backdropFilter: 'blur(40px)',
+      WebkitBackdropFilter: 'blur(40px)',
       animation: 'mq-overlay-in 0.25s ease both',
     }}>
       {/* Close button */}

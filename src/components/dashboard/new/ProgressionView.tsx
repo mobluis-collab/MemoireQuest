@@ -71,6 +71,7 @@ export default function ProgressionView({ chapters, totalPoints, streak, startDa
   const [bestScore, setBestScore] = useState(0)
   const [gameActive, setGameActive] = useState(false)
   const [gameOver, setGameOver] = useState(false)
+  const [waitingToStart, setWaitingToStart] = useState(true)
 
   const initGame = useCallback((W: number, H: number) => {
     const groundY = H * 0.80
@@ -410,10 +411,107 @@ export default function ProgressionView({ chapters, totalPoints, streak, startDa
     }
   }, [initGame, drawGame])
 
-  // Start on mount, handle resize
+  // Keyboard listener to start game from waiting state
   useEffect(() => {
-    let cleanup: (() => void) | undefined
+    if (!waitingToStart) return
+    const onKey = (e: KeyboardEvent) => {
+      if (e.code === 'Space' || e.code === 'ArrowUp') {
+        const tag = document.activeElement?.tagName
+        if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return
+        e.preventDefault()
+        setWaitingToStart(false)
+      }
+    }
+    document.addEventListener('keydown', onKey)
+    return () => document.removeEventListener('keydown', onKey)
+  }, [waitingToStart])
 
+  // Idle screen — draw student standing still before game starts
+  useEffect(() => {
+    if (!waitingToStart) return
+
+    const canvas = canvasRef.current
+    if (!canvas) return
+    const ctx = canvas.getContext('2d')
+    if (!ctx) return
+    const parent = canvas.parentElement
+    if (!parent) return
+
+    const draw = () => {
+      const rect = parent.getBoundingClientRect()
+      const dpr = window.devicePixelRatio || 1
+      const W = Math.round(rect.width)
+      const H = Math.round(rect.height)
+      canvas.width = W * dpr
+      canvas.height = H * dpr
+      canvas.style.width = `${W}px`
+      canvas.style.height = `${H}px`
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
+
+      const groundY = H * 0.80
+      const c = isDark ? '255,255,255' : '0,0,0'
+      const bgColor = isDark ? '#04030e' : '#ffffff'
+
+      ctx.fillStyle = bgColor
+      ctx.fillRect(0, 0, W, H)
+
+      // Ground line
+      ctx.strokeStyle = `rgba(${c},0.15)`
+      ctx.lineWidth = 1
+      ctx.beginPath()
+      ctx.moveTo(0, groundY)
+      ctx.lineTo(W, groundY)
+      ctx.stroke()
+
+      // Ruler ticks
+      for (let x = 0; x < W; x += 10) {
+        const isBig = x % 50 < 5
+        ctx.strokeStyle = `rgba(${c},0.12)`
+        ctx.beginPath()
+        ctx.moveTo(x, groundY)
+        ctx.lineTo(x, groundY + (isBig ? 6 : 3))
+        ctx.stroke()
+      }
+
+      // Student standing still
+      const px = 40
+      const py = groundY - 28
+      const pc = `rgba(${c},0.82)`
+
+      ctx.fillStyle = pc
+      ctx.fillRect(px - 4, py, 18, 3)
+      ctx.fillRect(px, py + 3, 10, 3)
+      ctx.strokeStyle = pc
+      ctx.lineWidth = 1
+      ctx.beginPath()
+      ctx.moveTo(px + 12, py)
+      ctx.lineTo(px + 16, py - 4)
+      ctx.stroke()
+      ctx.fillRect(px + 15, py - 5, 2, 2)
+      ctx.fillStyle = pc
+      ctx.fillRect(px + 1, py + 6, 8, 8)
+      ctx.fillStyle = bgColor
+      ctx.fillRect(px + 6, py + 8, 2, 2)
+      ctx.fillStyle = pc
+      ctx.fillRect(px, py + 14, 10, 8)
+      ctx.fillStyle = `rgba(${c},0.55)`
+      ctx.fillRect(px - 3, py + 14, 4, 6)
+      ctx.fillStyle = pc
+      ctx.fillRect(px + 1, py + 22, 3, 6)
+      ctx.fillRect(px + 6, py + 22, 3, 6)
+    }
+
+    draw()
+    const ro = new ResizeObserver(draw)
+    ro.observe(parent)
+    return () => ro.disconnect()
+  }, [waitingToStart, isDark])
+
+  // Start game loop only after play button clicked
+  useEffect(() => {
+    if (waitingToStart) return
+
+    let cleanup: (() => void) | undefined
     const startTimeout = setTimeout(() => {
       cleanup = startGameLoop()
     }, 100)
@@ -433,7 +531,7 @@ export default function ProgressionView({ chapters, totalPoints, streak, startDa
       if (cleanup) cleanup()
       ro.disconnect()
     }
-  }, [startGameLoop])
+  }, [startGameLoop, waitingToStart])
 
   return (
     <>
@@ -504,12 +602,51 @@ export default function ProgressionView({ chapters, totalPoints, streak, startDa
           </div>
           <div style={{ flex: 1, minHeight: 0, position: 'relative' }}>
             <canvas ref={canvasRef} style={{ width: '100%', height: '100%', borderRadius: 6 }} />
-            {!gameActive && (
+
+            {/* Bouton play — écran d'attente */}
+            {waitingToStart && (
+              <button
+                onClick={() => setWaitingToStart(false)}
+                style={{
+                  position: 'absolute',
+                  top: '50%',
+                  left: '50%',
+                  transform: 'translate(-50%, -50%)',
+                  width: 36,
+                  height: 36,
+                  borderRadius: '50%',
+                  border: `1px solid ${bg(0.15, isDark)}`,
+                  background: bg(0.08, isDark),
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  transition: 'all 0.2s ease',
+                  backdropFilter: 'blur(4px)',
+                }}
+                onMouseEnter={e => {
+                  ;(e.currentTarget as HTMLButtonElement).style.background = bg(0.15, isDark)
+                  ;(e.currentTarget as HTMLButtonElement).style.transform = 'translate(-50%, -50%) scale(1.1)'
+                }}
+                onMouseLeave={e => {
+                  ;(e.currentTarget as HTMLButtonElement).style.background = bg(0.08, isDark)
+                  ;(e.currentTarget as HTMLButtonElement).style.transform = 'translate(-50%, -50%) scale(1)'
+                }}
+                title="Jouer"
+              >
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                  <path d="M3 1.5L12 7L3 12.5V1.5Z" fill={tw(0.50, textIntensity, isDark)} />
+                </svg>
+              </button>
+            )}
+
+            {/* Hint quand game over */}
+            {!waitingToStart && !gameActive && (
               <div style={{
                 position: 'absolute', bottom: 8, left: 0, right: 0, textAlign: 'center',
                 fontSize: 10, color: tw(0.25, textIntensity, isDark), letterSpacing: '0.5px',
               }}>
-                {gameOver ? 'Espace pour rejouer' : 'Espace pour jouer'}
+                Espace pour rejouer
               </div>
             )}
           </div>
