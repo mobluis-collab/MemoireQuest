@@ -60,7 +60,7 @@ Réponds UNIQUEMENT en JSON valide selon ce schéma :
   "resume_contenu": "string"
 }`
 
-const MAX_FILE_SIZE = 10 * 1024 * 1024
+const MAX_FILE_SIZE = 25 * 1024 * 1024
 
 const ExtractionSchema = z.object({
   type_memoire: z.string(),
@@ -99,7 +99,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Invalid file type (PDF only)', remaining: rateLimit.remaining }, { status: 400 })
   }
   if (file.size > MAX_FILE_SIZE) {
-    return NextResponse.json({ error: 'File too large (max 10MB)', remaining: rateLimit.remaining }, { status: 400 })
+    return NextResponse.json({ error: 'File too large (max 25MB)', remaining: rateLimit.remaining }, { status: 400 })
   }
 
   const buffer = await file.arrayBuffer()

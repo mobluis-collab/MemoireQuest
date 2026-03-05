@@ -7,7 +7,7 @@ interface UploadZoneProps {
   isLoading: boolean
 }
 
-const MAX_MB = 10
+const MAX_MB = 25
 
 const LOADING_STEPS = [
   { label: 'Lecture du PDF…', pct: 15 },
