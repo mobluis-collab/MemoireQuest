@@ -27,10 +27,10 @@ export default function FeaturesSection() {
   return (
     <section className="max-w-[880px] mx-auto px-5 pb-12 max-sm:px-4">
       <h2 className="text-center text-[22px] font-bold tracking-tight text-zinc-800 dark:text-white/90 mb-3">
-        Tout ce qu&apos;il te faut
+        Tout ce qu&apos;il te faut pour finir ton m&eacute;moire.
       </h2>
       <p className="text-center text-sm text-zinc-400 dark:text-white/35 mb-6">
-        Un outil pensé pour les étudiants en alternance.
+        Un outil pensé pour les étudiants.
       </p>
 
       <div className="grid grid-cols-2 gap-3 max-md:grid-cols-1">
