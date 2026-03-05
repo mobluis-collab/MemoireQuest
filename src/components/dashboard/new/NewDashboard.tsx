@@ -853,7 +853,7 @@ export default function NewDashboard({
   const { isDark, toggle } = useThemeToggle()
 
   return (
-    <div style={{ fontFamily: FONT, height: '100vh', overflow: 'hidden', position: 'relative', display: 'flex', background: 'var(--mq-bg)' }}>
+    <div style={{ fontFamily: FONT, height: '100vh', overflow: 'hidden', position: 'relative', display: 'flex', background: 'var(--mq-bg)', cursor: 'default' }}>
 
       {/* ── CSS animations ── */}
       <style>{`
@@ -922,6 +922,7 @@ export default function NewDashboard({
         position: 'relative', zIndex: 10,
         display: 'flex', flexDirection: 'column',
         background: 'var(--mq-sidebar-bg)',
+        cursor: 'default', userSelect: 'none',
         backdropFilter: 'blur(32px) saturate(180%)',
         WebkitBackdropFilter: 'blur(32px) saturate(180%)',
         borderRight: focusMode ? 'none' : '1px solid var(--mq-border)',
@@ -1185,6 +1186,7 @@ export default function NewDashboard({
         padding: '24px 36px 20px',
         position: 'relative', zIndex: 1,
         display: 'flex', flexDirection: 'column', gap: 10,
+        cursor: 'default',
       }}>
         {/* Barre d'outils — dans le flux, plus d'absolute */}
         {!focusMode && plan && (
@@ -1194,6 +1196,7 @@ export default function NewDashboard({
             gap: 8,
             flexShrink: 0,
             marginBottom: 4,
+            userSelect: 'none',
           }}>
             <button
               onClick={() => setPomodoroOpen(true)}
@@ -1350,7 +1353,7 @@ export default function NewDashboard({
           {activeView === 'dashboard' && (
             <>
             {/* Header */}
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0, userSelect: 'none' }}>
               <div>
                 <h1 style={{
                   fontSize: 24, fontWeight: 700, letterSpacing: '-0.5px', margin: 0,
@@ -1370,6 +1373,7 @@ export default function NewDashboard({
                 borderRadius: 99,
                 background: bg(0.05, isDark),
                 border: `1px solid ${bg(0.10, isDark)}`,
+                userSelect: 'none',
               }}>
                 <span style={{ fontSize: 14, fontWeight: 700, color: tw(0.45, textIntensity, isDark) }}>{streak.current}</span>
                 <span style={{ fontSize: 12, color: tw(0.35, textIntensity, isDark) }}>
@@ -1524,6 +1528,7 @@ export default function NewDashboard({
                   height: '100%', padding: '16px 20px',
                   display: 'flex', alignItems: 'center',
                   borderRadius: 17,
+                  userSelect: 'none',
                 }}>
                   {[
                     {
