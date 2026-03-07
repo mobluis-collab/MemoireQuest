@@ -581,7 +581,8 @@ export default function MemoireView({ chapters, questProgress, loadingKey, onSub
                             return (
                               <div
                                 key={ti}
-                                onClick={() => {
+                                onClick={(e) => {
+                                  e.stopPropagation()
                                   if (canToggle) {
                                     if (!isChecked) triggerCheckBounce(checkKey)
                                     onSubtaskToggle(ch.num, i, ti)

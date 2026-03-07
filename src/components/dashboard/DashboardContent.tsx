@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo, useEffect, useCallback } from 'react'
+import { useState, useMemo, useEffect, useCallback, useRef } from 'react'
 import type { MemoirePlan, QuestProgress, StreakData, SectionProgress } from '@/types/memoir'
 import { isSectionDone } from '@/types/memoir'
 import type { ExtractionResult } from '@/types/extraction'
@@ -258,7 +258,13 @@ export default function DashboardContent({
     }
   }
 
+  const subtaskLockRef = useRef<Set<string>>(new Set())
+
   const handleSubtaskToggle = async (chapterNumber: string, sectionIndex: number, taskIndex: number) => {
+    const lockKey = `${chapterNumber}:${sectionIndex}:${taskIndex}`
+    if (subtaskLockRef.current.has(lockKey)) return
+    subtaskLockRef.current.add(lockKey)
+
     // Optimistic update: toggle subtask immediately
     const prevProgress = questProgress
     const prevPoints = totalPoints
@@ -316,6 +322,8 @@ export default function DashboardContent({
       setQuestProgress(prevProgress)
       setTotalPoints(prevPoints)
       showToast('Erreur lors de la mise à jour de la sous-tâche.', 'error')
+    } finally {
+      subtaskLockRef.current.delete(lockKey)
     }
   }
 

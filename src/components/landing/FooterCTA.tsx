@@ -43,7 +43,7 @@ export default function FooterCTA() {
           if (session) break;
           await new Promise((r) => setTimeout(r, 150));
         }
-        window.location.href = "/dashboard";
+        window.location.replace("/dashboard");
       }
     } catch {
       setAuthError("Erreur de connexion. Réessaie.");
