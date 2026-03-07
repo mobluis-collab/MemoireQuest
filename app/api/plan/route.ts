@@ -27,7 +27,18 @@ INSTRUCTIONS :
 - Génère un plan de rédaction couvrant l'ensemble du mémoire, du début à la fin, adapté au contexte spécifique identifié.
 - Chaque chapitre doit avoir un objectif clair, des sous-sections concrètes et des conseils pratiques (tips) directement actionnables pour l'étudiant.
 - Respecte la structure attendue par l'établissement si elle est précisée dans le document ou dans les métadonnées. Sinon, propose une structure académique standard adaptée au type de mémoire.
-- Les tips doivent être concrets et utiles (ex: "Commence par une revue de littérature sur 3-4 sources clés avant de rédiger ta problématique").
+- Les tips de chapitre doivent être un VRAI guide méthodologique de 2-3 phrases :
+  * Phrase 1 : la démarche recommandée pour ce chapitre ("Pour ce chapitre, commence par X avant de passer à Y")
+  * Phrase 2 : un piège courant à éviter ("Attention à ne pas tomber dans le piège de X, les correcteurs repèrent immédiatement…")
+  * Phrase 3 (optionnel) : une astuce concrète ("Utilise le modèle X pour structurer ta réflexion" ou "Vise 3 sources académiques minimum par sous-partie")
+  * NE PAS faire de phrases vagues comme "Sois structuré" ou "Fais des recherches". Chaque conseil doit être ACTIONNABLE et SPÉCIFIQUE au contenu du chapitre.
+
+HINTS PAR SECTION :
+- Chaque section doit contenir un champ "hint" : un conseil court (1-2 phrases) spécifique à cette section.
+- Le hint doit être DIRECTEMENT lié au contenu de la section, pas un conseil générique.
+- Exemples de BONS hints : "Compare au minimum 3 concurrents directs en utilisant les mêmes critères pour chacun", "Cite au moins une source académique (article, livre) pour appuyer ta définition"
+- Exemples de MAUVAIS hints : "Fais bien cette partie", "Sois rigoureux", "Prends le temps de bien rédiger"
+- Le hint doit aider l'étudiant à obtenir une MEILLEURE NOTE, pas juste à compléter la section.
 
 SOUS-TACHES PAR SECTION (tasks) :
 - Chaque section doit contenir un champ "tasks" : un tableau de 2 à 4 sous-tâches concrètes et actionnables.
@@ -59,7 +70,8 @@ Réponds UNIQUEMENT en JSON valide selon ce schéma exact :
         {
           "text": "string",
           "difficulty": "easy" | "medium" | "hard",
-          "tasks": ["string (sous-tâche 1)", "string (sous-tâche 2)", "string (sous-tâche 3)"]
+          "tasks": ["string (sous-tâche 1)", "string (sous-tâche 2)", "string (sous-tâche 3)"],
+          "hint": "string (conseil spécifique pour cette section)"
         }
       ],
       "tips": "string"
@@ -77,6 +89,7 @@ const SectionSchema = z.object({
   text: z.string(),
   difficulty: z.enum(['easy', 'medium', 'hard']),
   tasks: z.array(z.string().min(1)).min(2).max(4),
+  hint: z.string().min(1).optional(),
 })
 
 const ChapterSchema = z.object({

@@ -659,6 +659,22 @@ export default function NewDashboard({
   const prevChaptersRef = useRef<ChapterData[]>([])
   const reuploadRef = useRef<HTMLInputElement>(null)
 
+  /* ── Responsive ── */
+  const [isMobile, setIsMobile] = useState(false)
+  const [isTablet, setIsTablet] = useState(false)
+
+  useEffect(() => {
+    const check = () => {
+      setIsMobile(window.innerWidth < 768)
+      setIsTablet(window.innerWidth >= 768 && window.innerWidth < 1024)
+    }
+    check()
+    window.addEventListener('resize', check)
+    return () => window.removeEventListener('resize', check)
+  }, [])
+
+  const showCollapsed = isMobile || isTablet || sidebarCollapsed
+
   /* ── Sidebar collapsed persistence ── */
   useEffect(() => {
     const saved = localStorage.getItem('mq-sidebar-collapsed')
@@ -955,21 +971,34 @@ export default function NewDashboard({
 
       {/* ── SIDEBAR ── */}
       <aside style={{
-        width: focusMode ? 0 : (sidebarCollapsed ? 56 : 216), flexShrink: 0, height: '100vh',
-        position: 'relative', zIndex: 10,
-        display: 'flex', flexDirection: 'column',
-        background: 'var(--mq-sidebar-bg)',
-        cursor: 'default', userSelect: 'none',
-        backdropFilter: 'blur(32px) saturate(180%)',
-        WebkitBackdropFilter: 'blur(32px) saturate(180%)',
-        borderRight: focusMode ? 'none' : '1px solid var(--mq-border)',
-        transition: 'width 0.35s cubic-bezier(.4,0,.2,1), border-right 0.35s cubic-bezier(.4,0,.2,1), opacity 0.35s cubic-bezier(.4,0,.2,1)',
-        overflow: 'hidden',
-        opacity: focusMode ? 0 : 1,
-        pointerEvents: focusMode ? 'none' : 'auto',
+        ...(isMobile ? {
+          position: 'fixed', bottom: 0, left: 0, right: 0, height: 56,
+          width: '100%', zIndex: 50,
+          display: focusMode ? 'none' : 'flex', flexDirection: 'row',
+          justifyContent: 'space-around', alignItems: 'center',
+          background: 'var(--mq-sidebar-bg)',
+          borderTop: '1px solid var(--mq-border)',
+          backdropFilter: 'blur(32px) saturate(180%)',
+          WebkitBackdropFilter: 'blur(32px) saturate(180%)',
+          cursor: 'default', userSelect: 'none',
+          padding: '0 8px',
+        } : {
+          width: focusMode ? 0 : (isTablet ? 60 : (sidebarCollapsed ? 56 : 216)), flexShrink: 0, height: '100vh',
+          position: 'relative', zIndex: 10,
+          display: 'flex', flexDirection: 'column',
+          background: 'var(--mq-sidebar-bg)',
+          cursor: 'default', userSelect: 'none',
+          backdropFilter: 'blur(32px) saturate(180%)',
+          WebkitBackdropFilter: 'blur(32px) saturate(180%)',
+          borderRight: focusMode ? 'none' : '1px solid var(--mq-border)',
+          transition: 'width 0.35s cubic-bezier(.4,0,.2,1), border-right 0.35s cubic-bezier(.4,0,.2,1), opacity 0.35s cubic-bezier(.4,0,.2,1)',
+          overflow: 'hidden',
+          opacity: focusMode ? 0 : 1,
+          pointerEvents: focusMode ? 'none' : 'auto',
+        }),
       }}>
-        {/* Logo */}
-        <div style={{ padding: '24px 18px 16px', borderBottom: '1px solid var(--mq-card-hover)' }}>
+        {/* Logo — hidden on mobile */}
+        {!isMobile && <div style={{ padding: '24px 18px 16px', borderBottom: '1px solid var(--mq-card-hover)' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
             <div style={{
               width: 30, height: 30, borderRadius: 9,
@@ -986,10 +1015,10 @@ export default function NewDashboard({
               </div>
             )}
           </div>
-        </div>
+        </div>}
 
-        {/* Avatar */}
-        <div style={{ padding: sidebarCollapsed ? '14px 0 12px' : '14px 14px 12px', borderBottom: '1px solid var(--mq-card-hover)', display: 'flex', flexDirection: 'column', alignItems: sidebarCollapsed ? 'center' : 'stretch' }}>
+        {/* Avatar — hidden on mobile */}
+        {!isMobile && <div style={{ padding: (isTablet || sidebarCollapsed) ? '14px 0 12px' : '14px 14px 12px', borderBottom: '1px solid var(--mq-card-hover)', display: 'flex', flexDirection: 'column', alignItems: (isTablet || sidebarCollapsed) ? 'center' : 'stretch' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: sidebarCollapsed ? 0 : 10, justifyContent: sidebarCollapsed ? 'center' : 'flex-start' }}>
             <div style={{
               width: sidebarCollapsed ? 28 : 34, height: sidebarCollapsed ? 28 : 34, borderRadius: '50%', flexShrink: 0,
@@ -1023,13 +1052,17 @@ export default function NewDashboard({
               </div>
             </>
           )}
-        </div>
+        </div>}
 
         {/* Nav */}
-        <nav style={{ flex: 1, padding: '8px 7px' }}>
+        <nav style={isMobile ? {
+          display: 'flex', flexDirection: 'row', justifyContent: 'space-around',
+          alignItems: 'center', width: '100%', padding: '0 4px',
+        } : { flex: 1, padding: '8px 7px' }}>
           {NAV.map((item, i) => {
             const active = activeView === item.view
             const isHovered = hoveredNav === i
+            const showCollapsed = isMobile || isTablet || sidebarCollapsed
             return (
               <button
                 key={i}
@@ -1037,26 +1070,36 @@ export default function NewDashboard({
                 onMouseEnter={() => setHoveredNav(i)}
                 onMouseLeave={() => setHoveredNav(null)}
                 style={{
-                  width: '100%', display: 'flex', alignItems: 'center', gap: sidebarCollapsed ? 0 : 9,
-                  justifyContent: sidebarCollapsed ? 'center' : 'flex-start',
-                  padding: sidebarCollapsed ? '8px 0' : '8px 11px 8px 13px',
-                  borderRadius: 9, border: 'none', cursor: 'pointer',
-                  background: active ? bg(0.06, isDark) : 'transparent',
-                  color: active ? tw(0.90, textIntensity, isDark) : tw(0.45, textIntensity, isDark),
-                  fontSize: 13, fontWeight: active ? 600 : 400,
-                  textAlign: 'left',
-                  transition: 'all 0.15s cubic-bezier(.4,0,.2,1), transform 0.15s cubic-bezier(.4,0,.2,1)',
-                  transform: isHovered && !active ? 'scale(1.04)' : 'scale(1)',
-                  marginBottom: 1,
-                  borderLeft: sidebarCollapsed ? 'none' : active ? `2px solid ${bg(0.12, isDark)}` : '2px solid transparent',
+                  ...(isMobile ? {
+                    display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2,
+                    padding: '6px 8px', borderRadius: 9, border: 'none', cursor: 'pointer',
+                    background: active ? bg(0.06, isDark) : 'transparent',
+                    color: active ? tw(0.90, textIntensity, isDark) : tw(0.45, textIntensity, isDark),
+                    fontSize: 9, fontWeight: active ? 600 : 400,
+                    transition: 'all 0.15s cubic-bezier(.4,0,.2,1)',
+                  } : {
+                    width: '100%', display: 'flex', alignItems: 'center', gap: showCollapsed ? 0 : 9,
+                    justifyContent: showCollapsed ? 'center' : 'flex-start',
+                    padding: showCollapsed ? '8px 0' : '8px 11px 8px 13px',
+                    borderRadius: 9, border: 'none', cursor: 'pointer',
+                    background: active ? bg(0.06, isDark) : 'transparent',
+                    color: active ? tw(0.90, textIntensity, isDark) : tw(0.45, textIntensity, isDark),
+                    fontSize: 13, fontWeight: active ? 600 : 400,
+                    textAlign: 'left' as const,
+                    transition: 'all 0.15s cubic-bezier(.4,0,.2,1), transform 0.15s cubic-bezier(.4,0,.2,1)',
+                    transform: isHovered && !active ? 'scale(1.04)' : 'scale(1)',
+                    marginBottom: 1,
+                    borderLeft: showCollapsed ? 'none' : active ? `2px solid ${bg(0.12, isDark)}` : '2px solid transparent',
+                  }),
                 }}
               >
                 <span style={{
-                  fontSize: 15, flexShrink: 0, width: 20, textAlign: 'center',
+                  fontSize: isMobile ? 18 : 15, flexShrink: 0, width: 20, textAlign: 'center',
                   color: active ? tw(0.60, textIntensity, isDark) : tw(0.25, textIntensity, isDark),
                   transition: 'color 0.3s cubic-bezier(.4,0,.2,1)',
                 }}>{item.icon}</span>
-                {!sidebarCollapsed && (
+                {isMobile && <span style={{ fontSize: 9, color: active ? tw(0.60, textIntensity, isDark) : tw(0.30, textIntensity, isDark) }}>{item.label}</span>}
+                {!isMobile && !showCollapsed && (
                   <>
                     <span>{item.label}</span>
                     {item.view === 'notes' && notesCount > 0 && (
@@ -1071,13 +1114,14 @@ export default function NewDashboard({
               </button>
             )
           })}
-          {/* Intensité toggle */}
+          {/* Intensité toggle — hidden on mobile */}
+          {!isMobile && <>
           <button
             onClick={() => setShowIntensity(!showIntensity)}
             style={{
-              width: '100%', display: 'flex', alignItems: 'center', gap: sidebarCollapsed ? 0 : 9,
-              justifyContent: sidebarCollapsed ? 'center' : 'flex-start',
-              padding: sidebarCollapsed ? '8px 0' : '8px 11px 8px 13px',
+              width: '100%', display: 'flex', alignItems: 'center', gap: showCollapsed ? 0 : 9,
+              justifyContent: showCollapsed ? 'center' : 'flex-start',
+              padding: showCollapsed ? '8px 0' : '8px 11px 8px 13px',
               borderRadius: 9, border: 'none', cursor: 'pointer',
               background: showIntensity ? bg(0.06, isDark) : 'transparent',
               color: showIntensity ? tw(0.90, textIntensity, isDark) : tw(0.45, textIntensity, isDark),
@@ -1085,15 +1129,15 @@ export default function NewDashboard({
               textAlign: 'left' as const,
               transition: 'all 0.3s cubic-bezier(.4,0,.2,1)',
               marginBottom: 1,
-              borderLeft: sidebarCollapsed ? 'none' : showIntensity ? `2px solid ${bg(0.12, isDark)}` : '2px solid transparent',
+              borderLeft: showCollapsed ? 'none' : showIntensity ? `2px solid ${bg(0.12, isDark)}` : '2px solid transparent',
             }}
           >
             <span style={{ fontSize: 15, flexShrink: 0, width: 20, textAlign: 'center', color: showIntensity ? tw(0.60, textIntensity, isDark) : tw(0.25, textIntensity, isDark), transition: 'color 0.3s cubic-bezier(.4,0,.2,1)' }}>{'\u25D0'}</span>
-            {!sidebarCollapsed && <span>Intensit{'\u00E9'}</span>}
+            {!showCollapsed && <span>Intensit{'\u00E9'}</span>}
           </button>
 
           {/* Slider accordion */}
-          {!sidebarCollapsed && (
+          {!showCollapsed && (
           <div style={{
             maxHeight: showIntensity ? '80px' : '0px',
             overflow: 'hidden',
@@ -1146,10 +1190,11 @@ export default function NewDashboard({
             </div>
           </div>
           )}
+          </>}
         </nav>
 
-        {/* Re-upload + sign out */}
-        <div style={{ padding: '8px 7px', borderTop: '1px solid var(--mq-card-hover)', display: 'flex', flexDirection: 'column', gap: 1 }}>
+        {/* Re-upload + sign out — hidden on mobile */}
+        {!isMobile && <div style={{ padding: '8px 7px', borderTop: '1px solid var(--mq-card-hover)', display: 'flex', flexDirection: 'column', gap: 1 }}>
           {!sidebarCollapsed && plan && (
             <>
               <input
@@ -1195,11 +1240,11 @@ export default function NewDashboard({
             <span style={{ flexShrink: 0, width: 20, textAlign: 'center' }}>{'\u21A9'}</span>
             {!sidebarCollapsed && <span>D{'\u00E9'}connexion</span>}
           </button>
-        </div>
+        </div>}
       </aside>
 
-      {/* Sidebar collapse toggle — outside aside to avoid overflow:hidden clipping */}
-      {!focusMode && (
+      {/* Sidebar collapse toggle — hidden on mobile/tablet */}
+      {!focusMode && !isMobile && !isTablet && (
         <button
           onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
           aria-label={sidebarCollapsed ? 'Ouvrir le menu' : 'Fermer le menu'}
@@ -1231,7 +1276,7 @@ export default function NewDashboard({
       {/* ── MAIN ── */}
       <main className="mq-dashboard-scroll" style={{
         flex: 1, height: '100vh', overflow: 'auto',
-        padding: '24px 36px 20px',
+        padding: isMobile ? '16px 12px 80px' : isTablet ? '20px 20px 20px' : '24px 36px 20px',
         position: 'relative', zIndex: 1,
         display: 'flex', flexDirection: 'column', gap: 10,
         cursor: 'default',
@@ -1363,6 +1408,8 @@ export default function NewDashboard({
                   accentColor={accentColor}
                   textIntensity={textIntensity}
                   isDark={isDark}
+                  isMobile={isMobile}
+                  isTablet={isTablet}
                 />
               )}
               {activeView === 'progression' && (

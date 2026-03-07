@@ -30,11 +30,13 @@ interface MemoireViewProps {
   accentColor?: string
   textIntensity?: number
   isDark?: boolean
+  isMobile?: boolean
+  isTablet?: boolean
 }
 
 type ViewMode = 'overview' | 'detail'
 
-export default function MemoireView({ chapters, questProgress, loadingKey, onSubtaskToggle, accentColor = '#6366f1', textIntensity = 1.0, isDark = true }: MemoireViewProps) {
+export default function MemoireView({ chapters, questProgress, loadingKey, onSubtaskToggle, accentColor = '#6366f1', textIntensity = 1.0, isDark = true, isMobile = false, isTablet = false }: MemoireViewProps) {
   const [viewMode, setViewMode] = useState<ViewMode>('overview')
   const [selectedChapterIdx, setSelectedChapterIdx] = useState(0)
   const [hoveredChapter, setHoveredChapter] = useState<number | null>(null)
@@ -361,7 +363,7 @@ export default function MemoireView({ chapters, questProgress, loadingKey, onSub
           flex: '1 1 0',
           minHeight: 0,
           overflowY: 'auto',
-          scrollSnapType: 'y proximity',
+          scrollSnapType: isMobile ? 'none' : 'y proximity',
           scrollBehavior: 'smooth',
         }}
       >
@@ -376,9 +378,9 @@ export default function MemoireView({ chapters, questProgress, loadingKey, onSub
               key={ch.num}
               data-idx={idx}
               style={{
-                scrollSnapAlign: 'start',
-                minHeight: '85vh',
-                padding: '24px 24px 24px 24px',
+                scrollSnapAlign: isMobile ? 'none' : 'start',
+                minHeight: isMobile ? 'auto' : isTablet ? '70vh' : '85vh',
+                padding: isMobile ? '16px' : '24px',
                 position: 'relative' as const,
                 display: 'flex',
                 flexDirection: 'column',
@@ -619,7 +621,7 @@ export default function MemoireView({ chapters, questProgress, loadingKey, onSub
                                   }}>+XP</span>
                                 )}
                                 <span style={{
-                                  fontSize: 12, lineHeight: 1.4,
+                                  fontSize: isMobile ? 11 : 12, lineHeight: 1.4,
                                   color: isChecked ? tw(0.30, textIntensity, isDark) : tw(0.45, textIntensity, isDark),
                                   textDecoration: isChecked ? 'line-through' : 'none',
                                   textDecorationColor: bg(0.15, isDark),
@@ -636,27 +638,47 @@ export default function MemoireView({ chapters, questProgress, loadingKey, onSub
 
               {/* Hints banner — bottom of each slide */}
               {(ch.tips || ch.sectionList.some(s => s.hint)) && (
-                <div style={{ marginTop: 'auto', flexShrink: 0 }}>
+                <div style={{
+                  marginTop: 'auto', flexShrink: 0,
+                  background: bg(0.03, isDark),
+                  borderRadius: 10,
+                  border: `1px solid ${bg(0.06, isDark)}`,
+                  margin: '12px 0 0 0',
+                  overflow: 'hidden',
+                }}>
                   <div
                     onClick={() => toggleTip(ch.num)}
                     style={{
-                      padding: '10px 16px',
-                      background: bg(0.03, isDark),
-                      borderTop: `1px solid ${bg(0.06, isDark)}`,
+                      padding: isMobile ? '8px 12px' : '10px 16px',
+                      borderRadius: expandedTips.has(ch.num) ? '10px 10px 0 0' : '10px',
                       cursor: 'pointer',
                       transition: 'background 0.15s',
+                      display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                     }}
                     onMouseEnter={(e) => { e.currentTarget.style.background = bg(0.05, isDark) }}
-                    onMouseLeave={(e) => { e.currentTarget.style.background = bg(0.03, isDark) }}
+                    onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent' }}
                   >
-                    <span style={{ fontSize: 13, color: tw(0.35, textIntensity, isDark) }}>
+                    <span style={{ fontSize: isMobile ? 12 : 13, color: tw(0.35, textIntensity, isDark) }}>
                       {expandedTips.has(ch.num) ? '\uD83D\uDCA1 Masquer les conseils' : '\uD83D\uDCA1 Voir les conseils pour ce chapitre'}
+                    </span>
+                    <span style={{ fontSize: 10, color: tw(0.25, textIntensity, isDark), marginLeft: 6 }}>
+                      {expandedTips.has(ch.num) ? '\u25B4' : '\u25BE'}
                     </span>
                   </div>
                   {expandedTips.has(ch.num) && (
-                    <div style={{ padding: '12px 16px', background: bg(0.03, isDark) }}>
+                    <div style={{
+                      padding: isMobile ? '10px 12px' : '12px 16px',
+                      borderTop: `1px solid ${bg(0.06, isDark)}`,
+                      borderRadius: '0 0 10px 10px',
+                    }}>
                       {ch.tips && (
-                        <div style={{ marginBottom: 10 }}>
+                        <div style={{
+                          background: bg(0.02, isDark),
+                          borderRadius: 8,
+                          padding: '8px 12px',
+                          marginBottom: 8,
+                          border: `1px solid ${bg(0.04, isDark)}`,
+                        }}>
                           <div style={{
                             fontSize: 12, lineHeight: 1.55,
                             color: tw(0.40, textIntensity, isDark), fontStyle: 'italic',
@@ -664,7 +686,13 @@ export default function MemoireView({ chapters, questProgress, loadingKey, onSub
                         </div>
                       )}
                       {ch.sectionList.map((sec, si) => sec.hint ? (
-                        <div key={si} style={{ marginBottom: 10 }}>
+                        <div key={si} style={{
+                          background: bg(0.02, isDark),
+                          borderRadius: 8,
+                          padding: '8px 12px',
+                          marginBottom: 8,
+                          border: `1px solid ${bg(0.04, isDark)}`,
+                        }}>
                           <div style={{
                             fontSize: 11, fontWeight: 600, color: tw(0.25, textIntensity, isDark),
                             textTransform: 'uppercase', marginBottom: 4,
