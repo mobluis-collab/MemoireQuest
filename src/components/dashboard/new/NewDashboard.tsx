@@ -185,9 +185,9 @@ function ChapterCard({ ch, onClick, textIntensity = 1.0, isDark = true }: { ch: 
         display: 'flex', alignItems: 'center',
         transition: 'all 0.15s cubic-bezier(.4,0,.2,1)',
         transform: hovered ? 'translateY(-1px)' : 'none',
-        boxShadow: hovered ? '0 4px 16px rgba(0,0,0,0.25)' : '0 1px 8px rgba(0,0,0,0.25)',
-        backdropFilter: 'blur(8px)',
-        WebkitBackdropFilter: 'blur(8px)',
+        boxShadow: hovered
+          ? `0 0 0 1px ${isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.03)'}, 0 4px 8px ${isDark ? 'rgba(0,0,0,0.3)' : 'rgba(0,0,0,0.04)'}, 0 12px 32px ${isDark ? 'rgba(0,0,0,0.4)' : 'rgba(0,0,0,0.08)'}`
+          : `0 0 0 1px ${isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.03)'}, 0 2px 4px ${isDark ? 'rgba(0,0,0,0.2)' : 'rgba(0,0,0,0.03)'}, 0 8px 24px ${isDark ? 'rgba(0,0,0,0.3)' : 'rgba(0,0,0,0.06)'}`,
         cursor: 'pointer',
         minHeight: 0,
       }}>
@@ -349,9 +349,7 @@ function SidePanel({
                     border: `1px solid ${isNext ? 'var(--mq-border-hover)' : 'var(--mq-stroke-soft)'}`,
                     transition: 'all 0.15s cubic-bezier(.4,0,.2,1)',
                     cursor: isClickable ? 'pointer' : 'default',
-                    boxShadow: '0 1px 8px rgba(0,0,0,0.25)',
-                    backdropFilter: 'blur(8px)',
-                    WebkitBackdropFilter: 'blur(8px)',
+                    boxShadow: `0 0 0 1px ${isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.03)'}, 0 2px 4px ${isDark ? 'rgba(0,0,0,0.2)' : 'rgba(0,0,0,0.03)'}, 0 8px 24px ${isDark ? 'rgba(0,0,0,0.3)' : 'rgba(0,0,0,0.06)'}`,
                     opacity: isLoading ? 0.6 : 1,
                   }}>
                   <div style={{
