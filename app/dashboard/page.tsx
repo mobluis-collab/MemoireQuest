@@ -12,10 +12,10 @@ export default async function DashboardPage() {
 
   if (!user) redirect('/')
 
-  const planRow = await getUserPlan(user.id)
+  const planRow = user ? await getUserPlan(user.id) : null
 
   const dashboardUser = {
-    email: user.email ?? '',
+    email: user.email!,
     user_metadata: user.user_metadata as { full_name?: string } | undefined,
   }
 

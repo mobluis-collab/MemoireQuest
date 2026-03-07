@@ -11,34 +11,26 @@ interface ToastProps {
   onClose?: () => void
 }
 
-const VARIANT_STYLES: Record<ToastVariant, string> = {
-  error: 'border-red-500/30 bg-red-950/20 text-red-300',
-  success: 'border-emerald-500/30 bg-emerald-950/20 text-emerald-300',
-  warning: 'border-amber-500/30 bg-amber-950/20 text-amber-300',
-}
-
 const VARIANT_ICONS: Record<ToastVariant, string> = {
-  error: '❌',
-  success: '✅',
-  warning: '⚠️',
+  error: '\u274C',
+  success: '\u2705',
+  warning: '\u26A0\uFE0F',
 }
 
 export default function Toast({
   message,
   variant = 'error',
-  duration = 4000,
+  duration = 2500,
   onClose,
 }: ToastProps) {
   const [visible, setVisible] = useState(false)
 
   useEffect(() => {
-    // Trigger slide-in animation
     const showTimer = setTimeout(() => setVisible(true), 10)
-    
-    // Auto-dismiss after duration
+
     const hideTimer = setTimeout(() => {
       setVisible(false)
-      setTimeout(() => onClose?.(), 300) // Wait for slide-out animation
+      setTimeout(() => onClose?.(), 300)
     }, duration)
 
     return () => {
@@ -48,33 +40,73 @@ export default function Toast({
   }, [duration, onClose])
 
   return (
-    <div
-      role="alert"
-      className={[
-        'fixed top-4 right-4 z-50 max-w-sm rounded-lg border px-4 py-3 shadow-lg',
-        'transition-all duration-300 ease-out',
-        visible ? 'translate-y-0 opacity-100' : '-translate-y-4 opacity-0',
-        VARIANT_STYLES[variant],
-      ].join(' ')}
-      style={{ transformOrigin: 'top right' }}
-    >
-      <div className="flex items-start gap-3">
-        <span className="text-lg shrink-0" aria-hidden="true">
+    <>
+      <style>{`
+        @keyframes toastSlideUp {
+          from { opacity: 0; transform: translateX(-50%) translateY(12px); }
+          to { opacity: 1; transform: translateX(-50%) translateY(0); }
+        }
+        @keyframes toastFadeOut {
+          from { opacity: 1; transform: translateX(-50%) translateY(0); }
+          to { opacity: 0; transform: translateX(-50%) translateY(8px); }
+        }
+      `}</style>
+      <div
+        role="alert"
+        style={{
+          position: 'fixed',
+          bottom: 24,
+          left: '50%',
+          transform: 'translateX(-50%)',
+          zIndex: 9999,
+          background: 'rgba(255,255,255,0.08)',
+          backdropFilter: 'blur(12px)',
+          WebkitBackdropFilter: 'blur(12px)',
+          border: '1px solid rgba(255,255,255,0.10)',
+          borderRadius: 10,
+          padding: '10px 16px',
+          display: 'flex',
+          alignItems: 'center',
+          gap: 8,
+          maxWidth: 380,
+          animation: visible
+            ? 'toastSlideUp 0.3s ease-out forwards'
+            : 'toastFadeOut 0.3s ease-out forwards',
+          pointerEvents: visible ? 'auto' : 'none',
+        }}
+      >
+        <span style={{ fontSize: 14, flexShrink: 0 }} aria-hidden="true">
           {VARIANT_ICONS[variant]}
         </span>
-        <p className="flex-1 text-sm leading-snug">{message}</p>
+        <span style={{
+          fontSize: 13,
+          color: 'rgba(255,255,255,0.7)',
+          lineHeight: 1.4,
+        }}>
+          {message}
+        </span>
         <button
           type="button"
           onClick={() => {
             setVisible(false)
             setTimeout(() => onClose?.(), 300)
           }}
-          className="shrink-0 text-zinc-400 hover:text-zinc-200 transition-colors duration-200"
+          style={{
+            background: 'none',
+            border: 'none',
+            color: 'rgba(255,255,255,0.35)',
+            cursor: 'pointer',
+            fontSize: 16,
+            padding: '0 2px',
+            marginLeft: 4,
+            flexShrink: 0,
+            lineHeight: 1,
+          }}
           aria-label="Fermer"
         >
-          ×
+          \u00D7
         </button>
       </div>
-    </div>
+    </>
   )
 }

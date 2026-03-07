@@ -208,8 +208,15 @@ export default function DashboardContent({
   }
 
   const handleQuestComplete = async (chapterNumber: string, sectionIndex: number) => {
-    const key = `${chapterNumber}:${sectionIndex}`
-    setLoadingKey(key)
+    // Optimistic update: toggle section immediately
+    const prevProgress = questProgress
+    const prevPoints = totalPoints
+    const chProgress: Record<string, SectionProgress> = { ...(questProgress[chapterNumber] ?? {}) }
+    const key = String(sectionIndex)
+    const wasDone = isSectionDone(chProgress[key])
+    if (wasDone) { delete chProgress[key] } else { chProgress[key] = 'done' }
+    setQuestProgress({ ...questProgress, [chapterNumber]: chProgress })
+
     try {
       const res = await fetch('/api/quests/complete', {
         method: 'POST',
@@ -217,6 +224,8 @@ export default function DashboardContent({
         body: JSON.stringify({ chapterNumber, sectionIndex, pointsEarned: 4 }),
       })
       if (!res.ok) {
+        setQuestProgress(prevProgress)
+        setTotalPoints(prevPoints)
         showToast('Erreur lors de la validation de la quête.', 'error')
         return
       }
@@ -242,14 +251,33 @@ export default function DashboardContent({
           showToast(`✨ Niveau ${newLevel} atteint !`, 'success')
         }
       }
-    } finally {
-      setLoadingKey(null)
+    } catch {
+      setQuestProgress(prevProgress)
+      setTotalPoints(prevPoints)
+      showToast('Erreur lors de la validation de la quête.', 'error')
     }
   }
 
   const handleSubtaskToggle = async (chapterNumber: string, sectionIndex: number, taskIndex: number) => {
-    const key = `${chapterNumber}:${sectionIndex}:${taskIndex}`
-    setLoadingKey(key)
+    // Optimistic update: toggle subtask immediately
+    const prevProgress = questProgress
+    const prevPoints = totalPoints
+    const chProgress: Record<string, SectionProgress> = { ...(questProgress[chapterNumber] ?? {}) }
+    const secKey = String(sectionIndex)
+    const secProgress = chProgress[secKey]
+    let tasksBools: boolean[]
+    if (secProgress && typeof secProgress === 'object' && 'tasks' in secProgress) {
+      tasksBools = [...secProgress.tasks]
+    } else if (secProgress === 'done') {
+      tasksBools = Array(taskIndex + 1).fill(true) as boolean[]
+    } else {
+      tasksBools = Array(taskIndex + 1).fill(false) as boolean[]
+    }
+    while (tasksBools.length <= taskIndex) tasksBools.push(false)
+    tasksBools[taskIndex] = !tasksBools[taskIndex]
+    chProgress[secKey] = tasksBools.every(Boolean) ? 'done' : { tasks: tasksBools }
+    setQuestProgress({ ...questProgress, [chapterNumber]: chProgress })
+
     try {
       const res = await fetch('/api/quests/complete', {
         method: 'POST',
@@ -257,6 +285,8 @@ export default function DashboardContent({
         body: JSON.stringify({ chapterNumber, sectionIndex, taskIndex }),
       })
       if (!res.ok) {
+        setQuestProgress(prevProgress)
+        setTotalPoints(prevPoints)
         showToast('Erreur lors de la mise à jour de la sous-tâche.', 'error')
         return
       }
@@ -282,8 +312,10 @@ export default function DashboardContent({
           showToast(`✨ Niveau ${newLevel} atteint !`, 'success')
         }
       }
-    } finally {
-      setLoadingKey(null)
+    } catch {
+      setQuestProgress(prevProgress)
+      setTotalPoints(prevPoints)
+      showToast('Erreur lors de la mise à jour de la sous-tâche.', 'error')
     }
   }
 

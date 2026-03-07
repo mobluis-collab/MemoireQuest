@@ -3,8 +3,8 @@
 const STEPS = [
   {
     number: "01",
-    title: "Connecte-toi avec Google",
-    desc: "Une connexion sécurisée en un clic. Tes documents et ton plan restent strictement privés.",
+    title: "Connecte-toi en 1 clic",
+    desc: "Google OAuth. Rien à installer, rien à configurer.",
     icon: (
       <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true">
         <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z" fill="currentColor" />
@@ -13,8 +13,8 @@ const STEPS = [
   },
   {
     number: "02",
-    title: "Dépose ton cahier des charges (PDF)",
-    desc: "L'IA lit et analyse tes exigences, contraintes, objectifs et format attendu.",
+    title: "Dépose ton cahier des charges",
+    desc: "L'IA analyse tes exigences et génère un plan structuré en moins de 2 minutes.",
     icon: (
       <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true">
         <path d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zm4 18H6V4h7v5h5v11zM8 15h8v2H8zm0-4h8v2H8zm0-4h5v2H8z" fill="currentColor" />
@@ -23,8 +23,8 @@ const STEPS = [
   },
   {
     number: "03",
-    title: "Reçois ton plan de rédaction sur mesure",
-    desc: "Structure complète, chapitres, sous-parties et conseils de rédaction adaptés à ton sujet.",
+    title: "Avance comme dans un jeu",
+    desc: "Quêtes, XP, streaks : chaque section terminée te rapproche du diplôme.",
     icon: (
       <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true">
         <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z" fill="currentColor" />
@@ -50,9 +50,12 @@ export default function HowItWorks() {
         {STEPS.map((step) => (
           <article
             key={step.number}
-            className="p-4 rounded-2xl bg-black/[0.02] dark:bg-white/[0.02] border border-black/[0.08] dark:border-white/[0.08] hover:border-black/15 dark:hover:border-white/15 hover:-translate-y-1 transition-all duration-300"
+            className="relative p-4 rounded-2xl bg-black/[0.02] dark:bg-white/[0.02] border border-black/[0.08] dark:border-white/[0.08] hover:border-black/15 dark:hover:border-white/15 hover:-translate-y-1 transition-all duration-300 overflow-hidden"
           >
-            <div className="flex items-center gap-3 mb-3">
+            <span className="absolute top-2 right-3 text-5xl font-bold text-zinc-200/10 dark:text-white/5 select-none pointer-events-none leading-none">
+              {step.number}
+            </span>
+            <div className="relative flex items-center gap-3 mb-3">
               <div className="w-10 h-10 rounded-xl bg-black/5 dark:bg-white/5 border border-black/[0.08] dark:border-white/[0.08] flex items-center justify-center text-zinc-400 dark:text-white/45 shrink-0">
                 {step.icon}
               </div>
@@ -60,8 +63,8 @@ export default function HowItWorks() {
                 {step.number}
               </span>
             </div>
-            <h3 className="text-sm font-semibold text-zinc-800 dark:text-white/85 tracking-tight mb-2">{step.title}</h3>
-            <p className="text-[13px] leading-relaxed text-zinc-400 dark:text-white/35">{step.desc}</p>
+            <h3 className="relative text-sm font-semibold text-zinc-800 dark:text-white/85 tracking-tight mb-2">{step.title}</h3>
+            <p className="relative text-[13px] leading-relaxed text-zinc-400 dark:text-white/35">{step.desc}</p>
           </article>
         ))}
       </div>

@@ -41,8 +41,31 @@ export default function MemoireView({ chapters, questProgress, loadingKey, onSub
   const [activeChapterIdx, setActiveChapterIdx] = useState(0)
   const snapRef = useRef<HTMLDivElement>(null)
 
-  // Animation 4 — Checkbox bounce
+  // Collapsed state: tips and subtasks hidden by default
+  const [expandedTips, setExpandedTips] = useState<Set<string>>(() => new Set())
+  const [expandedSections, setExpandedSections] = useState<Set<string>>(() => new Set())
+
+  const toggleTip = useCallback((chapterNum: string) => {
+    setExpandedTips(prev => {
+      const next = new Set(prev)
+      if (next.has(chapterNum)) next.delete(chapterNum)
+      else next.add(chapterNum)
+      return next
+    })
+  }, [])
+
+  const toggleSection = useCallback((key: string) => {
+    setExpandedSections(prev => {
+      const next = new Set(prev)
+      if (next.has(key)) next.delete(key)
+      else next.add(key)
+      return next
+    })
+  }, [])
+
+  // Animation 4 — Checkbox bounce + XP popup
   const [justChecked, setJustChecked] = useState<Set<string>>(() => new Set())
+  const [xpPopups, setXpPopups] = useState<Array<{ key: string; id: string }>>([])
 
   const triggerCheckBounce = useCallback((key: string) => {
     setJustChecked(prev => {
@@ -50,6 +73,12 @@ export default function MemoireView({ chapters, questProgress, loadingKey, onSub
       next.add(key)
       return next
     })
+    // XP popup
+    const popupId = `${key}-${Date.now()}`
+    setXpPopups(prev => [...prev, { key, id: popupId }])
+    setTimeout(() => {
+      setXpPopups(prev => prev.filter(p => p.id !== popupId))
+    }, 800)
     setTimeout(() => {
       setJustChecked(prev => {
         const next = new Set(prev)
@@ -132,9 +161,27 @@ export default function MemoireView({ chapters, questProgress, loadingKey, onSub
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [viewMode, activeChapterIdx, chapters.length, scrollToChapter])
 
+  // Chapter completion glow state
+  const [glowingChapter, setGlowingChapter] = useState<string | null>(null)
+
   /* ─── OVERVIEW MODE ─── */
   if (viewMode === 'overview') {
     return (
+      <>
+      <style>{`
+        @keyframes xpFloat {
+          from { opacity: 1; transform: translateY(0); }
+          to { opacity: 0; transform: translateY(-20px); }
+        }
+        @keyframes checkFlash {
+          0% { background: rgba(255,255,255,0.15); }
+          100% { background: transparent; }
+        }
+        @keyframes barComplete {
+          0% { background: rgba(255,255,255,0.3); }
+          100% { background: rgba(255,255,255,0.15); }
+        }
+      `}</style>
       <div style={{
         width: '100%',
         height: '100%',
@@ -256,11 +303,27 @@ export default function MemoireView({ chapters, questProgress, loadingKey, onSub
           })}
         </div>
       </div>
+      </>
     )
   }
 
   /* ─── DETAIL MODE — Scroll Snap TikTok ─── */
   return (
+    <>
+    <style>{`
+      @keyframes xpFloat {
+        from { opacity: 1; transform: translateY(0); }
+        to { opacity: 0; transform: translateY(-20px); }
+      }
+      @keyframes checkFlash {
+        0% { background: rgba(255,255,255,0.15); }
+        100% { background: transparent; }
+      }
+      @keyframes barComplete {
+        0% { background: rgba(255,255,255,0.3); }
+        100% { background: rgba(255,255,255,0.15); }
+      }
+    `}</style>
     <div style={{
       width: '100%',
       height: '100%',
@@ -298,7 +361,7 @@ export default function MemoireView({ chapters, questProgress, loadingKey, onSub
           flex: '1 1 0',
           minHeight: 0,
           overflowY: 'auto',
-          scrollSnapType: 'y mandatory',
+          scrollSnapType: 'y proximity',
           scrollBehavior: 'smooth',
         }}
       >
@@ -314,8 +377,9 @@ export default function MemoireView({ chapters, questProgress, loadingKey, onSub
               data-idx={idx}
               style={{
                 scrollSnapAlign: 'start',
-                minHeight: '100%',
+                minHeight: '85vh',
                 padding: '24px 24px 24px 24px',
+                position: 'relative' as const,
                 display: 'flex',
                 flexDirection: 'column',
                 overflowY: 'auto',
@@ -346,6 +410,8 @@ export default function MemoireView({ chapters, questProgress, loadingKey, onSub
                 <h2 style={{
                   fontSize: 20, fontWeight: 700, letterSpacing: '-0.4px', margin: 0,
                   color: tw(0.90, textIntensity, isDark), lineHeight: 1.3,
+                  textShadow: chPct === 100 ? '0 0 8px rgba(255,255,255,0.2)' : 'none',
+                  transition: 'text-shadow 1s ease-out',
                 }}>{ch.title}</h2>
 
                 {/* Progress bar */}
@@ -357,7 +423,8 @@ export default function MemoireView({ chapters, questProgress, loadingKey, onSub
                     <div style={{
                       height: '100%', width: `${chPct}%`, borderRadius: 99,
                       background: accentColor,
-                      transition: 'width 0.6s cubic-bezier(.4,0,.2,1)',
+                      transition: 'width 0.5s cubic-bezier(0.34, 1.56, 0.64, 1)',
+                      animation: chPct === 100 ? 'barComplete 0.6s ease-out' : 'none',
                     }} />
                   </div>
                   <span style={{
@@ -384,24 +451,6 @@ export default function MemoireView({ chapters, questProgress, loadingKey, onSub
                   {ch.objective}
                 </div>
               </div>
-
-              {/* Tips */}
-              {ch.tips && (
-                <div style={{
-                  flexShrink: 0, padding: '8px 12px', borderRadius: 8,
-                  background: bg(0.03, isDark), borderLeft: `3px solid ${bg(0.10, isDark)}`,
-                  marginBottom: 8,
-                }}>
-                  <div style={{
-                    fontSize: 10, color: tw(0.25, textIntensity, isDark), fontWeight: 600,
-                    letterSpacing: '0.3px', marginBottom: 4, textTransform: 'uppercase',
-                  }}>Conseils du cahier des charges</div>
-                  <div style={{
-                    fontSize: 12, lineHeight: 1.55,
-                    color: tw(0.40, textIntensity, isDark), fontStyle: 'italic',
-                  }}>{ch.tips}</div>
-                </div>
-              )}
 
               {/* Sections list */}
               <div style={{
@@ -434,18 +483,25 @@ export default function MemoireView({ chapters, questProgress, loadingKey, onSub
                       key={i}
                       style={{
                         borderRadius: 10,
-                        border: `1px solid ${bg(0.06, isDark)}`,
-                        background: secDone ? bg(0.02, isDark) : bg(0.04, isDark),
+                        border: `1px solid ${bg(0.08, isDark)}`,
+                        background: secDone ? bg(0.03, isDark) : bg(0.05, isDark),
                         overflow: 'hidden',
                         opacity: isAnyTaskLoading ? 0.6 : 1,
                         transition: 'opacity 0.2s cubic-bezier(.4,0,.2,1)',
+                        backdropFilter: 'blur(8px)',
+                        WebkitBackdropFilter: 'blur(8px)',
+                        boxShadow: '0 2px 12px rgba(0,0,0,0.3)',
                       }}
                     >
-                      {/* Section header */}
-                      <div style={{
-                        display: 'flex', alignItems: 'center', gap: 12,
-                        padding: '11px 16px',
-                      }}>
+                      {/* Section header — clickable to expand/collapse subtasks */}
+                      <div
+                        onClick={() => hasTasks ? toggleSection(`${ch.num}:${i}`) : undefined}
+                        style={{
+                          display: 'flex', alignItems: 'center', gap: 12,
+                          padding: '11px 16px',
+                          cursor: hasTasks ? 'pointer' : 'default',
+                        }}
+                      >
                         <div style={{
                           width: 24, height: 24, borderRadius: '50%', flexShrink: 0,
                           display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -481,9 +537,17 @@ export default function MemoireView({ chapters, questProgress, loadingKey, onSub
                         }}>
                           {sec.difficulty === 'hard' ? 'difficile' : sec.difficulty === 'medium' ? 'moyen' : 'facile'}
                         </span>
+
+                        {hasTasks && (
+                          <span style={{
+                            fontSize: 11, color: tw(0.25, textIntensity, isDark), flexShrink: 0,
+                            transform: expandedSections.has(`${ch.num}:${i}`) ? 'rotate(90deg)' : 'rotate(0deg)',
+                            transition: 'transform 0.2s ease',
+                          }}>{'\u203A'}</span>
+                        )}
                       </div>
 
-                      {/* Mini progress bar */}
+                      {/* Mini progress bar — always visible for non-done sections */}
                       {!secDone && hasTasks && (
                         <div style={{
                           height: 2, borderRadius: 99,
@@ -494,13 +558,13 @@ export default function MemoireView({ chapters, questProgress, loadingKey, onSub
                             height: '100%', borderRadius: 99,
                             background: accentColor,
                             width: `${tasksPct}%`,
-                            transition: 'width 0.6s cubic-bezier(.4,0,.2,1)',
+                            transition: 'width 0.5s cubic-bezier(0.34, 1.56, 0.64, 1)',
                           }} />
                         </div>
                       )}
 
-                      {/* Subtasks */}
-                      {hasTasks && (
+                      {/* Subtasks — collapsed by default, expanded on section click */}
+                      {hasTasks && expandedSections.has(`${ch.num}:${i}`) && (
                         <div style={{
                           padding: '0 16px 12px 52px',
                           display: 'flex', flexDirection: 'column',
@@ -511,6 +575,8 @@ export default function MemoireView({ chapters, questProgress, loadingKey, onSub
                             const canToggle = !isTaskLoading
                             const checkKey = `${ch.num}:${i}:${ti}`
                             const isBouncing = justChecked.has(checkKey)
+
+                            const hasXpPopup = xpPopups.some(p => p.key === checkKey)
 
                             return (
                               <div
@@ -524,10 +590,12 @@ export default function MemoireView({ chapters, questProgress, loadingKey, onSub
                                 style={{
                                   display: 'flex', alignItems: 'center', gap: 10,
                                   padding: '7px 0',
+                                  position: 'relative',
                                   borderTop: ti === 0 ? 'none' : `1px solid ${bg(0.04, isDark)}`,
                                   cursor: canToggle ? 'pointer' : 'default',
                                   opacity: isTaskLoading ? 0.5 : 1,
                                   transition: 'opacity 0.15s cubic-bezier(.4,0,.2,1)',
+                                  animation: isBouncing ? 'checkFlash 0.3s ease-out' : 'none',
                                 }}
                               >
                                 <div style={{
@@ -536,11 +604,22 @@ export default function MemoireView({ chapters, questProgress, loadingKey, onSub
                                   border: `1.5px solid ${isChecked ? bg(0.25, isDark) : bg(0.15, isDark)}`,
                                   background: isChecked ? bg(0.70, isDark) : 'transparent',
                                   fontSize: 9,
-                                  transform: isBouncing ? 'scale(1.3)' : 'scale(1)',
+                                  transform: isBouncing ? 'scale(1.4)' : 'scale(1)',
                                   transition: 'transform 0.3s cubic-bezier(.175,.885,.32,1.275), border-color 0.2s cubic-bezier(.4,0,.2,1), background 0.2s cubic-bezier(.4,0,.2,1)',
                                 }}>
                                   {isChecked && <span style={{ color: tw(0.92, textIntensity, isDark), lineHeight: 1 }}>&#10003;</span>}
                                 </div>
+                                {/* +XP popup */}
+                                {hasXpPopup && (
+                                  <span style={{
+                                    position: 'absolute',
+                                    left: 24, top: 0,
+                                    fontSize: 11, fontWeight: 700,
+                                    color: 'rgba(255,255,255,0.6)',
+                                    animation: 'xpFloat 0.8s ease-out forwards',
+                                    pointerEvents: 'none',
+                                  }}>+XP</span>
+                                )}
                                 <span style={{
                                   fontSize: 12, lineHeight: 1.4,
                                   color: isChecked ? tw(0.30, textIntensity, isDark) : tw(0.45, textIntensity, isDark),
@@ -556,6 +635,52 @@ export default function MemoireView({ chapters, questProgress, loadingKey, onSub
                   )
                 })}
               </div>
+
+              {/* Hints banner — bottom of each slide */}
+              {(ch.tips || ch.sectionList.some(s => s.hint)) && (
+                <div style={{ marginTop: 'auto', flexShrink: 0 }}>
+                  <div
+                    onClick={() => toggleTip(ch.num)}
+                    style={{
+                      padding: '10px 16px',
+                      background: bg(0.03, isDark),
+                      borderTop: `1px solid ${bg(0.06, isDark)}`,
+                      cursor: 'pointer',
+                      transition: 'background 0.15s',
+                    }}
+                    onMouseEnter={(e) => { e.currentTarget.style.background = bg(0.05, isDark) }}
+                    onMouseLeave={(e) => { e.currentTarget.style.background = bg(0.03, isDark) }}
+                  >
+                    <span style={{ fontSize: 13, color: tw(0.35, textIntensity, isDark) }}>
+                      {expandedTips.has(ch.num) ? '\uD83D\uDCA1 Masquer les conseils' : '\uD83D\uDCA1 Voir les conseils pour ce chapitre'}
+                    </span>
+                  </div>
+                  {expandedTips.has(ch.num) && (
+                    <div style={{ padding: '12px 16px', background: bg(0.03, isDark) }}>
+                      {ch.tips && (
+                        <div style={{ marginBottom: 10 }}>
+                          <div style={{
+                            fontSize: 12, lineHeight: 1.55,
+                            color: tw(0.40, textIntensity, isDark), fontStyle: 'italic',
+                          }}>{ch.tips}</div>
+                        </div>
+                      )}
+                      {ch.sectionList.map((sec, si) => sec.hint ? (
+                        <div key={si} style={{ marginBottom: 10 }}>
+                          <div style={{
+                            fontSize: 11, fontWeight: 600, color: tw(0.25, textIntensity, isDark),
+                            textTransform: 'uppercase', marginBottom: 4,
+                          }}>Section {si + 1}</div>
+                          <div style={{
+                            fontSize: 12, lineHeight: 1.5,
+                            color: tw(0.40, textIntensity, isDark),
+                          }}>{sec.hint}</div>
+                        </div>
+                      ) : null)}
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           )
         })}
@@ -612,5 +737,6 @@ export default function MemoireView({ chapters, questProgress, loadingKey, onSub
         </div>
       )}
     </div>
+    </>
   )
 }

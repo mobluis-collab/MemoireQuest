@@ -322,6 +322,14 @@ export default function AchievementsView({
             {unlocked} / {total}
           </span>
         </div>
+        <p style={{
+          fontSize: 13,
+          color: tw(0.40, textIntensity, isDark),
+          margin: '6px 0 0',
+          fontWeight: 400,
+        }}>
+          Relève les défis pour débloquer de nouveaux badges !
+        </p>
       </div>
 
       {/* Tiers: 0 → 1 → 2 → 3 (base to summit) */}

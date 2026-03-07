@@ -185,7 +185,9 @@ function ChapterCard({ ch, onClick, textIntensity = 1.0, isDark = true }: { ch: 
         display: 'flex', alignItems: 'center',
         transition: 'all 0.15s cubic-bezier(.4,0,.2,1)',
         transform: hovered ? 'translateY(-1px)' : 'none',
-        boxShadow: hovered ? '0 4px 16px rgba(0,0,0,0.2)' : 'none',
+        boxShadow: hovered ? '0 4px 16px rgba(0,0,0,0.25)' : '0 1px 8px rgba(0,0,0,0.25)',
+        backdropFilter: 'blur(8px)',
+        WebkitBackdropFilter: 'blur(8px)',
         cursor: 'pointer',
         minHeight: 0,
       }}>
@@ -347,7 +349,9 @@ function SidePanel({
                     border: `1px solid ${isNext ? 'var(--mq-border-hover)' : 'var(--mq-stroke-soft)'}`,
                     transition: 'all 0.15s cubic-bezier(.4,0,.2,1)',
                     cursor: isClickable ? 'pointer' : 'default',
-                    boxShadow: 'none',
+                    boxShadow: '0 1px 8px rgba(0,0,0,0.25)',
+                    backdropFilter: 'blur(8px)',
+                    WebkitBackdropFilter: 'blur(8px)',
                     opacity: isLoading ? 0.6 : 1,
                   }}>
                   <div style={{
@@ -900,6 +904,10 @@ export default function NewDashboard({
           from { transform: rotate(0deg); }
           to { transform: rotate(360deg); }
         }
+        @keyframes dashFadeIn {
+          from { opacity: 0; transform: translateY(4px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
         /* Fix I-beam cursor on non-editable text */
         .mq-dashboard-scroll,
         .mq-dashboard-scroll * {
@@ -1336,8 +1344,8 @@ export default function NewDashboard({
           <div style={{
             flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column',
             opacity: isTransitioning ? 0 : 1,
-            transform: isTransitioning ? 'translateY(8px)' : 'translateY(0)',
-            transition: 'opacity 0.2s cubic-bezier(.4,0,.2,1), transform 0.2s cubic-bezier(.4,0,.2,1)',
+            transform: isTransitioning ? 'translateY(4px)' : 'translateY(0)',
+            transition: 'opacity 0.15s ease-in, transform 0.15s ease-in',
           }}>
           {/* ── Non-dashboard views ── */}
           {activeView !== 'dashboard' && (

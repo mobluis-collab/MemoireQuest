@@ -2,24 +2,24 @@
 
 const FEATURES = [
   {
-    label: "Structure",
-    title: "Plan généré par l'IA",
-    desc: "Chapitres, sections et sous-tâches extraits directement de ton cahier des charges. Rien d'inventé.",
+    label: "STRUCTURE",
+    title: "Fini les plans bancals",
+    desc: "L'IA extrait la structure directement de ton cahier des charges. Chapitres, sections et sous-tâches prêts en 2 minutes.",
   },
   {
-    label: "Progression",
-    title: "Système de quêtes",
-    desc: "Coche tes sous-tâches une par une, gagne de l'XP et monte en niveau. Ta progression est visible en temps réel.",
+    label: "MOTIVATION",
+    title: "Chaque section = une victoire",
+    desc: "Système de quêtes avec XP et niveaux. Tu vois ta progression en temps réel et tu restes motivé jusqu'à la soutenance.",
   },
   {
-    label: "Conseils",
-    title: "Guidance contextuelle",
-    desc: "Chaque section inclut des conseils issus de ton cahier des charges pour te guider dans la rédaction.",
+    label: "GUIDANCE",
+    title: "Plus jamais la page blanche",
+    desc: "Conseils de rédaction contextuels extraits de ton cahier des charges. Tu sais exactement quoi écrire, section par section.",
   },
   {
-    label: "Suivi",
-    title: "Streaks et achievements",
-    desc: "Maintiens ta régularité avec les streaks quotidiens et débloque des badges en progressant.",
+    label: "RÉGULARITÉ",
+    title: "Streaks & badges pour tenir le rythme",
+    desc: "Maintiens ta régularité avec les streaks quotidiens et débloque des badges en progressant. Comme un jeu, mais pour ton diplôme.",
   },
 ];
 
@@ -30,14 +30,14 @@ export default function FeaturesSection() {
         Tout ce qu&apos;il te faut pour finir ton m&eacute;moire.
       </h2>
       <p className="text-center text-sm text-zinc-400 dark:text-white/35 mb-6">
-        Un outil pensé pour les étudiants.
+        Un outil pens&eacute; pour les &eacute;tudiants en alternance.
       </p>
 
       <div className="grid grid-cols-2 gap-3 max-md:grid-cols-1">
         {FEATURES.map((f) => (
           <div
             key={f.label}
-            className="p-6 rounded-[14px] border border-black/[0.06] dark:border-white/[0.06] bg-black/[0.02] dark:bg-white/[0.02]"
+            className="group p-6 rounded-[14px] border border-black/[0.06] dark:border-white/[0.06] bg-black/[0.02] dark:bg-white/[0.02] hover:bg-gradient-to-br hover:from-black/[0.04] hover:to-transparent dark:hover:from-white/[0.04] dark:hover:to-transparent hover:border-black/10 dark:hover:border-white/10 transition-all duration-300"
           >
             <div className="text-[10px] font-semibold text-zinc-300 dark:text-white/20 tracking-wider uppercase mb-2">
               {f.label}

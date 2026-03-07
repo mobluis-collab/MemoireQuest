@@ -47,7 +47,6 @@ export default function HeroSection() {
       if (error) {
         setAuthError(error.message);
       } else {
-        // Attendre que la session soit confirmée avant de rediriger
         for (let i = 0; i < 20; i++) {
           const { data: { session } } = await supabase.auth.getSession();
           if (session) break;
@@ -72,51 +71,57 @@ export default function HeroSection() {
     if (error) setAuthError(error.message);
   };
 
-  return (
-    <section className="max-w-[680px] mx-auto text-center pt-14 pb-8 px-5 max-sm:pt-10 max-sm:px-4">
-      <div className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full border border-black/10 dark:border-white/10 bg-black/5 dark:bg-white/5 text-xs text-zinc-400 dark:text-white/40 font-medium mb-5">
-        <span className="w-1.5 h-1.5 rounded-full bg-black/45 dark:bg-white/45 animate-pulse" />
-        Propulsé par l&apos;IA · Gratuit
-      </div>
+  const renderAuthButton = () => {
+    if (!mounted) return <div style={{ height: 44 }} />;
+    if (hasGoogleClientId) {
+      return (
+        <GoogleLogin
+          onSuccess={handleGoogleSuccess}
+          onError={() => setAuthError("La connexion Google a échoué.")}
+          theme={isDark ? "filled_black" : "outline"}
+          shape="pill"
+          size="large"
+          text="continue_with"
+          width="300"
+        />
+      );
+    }
+    return (
+      <button
+        onClick={handleOAuthFallback}
+        aria-label="Se connecter avec Google"
+        className="inline-flex items-center gap-3 px-7 py-3.5 rounded-full border border-black/15 dark:border-white/15 bg-black/[0.06] dark:bg-white/[0.06] text-zinc-800 dark:text-white/85 text-sm font-medium hover:bg-black/10 dark:hover:bg-white/10 hover:border-black/25 dark:hover:border-white/25 hover:-translate-y-px transition-all cursor-pointer"
+      >
+        <GoogleIcon />
+        Continuer avec Google
+      </button>
+    );
+  };
 
-      <h1 className="text-[clamp(32px,6vw,52px)] font-bold tracking-tight leading-[1.1] mb-4 text-zinc-900 dark:text-white">
-        Ton mémoire,{" "}
-        <span className="text-zinc-500 dark:text-white/50">structuré par l&apos;IA.</span>
+  return (
+    <section className="max-w-[680px] mx-auto text-center pt-16 pb-10 px-5 max-sm:pt-10 max-sm:px-4">
+<h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight leading-[1.08] mb-4 text-zinc-900 dark:text-white">
+        Ton m&eacute;moire. Structur&eacute; par l&apos;IA.{" "}
+        <span className="text-zinc-400 dark:text-white/40">Termin&eacute; &agrave; temps.</span>
       </h1>
 
-      <p className="text-[17px] leading-relaxed text-zinc-400 dark:text-white/40 max-w-[480px] mx-auto mb-7 max-md:text-[15px]">
-        Dépose ton cahier des charges, reçois un plan de rédaction complet et personnalisé.
-        De l&apos;introduction à la conclusion, étape par étape.
+      <p className="text-[15px] leading-relaxed text-zinc-500 dark:text-white/45 max-w-[520px] mx-auto mb-3">
+        D&eacute;pose ton cahier des charges, obtiens un plan de r&eacute;daction personnalis&eacute; et avance section par section comme un jeu.
+      </p>
+
+      <p className="text-sm text-zinc-400 dark:text-white/40 mb-8">
+        Plan IA en 2 min &middot; Qu&ecirc;tes &amp; XP &middot; Suivi intelligent
       </p>
 
       {authError && (
         <p className="text-sm text-red-400 mb-4">{authError}</p>
       )}
 
-      {mounted ? (
-        hasGoogleClientId ? (
-          <GoogleLogin
-            onSuccess={handleGoogleSuccess}
-            onError={() => setAuthError("La connexion Google a échoué.")}
-            theme={isDark ? "filled_black" : "outline"}
-            shape="pill"
-            size="large"
-            text="continue_with"
-            width="300"
-          />
-        ) : (
-          <button
-            onClick={handleOAuthFallback}
-            aria-label="Se connecter avec Google"
-            className="inline-flex items-center gap-3 px-7 py-3.5 rounded-full border border-black/15 dark:border-white/15 bg-black/[0.06] dark:bg-white/[0.06] text-zinc-800 dark:text-white/85 text-sm font-medium hover:bg-black/10 dark:hover:bg-white/10 hover:border-black/25 dark:hover:border-white/25 hover:-translate-y-px transition-all cursor-pointer"
-          >
-            <GoogleIcon />
-            Continuer avec Google
-          </button>
-        )
-      ) : (
-        <div style={{ height: 44 }} />
-      )}
+      {renderAuthButton()}
+
+      <p className="text-xs text-zinc-400 dark:text-white/25 mt-3">
+        Aucune carte bancaire requise &middot; 2 min pour commencer
+      </p>
     </section>
   );
 }
