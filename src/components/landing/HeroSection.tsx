@@ -47,6 +47,12 @@ export default function HeroSection() {
       if (error) {
         setAuthError(error.message);
       } else {
+        // Attendre que la session soit confirmée avant de rediriger
+        for (let i = 0; i < 20; i++) {
+          const { data: { session } } = await supabase.auth.getSession();
+          if (session) break;
+          await new Promise((r) => setTimeout(r, 150));
+        }
         window.location.href = "/dashboard";
       }
     } catch {

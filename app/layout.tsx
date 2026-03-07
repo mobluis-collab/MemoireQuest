@@ -14,7 +14,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="fr" suppressHydrationWarning>
+    <html lang="fr">
       <head>
         <script
           dangerouslySetInnerHTML={{
@@ -29,7 +29,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           }}
         />
       </head>
-      <body className={inter.className} suppressHydrationWarning>
+      <body className={inter.className}>
         <GoogleAuthProvider>
           <ThemeProvider>{children}</ThemeProvider>
         </GoogleAuthProvider>
