@@ -488,9 +488,6 @@ export default function MemoireView({ chapters, questProgress, loadingKey, onSub
                         overflow: 'hidden',
                         opacity: isAnyTaskLoading ? 0.6 : 1,
                         transition: 'opacity 0.2s cubic-bezier(.4,0,.2,1)',
-                        backdropFilter: 'blur(8px)',
-                        WebkitBackdropFilter: 'blur(8px)',
-                        boxShadow: '0 2px 12px rgba(0,0,0,0.3)',
                       }}
                     >
                       {/* Section header — clickable to expand/collapse subtasks */}
