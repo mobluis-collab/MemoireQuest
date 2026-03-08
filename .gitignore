@@ -33,3 +33,36 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 team_repair.py
+
+# internal docs & prompts (dev workflow)
+PROMPTS-*.md
+AUDIT-*.md
+BRIEFING-*.md
+DEPLOYMENT.md
+DEPLOYMENT_LOCK.md
+SESSION_CHECKPOINT.md
+ROADMAP_EXCELLENCE.md
+
+# prototypes & mockups
+mockup-*.html
+preview-*.html
+prototype-*.html
+glow-pulse-preview.html
+memoire-view-v2.html
+
+# prototypes & preview components
+*-preview*.jsx
+*-mockup*.jsx
+
+# test PDFs
+CDC_*.pdf
+Cahier_des_Charges_*.pdf
+
+# misc dev files
+restart-dev.sh
+*.backup
+SPECS.md
+DESIGN_SYSTEM.md
+
+# claude code
+.claude/
