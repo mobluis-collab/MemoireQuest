@@ -563,6 +563,15 @@ function ReuploadOverlay({ accentColor, textIntensity = 1.0, isDark = true }: { 
             </div>
           ))}
         </div>
+
+        {/* Message durée */}
+        <div style={{
+          fontSize: 11, color: tw(0.35, textIntensity, isDark),
+          textAlign: 'center', lineHeight: 1.5, marginTop: 4,
+        }}>
+          L{'\u0027'}analyse prend en moyenne 5 minutes.<br />
+          Tu peux vaquer {'\u00e0'} tes occupations, tout se fait automatiquement.
+        </div>
       </div>
     </div>
   )
@@ -1721,6 +1730,10 @@ export default function NewDashboard({
             </div>
             <div style={{ fontSize: 12, color: tw(0.25, textIntensity, isDark) }}>
               L{'\u0027'}IA utilise tes m{'\u00e9'}tadonn{'\u00e9'}es v{'\u00e9'}rifi{'\u00e9'}es pour cr{'\u00e9'}er un plan sur mesure.
+            </div>
+            <div style={{ fontSize: 11, color: tw(0.30, textIntensity, isDark), marginTop: 12, textAlign: 'center', lineHeight: 1.5 }}>
+              L{'\u0027'}analyse prend en moyenne 5 minutes.<br />
+              Tu peux vaquer {'\u00e0'} tes occupations, tout se fait automatiquement.
             </div>
           </div>
         ) : extractionResult && onConfirmExtraction && onReanalyze ? (

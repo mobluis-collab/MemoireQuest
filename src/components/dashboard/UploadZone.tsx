@@ -71,6 +71,11 @@ function LoadingState() {
           </li>
         ))}
       </ul>
+
+      {/* Message durée */}
+      <p className="text-xs text-zinc-400 dark:text-zinc-500 text-center mt-2 max-w-[280px]">
+        L&apos;analyse prend en moyenne 5 minutes. Tu peux vaquer à tes occupations, tout se fait automatiquement.
+      </p>
     </div>
   )
 }
