@@ -566,11 +566,17 @@ function ReuploadOverlay({ accentColor, textIntensity = 1.0, isDark = true }: { 
 
         {/* Message durée */}
         <div style={{
-          fontSize: 11, color: tw(0.35, textIntensity, isDark),
-          textAlign: 'center', lineHeight: 1.5, marginTop: 4,
+          width: '100%', padding: '14px 16px', borderRadius: 12, marginTop: 8,
+          background: bg(0.05, isDark),
+          border: `1px solid ${bg(0.10, isDark)}`,
+          textAlign: 'center',
         }}>
-          L{'\u0027'}analyse prend en moyenne 5 minutes.<br />
-          Tu peux vaquer {'\u00e0'} tes occupations, tout se fait automatiquement.
+          <div style={{ fontSize: 13, fontWeight: 600, color: tw(0.70, textIntensity, isDark), marginBottom: 4 }}>
+            Environ 5 minutes d{'\u0027'}analyse
+          </div>
+          <div style={{ fontSize: 11, color: tw(0.40, textIntensity, isDark), lineHeight: 1.5 }}>
+            Tu peux vaquer {'\u00e0'} tes occupations, tout se fait automatiquement.
+          </div>
         </div>
       </div>
     </div>
@@ -1731,9 +1737,18 @@ export default function NewDashboard({
             <div style={{ fontSize: 12, color: tw(0.25, textIntensity, isDark) }}>
               L{'\u0027'}IA utilise tes m{'\u00e9'}tadonn{'\u00e9'}es v{'\u00e9'}rifi{'\u00e9'}es pour cr{'\u00e9'}er un plan sur mesure.
             </div>
-            <div style={{ fontSize: 11, color: tw(0.30, textIntensity, isDark), marginTop: 12, textAlign: 'center', lineHeight: 1.5 }}>
-              L{'\u0027'}analyse prend en moyenne 5 minutes.<br />
-              Tu peux vaquer {'\u00e0'} tes occupations, tout se fait automatiquement.
+            <div style={{
+              marginTop: 24, padding: '14px 20px', borderRadius: 12,
+              background: bg(0.05, isDark),
+              border: `1px solid ${bg(0.10, isDark)}`,
+              textAlign: 'center', maxWidth: 300,
+            }}>
+              <div style={{ fontSize: 13, fontWeight: 600, color: tw(0.70, textIntensity, isDark), marginBottom: 4 }}>
+                Environ 5 minutes d{'\u0027'}analyse
+              </div>
+              <div style={{ fontSize: 11, color: tw(0.40, textIntensity, isDark), lineHeight: 1.5 }}>
+                Tu peux vaquer {'\u00e0'} tes occupations, tout se fait automatiquement.
+              </div>
             </div>
           </div>
         ) : extractionResult && onConfirmExtraction && onReanalyze ? (
