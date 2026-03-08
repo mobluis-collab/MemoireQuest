@@ -72,15 +72,6 @@ function LoadingState() {
         ))}
       </ul>
 
-      {/* Message durée */}
-      <div className="mt-6 px-5 py-4 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-100 dark:bg-zinc-800/50 max-w-xs text-center">
-        <p className="text-sm font-semibold text-zinc-700 dark:text-zinc-200 mb-1">
-          Environ 5 minutes d&apos;analyse
-        </p>
-        <p className="text-xs text-zinc-500 dark:text-zinc-400 leading-relaxed">
-          Tu peux vaquer à tes occupations, tout se fait automatiquement.
-        </p>
-      </div>
     </div>
   )
 }
