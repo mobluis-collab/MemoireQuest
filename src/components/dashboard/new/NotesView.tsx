@@ -56,6 +56,13 @@ export default function NotesView({ textIntensity = 1.0, isDark = true, onCountC
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const [isLoaded, setIsLoaded] = useState(false)
 
+  // Force re-render every minute so relative dates stay fresh (client-only)
+  const [, setTick] = useState(0)
+  useEffect(() => {
+    const timer = setInterval(() => setTick(t => t + 1), 60000)
+    return () => clearInterval(timer)
+  }, [])
+
   const selectedNote = notes.find(n => n.id === selectedId) ?? null
 
   // Fetch notes on mount

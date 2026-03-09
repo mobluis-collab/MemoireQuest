@@ -133,8 +133,8 @@ function Arc({ pct, accentColor, textIntensity = 1.0, isDark = true }: { pct: nu
 }
 
 /* ─── Dot grid ────────────────────────────────────────────────── */
-function DotGrid({ start, deadline, accentColor }: { start: Date; deadline: Date; accentColor: string }) {
-  const today = new Date()
+function DotGrid({ start, deadline, accentColor, today }: { start: Date; deadline: Date; accentColor: string; today: Date | null }) {
+  if (!today) return null
   const total   = daysBetween(start, deadline)
   const elapsed = Math.min(daysBetween(start, today), total)
   const COLS = 55
@@ -772,17 +772,20 @@ export default function NewDashboard({
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [handleViewChange, showShortcuts, focusMode, pomodoroOpen])
 
-  const today = new Date()
+  const [today, setToday] = useState<Date | null>(null)
+  useEffect(() => { setToday(new Date()) }, [])
+
   const firstName = user.user_metadata?.full_name?.split(' ')[0] ?? user.email.split('@')[0]
   const firstInitial = firstName.charAt(0).toUpperCase()
 
   /* ── Dates ── */
   const startDate = useMemo(() => {
     if (planCreatedAt) return new Date(planCreatedAt)
-    const d = new Date()
+    if (!today) return new Date(0) // stable fallback for SSR
+    const d = new Date(today)
     d.setMonth(d.getMonth() - 3)
     return d
-  }, [planCreatedAt])
+  }, [planCreatedAt, today])
 
   const deadlineDate = useMemo(() => {
     if (plan?.deadline) {
@@ -793,7 +796,7 @@ export default function NewDashboard({
   }, [plan])
 
   const total     = deadlineDate ? daysBetween(startDate, deadlineDate) : 0
-  const elapsed   = deadlineDate ? Math.min(Math.max(daysBetween(startDate, today), 0), total) : 0
+  const elapsed   = deadlineDate && today ? Math.min(Math.max(daysBetween(startDate, today), 0), total) : 0
   const remaining = deadlineDate ? Math.max(total - elapsed, 0) : 0
   const timePct   = deadlineDate && total > 0 ? Math.round((elapsed / total) * 100) : 0
 
@@ -1541,7 +1544,7 @@ export default function NewDashboard({
                         </div>
                       </div>
                       <div style={{ padding: '4px 0' }}>
-                        <DotGrid start={startDate} deadline={deadlineDate} accentColor={accentColor} />
+                        <DotGrid start={startDate} deadline={deadlineDate} accentColor={accentColor} today={today} />
                       </div>
                       {/* Timeline bar */}
                       <div>

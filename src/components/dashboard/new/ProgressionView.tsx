@@ -26,11 +26,18 @@ const daysBetween = (a: Date, b: Date) => Math.round((b.getTime() - a.getTime())
 
 export default function ProgressionView({ chapters, totalPoints, streak, startDate, deadlineDate, accentColor = '#6366f1', textIntensity = 1.0, isDark = true }: ProgressionViewProps) {
   const [selectedChapter, setSelectedChapter] = useState<string | null>(null)
+  const [today, setToday] = useState<Date | null>(null)
+  const [currentDayOfWeek, setCurrentDayOfWeek] = useState(0)
 
-  const today = new Date()
+  useEffect(() => {
+    const now = new Date()
+    setToday(now)
+    setCurrentDayOfWeek(now.getDay())
+  }, [])
+
   const hasDeadline = !!deadlineDate
   const total     = hasDeadline ? daysBetween(startDate, deadlineDate) : 0
-  const elapsed   = hasDeadline ? Math.min(Math.max(daysBetween(startDate, today), 0), total) : 0
+  const elapsed   = hasDeadline && today ? Math.min(Math.max(daysBetween(startDate, today), 0), total) : 0
   const remaining = hasDeadline ? Math.max(total - elapsed, 0) : 0
   const timePct   = hasDeadline && total > 0 ? Math.round((elapsed / total) * 100) : 0
 
@@ -723,7 +730,7 @@ export default function ProgressionView({ chapters, totalPoints, streak, startDa
                       border: `1px solid ${active ? bg(0.10, isDark) : 'var(--mq-stroke-soft)'}`,
                     }} />
                     <span style={{ fontSize: 8, color: tw(0.30, textIntensity, isDark), fontWeight: 500 }}>
-                      {['L', 'M', 'M', 'J', 'V', 'S', 'D'][(new Date().getDay() + i - 6 + 7) % 7]}
+                      {['L', 'M', 'M', 'J', 'V', 'S', 'D'][(currentDayOfWeek + i - 6 + 7) % 7]}
                     </span>
                   </div>
                 )
