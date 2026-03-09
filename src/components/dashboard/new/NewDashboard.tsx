@@ -43,8 +43,8 @@ export interface NewDashboardProps {
   planRemaining: number | null
   planCreatedAt?: string
   onUpload: (file: File) => Promise<void>
-  onQuestComplete: (chapterNumber: string, sectionIndex: number) => Promise<void>
-  onSubtaskToggle: (chapterNumber: string, sectionIndex: number, taskIndex: number) => Promise<void>
+  onQuestComplete: (chapterNumber: string, sectionIndex: number) => void
+  onSubtaskToggle: (chapterNumber: string, sectionIndex: number, taskIndex: number) => void
   loadingKey: string | null
   accentColor: string
   onAccentChange?: (color: string) => void
@@ -564,20 +564,22 @@ function ReuploadOverlay({ accentColor, textIntensity = 1.0, isDark = true }: { 
           ))}
         </div>
 
-        {/* Message durée */}
-        <div style={{
-          width: '100%', padding: '14px 16px', borderRadius: 12, marginTop: 8,
-          background: bg(0.05, isDark),
-          border: `1px solid ${bg(0.10, isDark)}`,
-          textAlign: 'center',
-        }}>
-          <div style={{ fontSize: 13, fontWeight: 600, color: tw(0.70, textIntensity, isDark), marginBottom: 4 }}>
-            Environ 5 minutes d{'\u0027'}analyse
+        {/* Message durée — affiché uniquement pendant la phase de génération (steps 4+) */}
+        {stepIndex >= 4 && (
+          <div style={{
+            width: '100%', padding: '14px 16px', borderRadius: 12, marginTop: 8,
+            background: bg(0.05, isDark),
+            border: `1px solid ${bg(0.10, isDark)}`,
+            textAlign: 'center',
+          }}>
+            <div style={{ fontSize: 13, fontWeight: 600, color: tw(0.70, textIntensity, isDark), marginBottom: 4 }}>
+              Environ 5 minutes d{'\u0027'}analyse
+            </div>
+            <div style={{ fontSize: 11, color: tw(0.40, textIntensity, isDark), lineHeight: 1.5 }}>
+              Tu peux vaquer {'\u00e0'} tes occupations, tout se fait automatiquement.
+            </div>
           </div>
-          <div style={{ fontSize: 11, color: tw(0.40, textIntensity, isDark), lineHeight: 1.5 }}>
-            Tu peux vaquer {'\u00e0'} tes occupations, tout se fait automatiquement.
-          </div>
-        </div>
+        )}
       </div>
     </div>
   )
@@ -886,12 +888,12 @@ export default function NewDashboard({
   }, [manualDeadline, plan])
 
   /* ── Quest complete ── */
-  const handleSectionComplete = async (chapterNumber: string, sectionIndex: number) => {
-    await onQuestComplete(chapterNumber, sectionIndex)
+  const handleSectionComplete = (chapterNumber: string, sectionIndex: number) => {
+    onQuestComplete(chapterNumber, sectionIndex)
   }
 
-  const handleSubtaskToggle = async (chapterNumber: string, sectionIndex: number, taskIndex: number) => {
-    await onSubtaskToggle(chapterNumber, sectionIndex, taskIndex)
+  const handleSubtaskToggle = (chapterNumber: string, sectionIndex: number, taskIndex: number) => {
+    onSubtaskToggle(chapterNumber, sectionIndex, taskIndex)
   }
 
   const { isDark, toggle } = useThemeToggle()

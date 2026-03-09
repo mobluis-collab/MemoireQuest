@@ -5,14 +5,14 @@ import type { MemoirePlan, QuestProgress, StreakData, SectionProgress } from '@/
 import { isSectionDone } from '@/types/memoir'
 import type { ExtractionResult } from '@/types/extraction'
 import type { ComboState } from '@/lib/combo'
+import { updateCombo, getComboBonus } from '@/lib/combo'
 import NewDashboard from './new/NewDashboard'
 import { tw, bg } from '@/lib/color-utils'
 import { useTheme as useThemeToggle } from '@/context/ThemeProvider'
 import PrestigeModal from '@/components/prestige/PrestigeModal'
 import { useToast } from '@/hooks/useToast'
 import { usePrestigeMode } from '@/hooks/usePrestigeMode'
-import { calculateLevel, MAX_LEVEL } from '@/lib/xp/levels'
-import { getComboBonus } from '@/lib/combo'
+import { calculateLevel, getXPForDifficulty, MAX_LEVEL, LEVEL_THRESHOLDS } from '@/lib/xp/levels'
 
 const DEFAULT_STREAK: StreakData = { current: 0, last_activity: null, jokers: 0 }
 
@@ -49,7 +49,7 @@ export default function DashboardContent({
   const [totalPoints, setTotalPoints] = useState(initialTotalPoints)
   const [streak, setStreak] = useState<StreakData>(initialStreak ?? DEFAULT_STREAK)
   const [planRemaining, setPlanRemaining] = useState<number | null>(null)
-  const [loadingKey, setLoadingKey] = useState<string | null>(null)
+  const [loadingKey] = useState<string | null>(null)
   const [isPrestiging, setIsPrestiging] = useState(false)
   const [comboState, setComboState] = useState<ComboState>(
     initialComboState || { count: 0, lastQuestTime: null }
@@ -59,6 +59,57 @@ export default function DashboardContent({
   const [extractionResult, setExtractionResult] = useState<ExtractionResult | null>(null)
   const [pdfBase64, setPdfBase64] = useState<string | null>(null)
   const [extractionLoading, setExtractionLoading] = useState(false)
+
+  // ---- Debounced sync to Supabase ----
+  const syncTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const pendingSyncRef = useRef<{
+    questProgress: QuestProgress
+    totalPoints: number
+    streakData: StreakData
+    comboState: ComboState
+  } | null>(null)
+
+  const flushSync = useCallback(() => {
+    const data = pendingSyncRef.current
+    if (!data) return
+    pendingSyncRef.current = null
+    fetch('/api/quests/sync', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    }).catch(() => {
+      // Silently fail — data is still in client state
+      // Will be synced on next action
+      console.warn('[sync] Failed to persist quest state')
+    })
+  }, [])
+
+  const scheduleSyncDebounced = useCallback((
+    qp: QuestProgress,
+    tp: number,
+    sd: StreakData,
+    cs: ComboState,
+  ) => {
+    pendingSyncRef.current = {
+      questProgress: qp,
+      totalPoints: tp,
+      streakData: sd,
+      comboState: cs,
+    }
+    if (syncTimerRef.current) clearTimeout(syncTimerRef.current)
+    syncTimerRef.current = setTimeout(flushSync, 2000)
+  }, [flushSync])
+
+  // Flush on unmount / page leave
+  useEffect(() => {
+    const handleBeforeUnload = () => flushSync()
+    window.addEventListener('beforeunload', handleBeforeUnload)
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload)
+      if (syncTimerRef.current) clearTimeout(syncTimerRef.current)
+      flushSync()
+    }
+  }, [flushSync])
 
   // Load accent color and text intensity from preferences API
   useEffect(() => {
@@ -207,125 +258,183 @@ export default function DashboardContent({
     setPdfBase64(null)
   }
 
-  const handleQuestComplete = async (chapterNumber: string, sectionIndex: number) => {
-    // Optimistic update: toggle section immediately
-    const prevProgress = questProgress
-    const prevPoints = totalPoints
+  // ---- Client-side XP calculation helpers ----
+
+  /**
+   * Recalculates total XP from scratch based on current quest progress and plan.
+   * This avoids incremental bugs — we always derive XP from the source of truth.
+   */
+  const recalculateXP = useCallback((
+    currentPlan: MemoirePlan,
+    progress: QuestProgress,
+    currentCombo: ComboState,
+  ): { newTotalPoints: number; newCombo: ComboState } => {
+    let xpTotal = 0
+    let combo = currentCombo
+
+    for (const chapter of currentPlan.chapters) {
+      const chapterProgress = progress[chapter.number] ?? {}
+      const hardCount = chapter.sections.filter(s => s.difficulty === 'hard').length
+      const isBossChapter = hardCount / chapter.sections.length >= 0.6
+
+      let completedInChapter = 0
+
+      for (let i = 0; i < chapter.sections.length; i++) {
+        const sec = chapter.sections[i]
+        const secProgress = chapterProgress[i] as SectionProgress | undefined
+        if (isSectionDone(secProgress)) {
+          xpTotal += getXPForDifficulty(sec.difficulty)
+          completedInChapter++
+        }
+      }
+
+      // Boss chapter bonus: all sections done
+      if (isBossChapter && completedInChapter === chapter.sections.length) {
+        xpTotal += 50
+      }
+    }
+
+    // Cap at max XP
+    const maxXP = LEVEL_THRESHOLDS[MAX_LEVEL - 1]
+    xpTotal = Math.min(maxXP, xpTotal)
+
+    return { newTotalPoints: xpTotal, newCombo: combo }
+  }, [])
+
+  /**
+   * Updates streak based on current activity
+   */
+  const updateStreak = useCallback((currentStreak: StreakData, sectionJustCompleted: boolean): StreakData => {
+    if (!sectionJustCompleted) return currentStreak
+
+    const today = new Date().toISOString().split('T')[0]
+    const lastActivity = currentStreak.last_activity ? currentStreak.last_activity.split('T')[0] : null
+    const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0]
+
+    if (lastActivity === today) {
+      // Already active today
+      return currentStreak
+    } else if (lastActivity === yesterday) {
+      return { ...currentStreak, current: currentStreak.current + 1, last_activity: today }
+    } else {
+      return { ...currentStreak, current: 1, last_activity: today }
+    }
+  }, [])
+
+  // ---- Quest completion (fully client-side) ----
+
+  const handleQuestComplete = useCallback((chapterNumber: string, sectionIndex: number) => {
+    if (!plan) return
+
     const chProgress: Record<string, SectionProgress> = { ...(questProgress[chapterNumber] ?? {}) }
     const key = String(sectionIndex)
     const wasDone = isSectionDone(chProgress[key])
-    if (wasDone) { delete chProgress[key] } else { chProgress[key] = 'done' }
-    setQuestProgress({ ...questProgress, [chapterNumber]: chProgress })
 
-    try {
-      const res = await fetch('/api/quests/complete', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ chapterNumber, sectionIndex, pointsEarned: 4 }),
-      })
-      if (!res.ok) {
-        setQuestProgress(prevProgress)
-        setTotalPoints(prevPoints)
-        showToast('Erreur lors de la validation de la quête.', 'error')
-        return
-      }
-      const data = await res.json() as {
-        questProgress: QuestProgress
-        totalPoints: number
-        streak: StreakData
-        comboState: ComboState
-      }
-
-      const oldLevel = calculateLevel(totalPoints)
-      const newLevel = calculateLevel(data.totalPoints)
-
-      setQuestProgress(data.questProgress)
-      setTotalPoints(data.totalPoints)
-      setStreak(data.streak)
-      setComboState(data.comboState)
-
-      if (newLevel > oldLevel) {
-        if (newLevel === MAX_LEVEL) {
-          showToast(`🏆 Niveau ${newLevel} atteint ! Niveau maximum !`, 'success')
-        } else {
-          showToast(`✨ Niveau ${newLevel} atteint !`, 'success')
-        }
-      }
-    } catch {
-      setQuestProgress(prevProgress)
-      setTotalPoints(prevPoints)
-      showToast('Erreur lors de la validation de la quête.', 'error')
+    if (wasDone) {
+      delete chProgress[key]
+    } else {
+      chProgress[key] = 'done'
     }
-  }
 
-  const subtaskLockRef = useRef<Set<string>>(new Set())
+    const newQP = { ...questProgress, [chapterNumber]: chProgress }
+    const isNowDone = !wasDone
 
-  const handleSubtaskToggle = async (chapterNumber: string, sectionIndex: number, taskIndex: number) => {
-    const lockKey = `${chapterNumber}:${sectionIndex}:${taskIndex}`
-    if (subtaskLockRef.current.has(lockKey)) return
-    subtaskLockRef.current.add(lockKey)
+    // Recalculate XP from scratch
+    const { newTotalPoints } = recalculateXP(plan, newQP, comboState)
 
-    // Optimistic update: toggle subtask immediately
-    const prevProgress = questProgress
-    const prevPoints = totalPoints
+    // Update combo if section was just completed
+    const newCombo = isNowDone ? updateCombo(comboState) : comboState
+    const comboBonus = isNowDone ? getComboBonus(newCombo.count) : 0
+    const finalPoints = Math.min(LEVEL_THRESHOLDS[MAX_LEVEL - 1], newTotalPoints + comboBonus)
+
+    // Update streak
+    const newStreak = updateStreak(streak, isNowDone)
+
+    // Level up toast
+    const oldLevel = calculateLevel(totalPoints)
+    const newLevel = calculateLevel(finalPoints)
+
+    // Apply all state updates
+    setQuestProgress(newQP)
+    setTotalPoints(finalPoints)
+    setComboState(newCombo)
+    setStreak(newStreak)
+
+    if (newLevel > oldLevel) {
+      if (newLevel === MAX_LEVEL) {
+        showToast(`🏆 Niveau ${newLevel} atteint ! Niveau maximum !`, 'success')
+      } else {
+        showToast(`✨ Niveau ${newLevel} atteint !`, 'success')
+      }
+    }
+
+    // Debounced persist
+    scheduleSyncDebounced(newQP, finalPoints, newStreak, newCombo)
+  }, [plan, questProgress, totalPoints, streak, comboState, recalculateXP, updateStreak, showToast, scheduleSyncDebounced])
+
+  const handleSubtaskToggle = useCallback((chapterNumber: string, sectionIndex: number, taskIndex: number) => {
+    if (!plan) return
+
     const chProgress: Record<string, SectionProgress> = { ...(questProgress[chapterNumber] ?? {}) }
     const secKey = String(sectionIndex)
     const secProgress = chProgress[secKey]
+
+    // Find the section in plan to get task count
+    const chapter = plan.chapters.find(ch => ch.number === chapterNumber)
+    const section = chapter?.sections[sectionIndex]
+    const taskCount = section?.tasks?.length ?? (taskIndex + 1)
+
     let tasksBools: boolean[]
     if (secProgress && typeof secProgress === 'object' && 'tasks' in secProgress) {
       tasksBools = [...secProgress.tasks]
     } else if (secProgress === 'done') {
-      tasksBools = Array(taskIndex + 1).fill(true) as boolean[]
+      tasksBools = Array(taskCount).fill(true) as boolean[]
     } else {
-      tasksBools = Array(taskIndex + 1).fill(false) as boolean[]
+      tasksBools = Array(taskCount).fill(false) as boolean[]
     }
     while (tasksBools.length <= taskIndex) tasksBools.push(false)
     tasksBools[taskIndex] = !tasksBools[taskIndex]
-    chProgress[secKey] = tasksBools.every(Boolean) ? 'done' : { tasks: tasksBools }
-    setQuestProgress({ ...questProgress, [chapterNumber]: chProgress })
 
-    try {
-      const res = await fetch('/api/quests/complete', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ chapterNumber, sectionIndex, taskIndex }),
-      })
-      if (!res.ok) {
-        setQuestProgress(prevProgress)
-        setTotalPoints(prevPoints)
-        showToast('Erreur lors de la mise à jour de la sous-tâche.', 'error')
-        return
+    const wasAllDone = isSectionDone(secProgress)
+    const isNowAllDone = tasksBools.every(Boolean)
+
+    chProgress[secKey] = isNowAllDone ? 'done' : { tasks: tasksBools }
+
+    const newQP = { ...questProgress, [chapterNumber]: chProgress }
+
+    // Recalculate XP from scratch
+    const { newTotalPoints } = recalculateXP(plan, newQP, comboState)
+
+    // Update combo only if section just became fully complete
+    const justCompleted = !wasAllDone && isNowAllDone
+    const newCombo = justCompleted ? updateCombo(comboState) : comboState
+    const comboBonus = justCompleted ? getComboBonus(newCombo.count) : 0
+    const finalPoints = Math.min(LEVEL_THRESHOLDS[MAX_LEVEL - 1], newTotalPoints + comboBonus)
+
+    // Update streak
+    const newStreak = updateStreak(streak, justCompleted)
+
+    // Level up toast
+    const oldLevel = calculateLevel(totalPoints)
+    const newLevel = calculateLevel(finalPoints)
+
+    // Apply all state updates
+    setQuestProgress(newQP)
+    setTotalPoints(finalPoints)
+    setComboState(newCombo)
+    setStreak(newStreak)
+
+    if (newLevel > oldLevel) {
+      if (newLevel === MAX_LEVEL) {
+        showToast(`🏆 Niveau ${newLevel} atteint ! Niveau maximum !`, 'success')
+      } else {
+        showToast(`✨ Niveau ${newLevel} atteint !`, 'success')
       }
-      const data = await res.json() as {
-        questProgress: QuestProgress
-        totalPoints: number
-        streak: StreakData
-        comboState: ComboState
-      }
-
-      const oldLevel = calculateLevel(totalPoints)
-      const newLevel = calculateLevel(data.totalPoints)
-
-      setQuestProgress(data.questProgress)
-      setTotalPoints(data.totalPoints)
-      setStreak(data.streak)
-      setComboState(data.comboState)
-
-      if (newLevel > oldLevel) {
-        if (newLevel === MAX_LEVEL) {
-          showToast(`🏆 Niveau ${newLevel} atteint ! Niveau maximum !`, 'success')
-        } else {
-          showToast(`✨ Niveau ${newLevel} atteint !`, 'success')
-        }
-      }
-    } catch {
-      setQuestProgress(prevProgress)
-      setTotalPoints(prevPoints)
-      showToast('Erreur lors de la mise à jour de la sous-tâche.', 'error')
-    } finally {
-      subtaskLockRef.current.delete(lockKey)
     }
-  }
+
+    // Debounced persist
+    scheduleSyncDebounced(newQP, finalPoints, newStreak, newCombo)
+  }, [plan, questProgress, totalPoints, streak, comboState, recalculateXP, updateStreak, showToast, scheduleSyncDebounced])
 
   const handlePrestige = async () => {
     if (!isEligibleForPrestige || isPrestiging) return
