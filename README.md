@@ -5,7 +5,7 @@
 <h1 align="center">maimouarkwest</h1>
 
 <p align="center">
-  <strong>Dashboard gamifié pour rédiger ton mémoire d'alternance — propulsé par l'IA.</strong>
+  <strong>Dashboard gamifié pour rédiger ton mémoire — propulsé par l'IA.</strong>
 </p>
 
 <p align="center">
