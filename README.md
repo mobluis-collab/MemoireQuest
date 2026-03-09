@@ -1,44 +1,51 @@
-<h1 align="center">
-  maimouarkwest
-</h1>
+<p align="center">
+  <img src="public/icon-512.png" alt="maimouarkwest" width="80" />
+</p>
+
+<h1 align="center">maimouarkwest</h1>
 
 <p align="center">
-  <strong>L'assistant IA qui transforme ton cahier des charges en plan de mémoire actionnable.</strong>
+  <strong>Dashboard gamifié pour rédiger ton mémoire d'alternance — propulsé par l'IA.</strong>
 </p>
 
 <p align="center">
-  <a href="https://maimouarkwest.com">Site</a> &middot;
-  <a href="#architecture">Architecture</a> &middot;
-  <a href="#demarrage-rapide">Démarrage rapide</a> &middot;
-  <a href="#deploiement">Déploiement</a>
+  <img src="https://img.shields.io/badge/Next.js-14-black?logo=next.js" alt="Next.js 14" />
+  <img src="https://img.shields.io/badge/TypeScript-strict-3178C6?logo=typescript&logoColor=white" alt="TypeScript" />
+  <img src="https://img.shields.io/badge/Supabase-PostgreSQL-3FCF8E?logo=supabase&logoColor=white" alt="Supabase" />
+  <img src="https://img.shields.io/badge/Claude_API-Anthropic-D97706?logo=anthropic&logoColor=white" alt="Claude API" />
+  <img src="https://img.shields.io/badge/Deployed_on-Vercel-000?logo=vercel" alt="Vercel" />
+</p>
+
+<p align="center">
+  <a href="https://maimouarkwest.com">Production</a> · <a href="#architecture">Architecture</a> · <a href="#démarrage-rapide">Setup</a> · <a href="#déploiement">Deploy</a>
 </p>
 
 ---
 
-## Présentation
+## À propos
 
-maimouarkwest est un dashboard gamifié conçu pour les étudiants en alternance qui rédigent un mémoire. L'étudiant dépose son cahier des charges au format PDF, l'IA analyse le document, extrait les métadonnées (niveau d'études, discipline, structure imposée, deadline) puis génère un plan de rédaction complet et personnalisé. La rédaction se transforme ensuite en une série de quêtes à compléter avec un système de progression : XP, niveaux, streaks, combos et prestige.
+maimouarkwest transforme la rédaction d'un mémoire en une expérience gamifiée. L'étudiant dépose son cahier des charges (PDF), l'IA extrait les métadonnées puis génère un plan structuré et personnalisé. Chaque section devient une quête à compléter, avec un système de progression complet : XP, niveaux, streaks, combos et prestige.
 
-### Fonctionnalités principales
+**Fonctionnalités :**
 
-- **Analyse IA en deux phases** — Extraction des métadonnées avec validation utilisateur, puis génération du plan en streaming SSE pour éviter les timeouts
-- **Plan de rédaction structuré** — Chapitres, sections avec difficulté graduée (easy / medium / hard), sous-tâches actionnables et conseils ciblés par section
-- **Gamification** — XP par tâche, 10 niveaux de progression, streaks quotidiens, combos (bonus XP pour les sessions intensives), système de prestige au niveau max
-- **Outils de productivité** — Pomodoro intégré, mode Focus immersif, pense-bêtes, journal de bord avec assistant IA contextuel
+- **Analyse IA en 2 phases** — Extraction des métadonnées avec validation utilisateur, puis génération du plan en SSE streaming
+- **Plan structuré** — Chapitres, sections (easy/medium/hard), sous-tâches actionnables, conseils ciblés par section
+- **Gamification complète** — XP, 10 niveaux, streaks quotidiens, combos de session, prestige au max
+- **Outils intégrés** — Pomodoro, mode Focus, pense-bêtes avec éditeur riche, journal de bord IA, chat contextuel par chapitre
 - **Thème personnalisable** — Couleur d'accent, intensité du texte, mode sombre/clair
 
 ---
 
-## Stack technique
+## Stack
 
 | Couche | Technologie | Détail |
 |--------|-------------|--------|
-| Framework | **Next.js 14** | App Router, React Server Components, TypeScript strict |
-| Auth | **Supabase Auth** | Google OAuth (`prompt: 'select_account'`), session via cookies |
-| Base de données | **Supabase (PostgreSQL)** | Row Level Security, tables `memoir_plans`, `usage_tracking`, `journal_entries`, `user_streaks` |
-| IA | **Anthropic Claude API** | `claude-sonnet-4-5-20250929`, streaming SSE pour la génération de plan, appels classiques pour l'extraction |
-| Hébergement | **Vercel** | Auto-deploy depuis `main`, serverless functions avec `maxDuration: 120` |
-| Style | **Design system monochrome** | `rgba(255,255,255, X)` sur fond `#04030e`, inline styles dans le dashboard, Tailwind uniquement sur la landing page |
+| Framework | **Next.js 14** | App Router, RSC, TypeScript strict |
+| Auth | **Supabase Auth** | Google OAuth, session cookies |
+| Database | **Supabase (PostgreSQL)** | RLS, JSON columns, usage tracking |
+| IA | **Anthropic Claude API** | Sonnet 4.5 (plan & chat), Haiku 4.5 (motivation) |
+| Hosting | **Vercel** | Auto-deploy `main`, `maxDuration: 120` |
+| Style | **Design system monochrome** | `rgba(255,255,255,X)` sur `#04030e`, inline styles |
 
 ---
 
@@ -46,95 +53,109 @@ maimouarkwest est un dashboard gamifié conçu pour les étudiants en alternance
 
 ```
 maimouarkwest/
-├── app/
-│   ├── page.tsx                      # Landing page
+│
+├── app/                                 # Next.js App Router
+│   ├── page.tsx                         # Landing page (Tailwind)
+│   ├── layout.tsx                       # Root layout + providers
 │   ├── dashboard/
-│   │   └── page.tsx                  # Dashboard (protégé par middleware auth)
-│   ├── auth/
-│   │   └── callback/route.ts         # Callback OAuth Google
-│   └── api/
+│   │   ├── page.tsx                     # Dashboard SSR (auth-protected)
+│   │   └── error.tsx                    # Error boundary
+│   ├── auth/callback/route.ts           # Google OAuth callback
+│   │
+│   └── api/                             # API Routes (serverless)
 │       ├── plan/
-│       │   ├── extract/route.ts      # Phase 1 : extraction métadonnées PDF via Claude
-│       │   ├── route.ts              # Phase 2 : génération plan SSE streaming
-│       │   └── progress/route.ts     # Lecture progression
+│       │   ├── extract/route.ts         # Phase 1 — extraction métadonnées (Claude)
+│       │   ├── route.ts                 # Phase 2 — génération plan (SSE streaming)
+│       │   └── progress/route.ts        # CRUD progression chapitres
 │       ├── quests/
-│       │   ├── complete/route.ts     # Validation quête (legacy)
-│       │   └── sync/route.ts         # Sync état client → Supabase (debounced)
-│       ├── chat/route.ts             # Chat IA contextuel
-│       ├── journal/entry/route.ts    # Journal de bord
-│       ├── notes/route.ts            # Pense-bêtes CRUD
-│       ├── analyze/route.ts          # Analyse de contenu
-│       ├── motivation/route.ts       # Messages de motivation IA
-│       ├── streak/                   # Streak data + jokers
-│       ├── prestige/route.ts         # Reset prestige
-│       ├── preferences/route.ts      # Couleur d'accent, intensité texte
+│       │   ├── complete/route.ts        # Validation quête (legacy)
+│       │   └── sync/route.ts            # Sync état client → DB (debounced)
+│       ├── chat/route.ts                # Chat IA contextuel par chapitre
+│       ├── journal/entry/route.ts       # Journal de bord IA
+│       ├── notes/route.ts               # Pense-bêtes CRUD
+│       ├── motivation/route.ts          # Message de motivation (Haiku, cached)
+│       ├── analyze/route.ts             # Analyse de contenu
+│       ├── prestige/route.ts            # Reset prestige (level 10 + 100%)
+│       ├── preferences/route.ts         # Couleur d'accent, intensité
+│       ├── streak/route.ts              # Données de streak
 │       └── user/
-│           ├── save/route.ts         # Sauvegarde deadline
-│           └── export/route.ts       # Export données utilisateur
+│           ├── save/route.ts            # Sauvegarde deadline
+│           └── export/route.ts          # Export données RGPD
+│
 ├── src/
 │   ├── components/
 │   │   ├── dashboard/
-│   │   │   ├── DashboardContent.tsx  # State management central
-│   │   │   ├── UploadZone.tsx        # Zone de drop PDF (premier upload)
+│   │   │   ├── DashboardContent.tsx     # State management central + sync
+│   │   │   ├── UploadZone.tsx           # Drop zone PDF (premier upload)
 │   │   │   └── new/
-│   │   │       ├── NewDashboard.tsx   # UI principale (sidebar + content)
-│   │   │       ├── MemoireView.tsx    # Plan + hints + sous-tâches
-│   │   │       ├── ProgressionView.tsx# XP, niveaux, streaks, graphiques
-│   │   │       ├── AchievementsView.tsx # Badges et achievements
-│   │   │       ├── NotesView.tsx      # Pense-bêtes
-│   │   │       ├── PomodoroTimer.tsx  # Timer Pomodoro
-│   │   │       ├── ExtractionConfirm.tsx # Validation métadonnées extraites
-│   │   │       └── ColorPicker.tsx    # Personnalisation couleur
-│   │   ├── landing/                   # Composants landing page
-│   │   └── prestige/                  # Modal prestige
+│   │   │       ├── NewDashboard.tsx      # Layout sidebar + content
+│   │   │       ├── MemoireView.tsx       # Plan, hints, sous-tâches
+│   │   │       ├── ProgressionView.tsx   # XP, niveaux, streaks, graphes
+│   │   │       ├── AchievementsView.tsx  # Badges et achievements
+│   │   │       ├── NotesView.tsx         # Éditeur de notes riche
+│   │   │       ├── PomodoroTimer.tsx     # Timer Pomodoro
+│   │   │       ├── ExtractionConfirm.tsx # Validation métadonnées
+│   │   │       └── ColorPicker.tsx       # Personnalisation couleur
+│   │   ├── landing/                      # Hero, Features, HowItWorks, Footer
+│   │   ├── prestige/PrestigeModal.tsx    # Modal de prestige
+│   │   └── ui/                           # Toast, RateLimitWarning, Avatar
+│   │
 │   ├── lib/
-│   │   ├── supabase/                  # Clients Supabase (browser + server)
-│   │   ├── auth/actions.ts            # signIn / signOut
-│   │   ├── xp/levels.ts              # Seuils XP, calcul de niveau
-│   │   ├── combo/index.ts            # Logique de combo (timeout 2h)
-│   │   ├── rate-limit.ts             # Rate limiting via DB
-│   │   └── plans/queries.ts          # Requêtes Supabase pour les plans
-│   ├── hooks/                         # useToast, usePrestigeMode
-│   ├── context/                       # ThemeProvider (dark/light)
-│   └── types/                         # Types TypeScript
-├── middleware.ts                       # Protection routes /dashboard
-├── CLAUDE.md                          # Instructions pour Claude Code
+│   │   ├── supabase/                     # Clients browser + server
+│   │   ├── auth/actions.ts               # signIn (Google) + signOut
+│   │   ├── xp/levels.ts                  # Seuils XP, calcul niveau, MAX_LEVEL
+│   │   ├── combo/index.ts               # Logique combo (timeout 2h)
+│   │   ├── rate-limit.ts                # Rate limiting via usage_tracking
+│   │   ├── color-utils.ts               # Helpers tw() / bg() monochrome
+│   │   └── plans/queries.ts             # Requêtes Supabase plans
+│   │
+│   ├── hooks/                            # useToast, usePrestigeMode, useTheme
+│   ├── context/                          # ThemeProvider (dark/light)
+│   └── types/                            # memoir.ts, extraction.ts, notes.ts
+│
+├── middleware.ts                          # Auth guard sur /dashboard
+├── __tests__/                            # Jest tests
+├── CLAUDE.md                             # Instructions Claude Code
 └── package.json
-```
-
-### Flux de données
-
-```
-┌─────────────┐     PDF      ┌──────────────────┐    métadonnées    ┌───────────────────┐
-│  UploadZone  │ ──────────→ │ /api/plan/extract │ ──────────────→  │ ExtractionConfirm │
-└─────────────┘              │  (Claude API)     │                  │  (validation user) │
-                             └──────────────────┘                  └────────┬──────────┘
-                                                                            │ confirmé
-                                                                            ▼
-┌─────────────┐   plan JSON   ┌──────────────────┐    SSE stream    ┌──────────────────┐
-│  Dashboard   │ ←──────────  │   /api/plan       │ ←──────────── │  Claude API       │
-│  (client)    │              │  (streaming SSE)  │                │  (16K tokens max) │
-└──────┬──────┘              └──────────────────┘                └──────────────────┘
-       │
-       │  toggle tâche (client-side)
-       │  calcul XP/streak/combo local
-       │  debounce 2s
-       ▼
-┌──────────────────┐
-│ /api/quests/sync  │ ──→ Supabase (memoir_plans)
-│  (persist state)  │
-└──────────────────┘
 ```
 
 ---
 
-## <a id="demarrage-rapide"></a>Démarrage rapide
+## Flux de données
+
+```
+  ┌──────────────┐          ┌───────────────────┐         ┌───────────────────┐
+  │  UploadZone   │── PDF ─→│ /api/plan/extract  │─ meta ─→│ ExtractionConfirm │
+  │  (drop zone)  │         │  Claude API call   │         │  (user validates) │
+  └──────────────┘          └───────────────────┘         └────────┬──────────┘
+                                                                   │ confirmed
+                                                                   ▼
+  ┌──────────────┐  plan    ┌───────────────────┐   SSE    ┌──────────────────┐
+  │  Dashboard    │←── JSON ─│    /api/plan       │←─stream─│  Claude API      │
+  │  (client)     │          │  (SSE streaming)   │         │  (16K tokens)    │
+  └───────┬──────┘          └───────────────────┘         └──────────────────┘
+          │
+          │  ✅ toggle tâche (client-side)
+          │  📊 calcul XP / streak / combo local
+          │  ⏱  debounce 2s
+          ▼
+  ┌───────────────────┐
+  │  /api/quests/sync   │──→ Supabase (memoir_plans)
+  │  (persist state)    │
+  └───────────────────┘
+```
+
+La logique de jeu (XP, streaks, combos) tourne entièrement côté client pour une UX instantanée. L'état est synchronisé vers Supabase avec un debounce de 2 secondes et un flush automatique avant fermeture de l'onglet (`beforeunload`).
+
+---
+
+## Démarrage rapide
 
 ### Prérequis
 
-- Node.js 18+
-- Un projet [Supabase](https://supabase.com) avec Google OAuth configuré
-- Une clé API [Anthropic](https://console.anthropic.com)
+- **Node.js** 18+
+- Un projet **[Supabase](https://supabase.com)** avec Google OAuth configuré
+- Une clé API **[Anthropic](https://console.anthropic.com)**
 
 ### Installation
 
@@ -144,112 +165,96 @@ cd maimouarkwest
 npm install
 ```
 
-### Configuration
+### Variables d'environnement
 
 ```bash
 cp .env.example .env.local
 ```
 
-Renseigner les variables dans `.env.local` :
-
-| Variable | Description | Où la trouver |
-|----------|-------------|---------------|
-| `NEXT_PUBLIC_SUPABASE_URL` | URL du projet Supabase | Supabase Dashboard → Settings → API |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Clé publique Supabase | Supabase Dashboard → Settings → API |
-| `SUPABASE_SERVICE_ROLE_KEY` | Clé service (server-side) | Supabase Dashboard → Settings → API |
+| Variable | Description | Source |
+|----------|-------------|--------|
+| `NEXT_PUBLIC_SUPABASE_URL` | URL du projet Supabase | Dashboard → Settings → API |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Clé publique | Dashboard → Settings → API |
+| `SUPABASE_SERVICE_ROLE_KEY` | Clé service (server-side) | Dashboard → Settings → API |
 | `ANTHROPIC_API_KEY` | Clé API Anthropic | [console.anthropic.com](https://console.anthropic.com/settings/keys) |
 
-### Lancer le serveur de développement
+### Développement
 
 ```bash
-npm run dev
+npm run dev          # Dev server → http://localhost:3000
+npm run build        # Production build
+npx tsc --noEmit     # Type check
+npm test             # Jest tests
+npm run lint         # ESLint
 ```
-
-L'application est disponible sur [http://localhost:3000](http://localhost:3000).
-
-### Scripts disponibles
-
-| Commande | Description |
-|----------|-------------|
-| `npm run dev` | Serveur de développement (hot reload) |
-| `npm run build` | Build de production |
-| `npm start` | Serveur de production |
-| `npm run type-check` | Vérification TypeScript sans build |
-| `npm run lint` | Lint ESLint |
-| `npm run format` | Formatage Prettier |
-| `npm test` | Tests Jest |
-| `npm run test:ci` | Tests avec couverture (CI) |
 
 ---
 
 ## Base de données
 
-### Tables Supabase
+### Schéma Supabase
 
-| Table | Description |
-|-------|-------------|
-| `memoir_plans` | Plans générés : `plan_data` (JSON), `quest_progress`, `total_points`, `streak_data`, `combo_state`, `prestige_count` |
-| `usage_tracking` | Rate limiting par endpoint : `user_id`, `endpoint`, `date`, `count` |
-| `journal_entries` | Entrées du journal de bord |
-| `user_streaks` | Données de streak persistées |
+| Table | Colonnes clés | Rôle |
+|-------|--------------|------|
+| `memoir_plans` | `plan_data` (JSON), `quest_progress`, `total_points`, `streak_data`, `combo_state`, `prestige_count` | Plans générés et état de progression |
+| `usage_tracking` | `user_id`, `endpoint`, `date`, `count` | Rate limiting par endpoint par jour |
+| `journal_entries` | `user_id`, `content`, `chapter`, `section` | Entrées du journal de bord |
+| `user_streaks` | `user_id`, `current`, `last_activity`, `jokers` | Données de streak persistées |
+| `notes` | `user_id`, `title`, `content` | Pense-bêtes utilisateur |
 
-### Sécurité
-
-- Row Level Security (RLS) activé sur toutes les tables
-- Chaque utilisateur ne peut accéder qu'à ses propres données
-- Les clés API Anthropic et Supabase service role restent côté serveur uniquement
+**Sécurité :** Row Level Security (RLS) activé sur toutes les tables — chaque utilisateur n'accède qu'à ses propres données. Les clés service Supabase et API Anthropic restent exclusivement côté serveur.
 
 ---
 
-## <a id="deploiement"></a>Déploiement
+## Déploiement
 
-### Vercel (production)
+### Vercel
 
-Le projet se déploie automatiquement sur Vercel à chaque push sur `main`.
+Le projet se déploie automatiquement à chaque push sur `main`.
 
-1. Importer le repo GitHub dans [Vercel](https://vercel.com/new)
-2. Ajouter les variables d'environnement dans Project Settings → Environment Variables
-3. Push sur `main` → déploiement automatique
+1. Importer le repo sur [vercel.com/new](https://vercel.com/new)
+2. Ajouter les variables d'environnement dans Project Settings
+3. Push sur `main` → deploy automatique
 
-**Configuration Vercel importante :**
-- `maxDuration: 120` sur les routes API d'IA pour éviter les timeouts pendant la génération
-- SSE streaming sur `/api/plan` pour maintenir la connexion active pendant la génération du plan
+**Points clés :**
+- `maxDuration: 120` sur les routes IA (plan/extract, plan, chat, journal)
+- SSE streaming sur `/api/plan` pour les générations longues
 
 ### Supabase
 
-- Configurer Google OAuth dans Authentication → Providers → Google
-- Ajouter les redirect URLs : `https://votre-domaine.com/auth/callback` et `http://localhost:3000/auth/callback`
-- Site URL dans Authentication → URL Configuration : `https://votre-domaine.com`
+1. Activer Google OAuth : Authentication → Providers → Google
+2. Redirect URLs : `https://votre-domaine.com/auth/callback` + `http://localhost:3000/auth/callback`
+3. Site URL : `https://votre-domaine.com`
 
 ---
 
-## Système de gamification
+## Gamification
 
 ### XP et niveaux
 
-| Difficulté | XP par section |
-|------------|----------------|
-| Easy | 10 XP |
-| Medium | 20 XP |
-| Hard | 30 XP |
+| Difficulté | XP |
+|------------|-----|
+| Easy | 10 |
+| Medium | 20 |
+| Hard | 30 |
 
-10 niveaux de progression avec des seuils croissants (niveau 1 = 0 XP → niveau 10 = 1170 XP).
+10 niveaux progressifs : niveau 1 (0 XP) → niveau 10 (1170 XP).
 
 ### Mécaniques
 
-- **Streaks** — Travailler chaque jour consécutif augmente le streak. Les jokers permettent de protéger le streak en cas d'absence.
-- **Combos** — Compléter des sections en moins de 2h d'intervalle : ×3 = +5 XP bonus, ×5 = +10 XP bonus.
-- **Prestige** — Au niveau 10 avec 100% de complétion, possibilité de reset pour recommencer avec un badge prestige.
+- **Streaks** — Travailler chaque jour augmente le streak. Des jokers protègent le streak en cas d'absence.
+- **Combos** — Sections complétées en < 2h d'intervalle : ×3 = +5 XP, ×5 = +10 XP.
+- **Prestige** — Niveau 10 + 100% complétion → reset complet avec badge prestige permanent.
 
 ---
 
-## Conventions de code
+## Conventions
 
-- **TypeScript strict** — Pas de `any`, types explicites partout
-- **Dashboard** — Inline styles uniquement, palette monochrome `rgba(255,255,255, X)` sur fond `#04030e`
-- **Landing page** — Tailwind CSS autorisé
-- **Interface** — Intégralement en français
-- **Composants** — Functional components avec hooks, pas de class components
+- **TypeScript strict** — Pas de `any`, types explicites
+- **Dashboard** — Inline styles, palette monochrome `rgba(255,255,255,X)` sur `#04030e`
+- **Landing** — Tailwind CSS
+- **Langue** — Interface intégralement en français
+- **Composants** — Functional components + hooks
 
 ---
 
