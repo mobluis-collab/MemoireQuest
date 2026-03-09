@@ -30,7 +30,12 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Trop de requêtes, réessaie dans 1 minute', remaining: 0 }, { status: 429 })
   }
 
-  const body = await request.json()
+  let body
+  try {
+    body = await request.json()
+  } catch {
+    return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 })
+  }
   const parsed = RequestSchema.safeParse(body)
   if (!parsed.success) {
     return NextResponse.json({ error: 'Invalid request', details: parsed.error.flatten(), remaining: rateLimit.remaining }, { status: 400 })

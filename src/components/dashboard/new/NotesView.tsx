@@ -111,11 +111,11 @@ export default function NotesView({ textIntensity = 1.0, isDark = true, onCountC
     if (selectedId) saveNote(selectedId, val, contentRef.current?.innerHTML ?? '')
   }
 
-  const handleContentInput = () => {
+  const handleContentInput = useCallback(() => {
     if (selectedId && contentRef.current) {
       saveNote(selectedId, editTitle, contentRef.current.innerHTML)
     }
-  }
+  }, [selectedId, editTitle, saveNote])
 
   // Create note
   const createNote = async () => {
@@ -163,17 +163,27 @@ export default function NotesView({ textIntensity = 1.0, isDark = true, onCountC
     contentRef.current?.focus()
   }
 
-  const highlight = () => {
+  const highlight = useCallback(() => {
     const sel = window.getSelection()
     if (!sel || sel.rangeCount === 0) return
     const range = sel.getRangeAt(0)
     if (range.collapsed) return
-    const mark = document.createElement('mark')
-    range.surroundContents(mark)
-    handleContentInput()
-  }
+    try {
+      const mark = document.createElement('mark')
+      range.surroundContents(mark)
+      handleContentInput()
+    } catch {
+      // surroundContents can throw if selection spans multiple elements
+      console.warn('[notes] Could not highlight selection')
+    }
+  }, [handleContentInput])
 
-  // Keyboard shortcuts
+  // Keyboard shortcuts — use refs to avoid stale closures
+  const createNoteRef = useRef(createNote)
+  const highlightRef = useRef(highlight)
+  useEffect(() => { createNoteRef.current = createNote }, [createNote])
+  useEffect(() => { highlightRef.current = highlight }, [highlight])
+
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
       const mod = e.metaKey || e.ctrlKey
@@ -185,13 +195,13 @@ export default function NotesView({ textIntensity = 1.0, isDark = true, onCountC
         case 'b': e.preventDefault(); execCmd('bold'); break
         case 'i': e.preventDefault(); execCmd('italic'); break
         case 'u': e.preventDefault(); execCmd('underline'); break
-        case 'h': e.preventDefault(); highlight(); break
-        case 'n': e.preventDefault(); createNote(); break
+        case 'h': e.preventDefault(); highlightRef.current(); break
+        case 'n': e.preventDefault(); createNoteRef.current(); break
       }
     }
     window.addEventListener('keydown', handleKey)
     return () => window.removeEventListener('keydown', handleKey)
-  }, [selectedId, editTitle])
+  }, [])
 
   // Filtered notes
   const filtered = search.trim()

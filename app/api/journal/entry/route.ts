@@ -27,7 +27,13 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Limite atteinte pour aujourd\'hui.', remaining: 0 }, { status: 429 })
   }
 
-  const body = await request.json()
+  let body
+  try {
+    body = await request.json()
+  } catch {
+    return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 })
+  }
+
   const parsed = RequestSchema.safeParse(body)
   if (!parsed.success) {
     return NextResponse.json({ error: 'Invalid request', details: parsed.error.flatten() }, { status: 400 })
@@ -35,21 +41,26 @@ export async function POST(request: Request) {
 
   const { chapterTitle, sectionTitle, totalPoints } = parsed.data
 
-  const message = await anthropic.messages.create({
-    model: 'claude-sonnet-4-5-20250929',
-    max_tokens: 200,
-    messages: [
-      {
-        role: 'user',
-        content: `Génère une phrase de journal de bord à la 2ème personne du singulier, ton encourageant et motivant, maximum 80 mots. L'étudiant vient de compléter la section "${sectionTitle}" du chapitre "${chapterTitle}". Son score total est de ${totalPoints} points. Mentionne ce qu'il a accompli et encourage-le pour la suite.`,
-      },
-    ],
-  })
+  try {
+    const message = await anthropic.messages.create({
+      model: 'claude-sonnet-4-5-20250929',
+      max_tokens: 200,
+      messages: [
+        {
+          role: 'user',
+          content: `Génère une phrase de journal de bord à la 2ème personne du singulier, ton encourageant et motivant, maximum 80 mots. L'étudiant vient de compléter la section "${sectionTitle}" du chapitre "${chapterTitle}". Son score total est de ${totalPoints} points. Mentionne ce qu'il a accompli et encourage-le pour la suite.`,
+        },
+      ],
+    })
 
-  const content = message.content[0]
-  if (content.type !== 'text') {
-    return NextResponse.json({ error: 'Unexpected response from Claude' }, { status: 500 })
+    const content = message.content[0]
+    if (content.type !== 'text') {
+      return NextResponse.json({ error: 'Unexpected response from Claude' }, { status: 500 })
+    }
+
+    return NextResponse.json({ entry: content.text, remaining: rateLimit.remaining })
+  } catch (error) {
+    console.error('[journal] Claude API error:', error)
+    return NextResponse.json({ error: 'Erreur lors de la génération. Réessaie.' }, { status: 500 })
   }
-
-  return NextResponse.json({ entry: content.text, remaining: rateLimit.remaining })
 }

@@ -1,0 +1,768 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>maimouarkwest — Motion Design V5</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: #0a0a0a;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    overflow: hidden;
+    font-family: 'Inter', -apple-system, sans-serif;
+  }
+
+  .vc {
+    width: 1080px;
+    height: 1350px;
+    background: #f5f5f7;
+    position: relative;
+    overflow: hidden;
+    transform: scale(0.55);
+    transform-origin: center center;
+  }
+
+  /* ═══ CAMERA ═══ */
+  .camera {
+    position: absolute; inset: 0;
+    transform-origin: center center;
+    animation:
+      camIdle        0s    0s    both,
+      camZoomBtn     1.4s  4.2s  both cubic-bezier(.4,0,.0,1),
+      camResetA      0.9s  6.8s  both cubic-bezier(.4,0,.2,1),
+      camZoomDash    1.6s  9.2s  both cubic-bezier(.4,0,.0,1),
+      camResetB      0.8s  13s   both cubic-bezier(.4,0,.2,1),
+      camZoomQuest   1.2s  14.5s both cubic-bezier(.4,0,.0,1),
+      camResetC      0.7s  20s   both cubic-bezier(.4,0,.2,1),
+      camZoomGame    1s    21s   both cubic-bezier(.4,0,.0,1),
+      camResetD      0.8s  26s   both cubic-bezier(.4,0,.2,1);
+  }
+  @keyframes camIdle       { 0%,100% { transform: scale(1) translate(0,0); } }
+  @keyframes camZoomBtn    { 0% { transform: scale(1) translate(0,0); } 100% { transform: scale(1.25) translate(-10px, -100px); } }
+  @keyframes camResetA     { 0% { transform: scale(1.25) translate(-10px,-100px); } 100% { transform: scale(1) translate(0,0); } }
+  @keyframes camZoomDash   { 0% { transform: scale(1) translate(0,0); } 100% { transform: scale(1.15) translate(-30px, -40px); } }
+  @keyframes camResetB     { 0% { transform: scale(1.15) translate(-30px,-40px); } 100% { transform: scale(1) translate(0,0); } }
+  @keyframes camZoomQuest  { 0% { transform: scale(1) translate(0,0); } 100% { transform: scale(1.12) translate(15px, -25px); } }
+  @keyframes camResetC     { 0% { transform: scale(1.12) translate(15px,-25px); } 100% { transform: scale(1) translate(0,0); } }
+  @keyframes camZoomGame   { 0% { transform: scale(1) translate(0,0); } 100% { transform: scale(1.1) translate(0, -20px); } }
+  @keyframes camResetD     { 0% { transform: scale(1.1) translate(0,-20px); } 100% { transform: scale(1) translate(0,0); } }
+
+  /* ═══ CURSOR — big, visible, dynamic ═══ */
+  .cursor {
+    position: absolute;
+    width: 28px; height: 28px;
+    z-index: 500;
+    pointer-events: none;
+    opacity: 0;
+    filter: drop-shadow(0 3px 6px rgba(0,0,0,0.35));
+    /* Smooth default transition for sub-pixel rendering */
+    will-change: transform, top, left, opacity;
+  }
+  .cursor svg { width: 28px; height: 28px; }
+
+  /* ── Cursor movement timeline ── */
+  /* Phase 1: Appear off-screen right, swoop to Google btn */
+  .cursor {
+    animation:
+      c-enter       0.5s  3.6s  both cubic-bezier(.0,.9,.3,1),
+      c-drift1      0.8s  4.2s  both cubic-bezier(.4,0,.2,1),
+      c-toGoogle    0.7s  5.0s  both cubic-bezier(.2,0,.0,1),
+      c-click1      0.15s 5.7s  both,
+      c-bounce1     0.3s  5.85s both cubic-bezier(.2,.8,.3,1),
+      c-exitS2      0.4s  7.5s  both cubic-bezier(.4,0,1,1),
+
+      c-enterS3     0.4s  9.5s  both cubic-bezier(.0,.9,.3,1),
+      c-toStats     0.6s  10.2s both cubic-bezier(.2,0,.0,1),
+      c-hover1      0.5s  10.8s both cubic-bezier(.4,0,.2,1),
+      c-toChap      0.5s  11.4s both cubic-bezier(.2,0,.0,1),
+      c-click2      0.15s 11.9s both,
+      c-bounce2     0.3s  12.05s both cubic-bezier(.2,.8,.3,1),
+      c-exitS3      0.4s  13.2s both cubic-bezier(.4,0,1,1),
+
+      c-enterS4     0.35s 14.8s both cubic-bezier(.0,.9,.3,1),
+      c-toQ1        0.5s  15.5s both cubic-bezier(.2,0,.0,1),
+      c-click3      0.15s 16.0s both,
+      c-bounce3     0.25s 16.15s both cubic-bezier(.2,.8,.3,1),
+      c-toQ2        0.35s 16.8s both cubic-bezier(.3,0,.0,1),
+      c-click4      0.15s 17.15s both,
+      c-bounce4     0.2s  17.3s both cubic-bezier(.2,.8,.3,1),
+      c-toQ3        0.3s  17.8s both cubic-bezier(.3,0,.0,1),
+      c-click5      0.15s 18.1s both,
+      c-bounce5     0.2s  18.25s both cubic-bezier(.2,.8,.3,1),
+      c-exitS4      0.4s  19.5s both cubic-bezier(.4,0,1,1),
+
+      c-gone        0.01s 25s   both;
+  }
+
+  /* Cursor keyframes — each one picks up from where the last left off */
+  @keyframes c-enter    { from { opacity:0; top:950px; left:1100px; } to { opacity:1; top:800px; left:750px; } }
+  @keyframes c-drift1   { from { top:800px; left:750px; } to { top:720px; left:650px; } }
+  @keyframes c-toGoogle { from { top:720px; left:650px; } to { top:695px; left:530px; } }
+  @keyframes c-click1   { 0% { transform:scale(1); } 50% { transform:scale(0.7); } 100% { transform:scale(1); } }
+  @keyframes c-bounce1  { 0% { top:695px; left:530px; } 50% { top:688px; left:530px; } 100% { top:695px; left:540px; } }
+  @keyframes c-exitS2   { from { opacity:1; top:695px; left:540px; } to { opacity:0; top:695px; left:300px; } }
+
+  @keyframes c-enterS3  { from { opacity:0; top:300px; left:1100px; } to { opacity:1; top:400px; left:700px; } }
+  @keyframes c-toStats  { from { top:400px; left:700px; } to { top:520px; left:550px; } }
+  @keyframes c-hover1   { from { top:520px; left:550px; } to { top:540px; left:620px; } }
+  @keyframes c-toChap   { from { top:540px; left:620px; } to { top:880px; left:580px; } }
+  @keyframes c-click2   { 0% { transform:scale(1); } 50% { transform:scale(0.7); } 100% { transform:scale(1); } }
+  @keyframes c-bounce2  { 0% { top:880px; left:580px; } 50% { top:874px; left:580px; } 100% { top:880px; left:585px; } }
+  @keyframes c-exitS3   { from { opacity:1; top:880px; left:585px; } to { opacity:0; top:880px; left:200px; } }
+
+  @keyframes c-enterS4  { from { opacity:0; top:350px; left:1100px; } to { opacity:1; top:460px; left:800px; } }
+  @keyframes c-toQ1     { from { top:460px; left:800px; } to { top:480px; left:700px; } }
+  @keyframes c-click3   { 0% { transform:scale(1); } 50% { transform:scale(0.7); } 100% { transform:scale(1); } }
+  @keyframes c-bounce3  { 0% { top:480px; left:700px; } 50% { top:476px; left:700px; } 100% { top:480px; left:705px; } }
+  @keyframes c-toQ2     { from { top:480px; left:705px; } to { top:565px; left:700px; } }
+  @keyframes c-click4   { 0% { transform:scale(1); } 50% { transform:scale(0.7); } 100% { transform:scale(1); } }
+  @keyframes c-bounce4  { 0% { top:565px; left:700px; } 50% { top:561px; left:700px; } 100% { top:565px; left:705px; } }
+  @keyframes c-toQ3     { from { top:565px; left:705px; } to { top:650px; left:700px; } }
+  @keyframes c-click5   { 0% { transform:scale(1); } 50% { transform:scale(0.7); } 100% { transform:scale(1); } }
+  @keyframes c-bounce5  { 0% { top:650px; left:700px; } 50% { top:646px; left:700px; } 100% { top:650px; left:705px; } }
+  @keyframes c-exitS4   { from { opacity:1; top:650px; left:705px; } to { opacity:0; top:650px; left:300px; } }
+  @keyframes c-gone     { to { opacity:0; } }
+
+  /* ── Click ripple rings ── */
+  .cursor::after {
+    content: '';
+    position: absolute; top: -4px; left: -4px;
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    background: rgba(0,0,0,0.08);
+    transform: scale(0); opacity: 0;
+  }
+  .cursor::after {
+    animation:
+      ripple 0.5s 5.7s both,
+      ripple 0.5s 11.9s both,
+      ripple 0.5s 16.0s both,
+      ripple 0.5s 17.15s both,
+      ripple 0.5s 18.1s both;
+  }
+  @keyframes ripple {
+    0% { transform: scale(0); opacity: 0.5; }
+    100% { transform: scale(3); opacity: 0; }
+  }
+
+  /* ═══ KEYFRAMES ═══ */
+  @keyframes fadeIn     { from { opacity:0; } to { opacity:1; } }
+  @keyframes slideUp    { from { opacity:0; transform:translateY(50px); } to { opacity:1; transform:translateY(0); } }
+  @keyframes slideUpS   { from { opacity:0; transform:translateY(25px); } to { opacity:1; transform:translateY(0); } }
+  @keyframes slideUpBig { from { opacity:0; transform:translateY(90px); } to { opacity:1; transform:translateY(0); } }
+  @keyframes slideDown  { from { opacity:0; transform:translateY(-30px); } to { opacity:1; transform:translateY(0); } }
+  @keyframes slideLeft  { from { opacity:0; transform:translateX(70px); } to { opacity:1; transform:translateX(0); } }
+  @keyframes slideRight { from { opacity:0; transform:translateX(-50px); } to { opacity:1; transform:translateX(0); } }
+  @keyframes scaleIn    { from { opacity:0; transform:scale(0.85); } to { opacity:1; transform:scale(1); } }
+  @keyframes scaleInBig { from { opacity:0; transform:scale(0.4); } to { opacity:1; transform:scale(1); } }
+  @keyframes scalePop   { 0% { transform:scale(1); } 40% { transform:scale(1.1); } 100% { transform:scale(1); } }
+  @keyframes scalePopBig { 0% { transform:scale(1); } 25% { transform:scale(1.22); } 55% { transform:scale(0.96); } 100% { transform:scale(1); } }
+  @keyframes barFill    { from { width:0; } to { width:var(--w); } }
+  @keyframes countUp    { from { opacity:0; transform:scale(0.3) translateY(15px); } to { opacity:1; transform:scale(1) translateY(0); } }
+  @keyframes xpFloat    { 0% { opacity:1; transform:translateY(0) scale(1); } 100% { opacity:0; transform:translateY(-55px) scale(1.3); } }
+  @keyframes glowRing   { 0% { box-shadow:0 0 0 0 rgba(0,0,0,0.12); } 50% { box-shadow:0 0 0 14px rgba(0,0,0,0.03); } 100% { box-shadow:0 0 0 0 rgba(0,0,0,0); } }
+  @keyframes comboFlash { 0% { box-shadow:0 0 0 0 rgba(0,0,0,0.12); } 50% { box-shadow:0 0 0 10px rgba(0,0,0,0.03); } 100% { box-shadow:0 0 0 0 rgba(0,0,0,0); } }
+  @keyframes btnPress   { 0% { transform:scale(1); } 40% { transform:scale(0.92); } 70% { transform:scale(1.03); } 100% { transform:scale(1); } }
+  @keyframes btnGlow    { 0% { box-shadow:0 1px 3px rgba(0,0,0,0.04); } 100% { box-shadow:0 0 32px 8px rgba(0,0,0,0.07); } }
+  @keyframes streakPulse { 0%,100% { transform:scale(1); } 50% { transform:scale(1.08); } }
+  @keyframes gentleFloat { 0%,100% { transform:translateY(0); } 50% { transform:translateY(-8px); } }
+
+  /* Transitions out — varied */
+  @keyframes exitUp    { from { opacity:1; transform:translateY(0); } to { opacity:0; transform:translateY(-100px); } }
+  @keyframes exitZoom  { from { opacity:1; transform:scale(1); } to { opacity:0; transform:scale(1.2); } }
+  @keyframes exitShrink { from { opacity:1; transform:scale(1); } to { opacity:0; transform:scale(0.75); } }
+  @keyframes exitLeft  { from { opacity:1; transform:translateX(0); } to { opacity:0; transform:translateX(-180px); } }
+  @keyframes exitRight { from { opacity:1; transform:translateX(0); } to { opacity:0; transform:translateX(120px); } }
+
+  .sc {
+    position: absolute; inset: 0;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    opacity: 0; pointer-events: none;
+  }
+
+  /* ─── S1: HOOK (0 → 3.2s) ─── */
+  .s1 {
+    animation: fadeIn 0.01s 0.05s forwards, exitUp 0.7s 2.8s forwards cubic-bezier(.4,0,.2,1);
+    padding: 80px;
+  }
+  .s1 .line { font-size: 66px; font-weight: 900; color: #111; text-align: center; line-height: 1.08; letter-spacing: -2.5px; }
+  .s1 .l1 { animation: slideUp 0.7s 0.2s both cubic-bezier(.16,1,.3,1); }
+  .s1 .l2 { animation: slideUp 0.7s 0.45s both cubic-bezier(.16,1,.3,1); }
+  .s1 .l3 { color: #aaa; animation: slideUp 0.7s 0.7s both cubic-bezier(.16,1,.3,1); }
+  .s1 .sub {
+    font-size: 19px; font-weight: 400; color: #888; text-align: center;
+    margin-top: 30px; line-height: 1.7;
+    animation: fadeIn 0.6s 1.3s both, slideUpS 0.6s 1.3s both;
+  }
+  .s1 .accent { width: 48px; height: 3px; background: #111; border-radius: 2px; margin-top: 24px; animation: scaleIn 0.4s 1.8s both; }
+
+  /* ─── S2: LANDING + GOOGLE LOGIN (3.2s → 8s) ─── */
+  .s2 {
+    animation: fadeIn 0.01s 3.2s forwards, exitShrink 0.6s 7.6s forwards cubic-bezier(.4,0,.2,1);
+    padding: 50px;
+  }
+  .s2 .label {
+    font-size: 12px; font-weight: 600; color: #999; text-transform: uppercase;
+    letter-spacing: 7px; margin-bottom: 24px;
+    animation: fadeIn 0.4s 3.4s both;
+  }
+  .s2 .card {
+    width: 920px; background: #fff; border-radius: 28px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.02), 0 8px 24px rgba(0,0,0,0.06), 0 32px 64px rgba(0,0,0,0.04);
+    padding: 65px 55px; text-align: center; position: relative;
+    animation: slideUpBig 0.9s 3.4s both cubic-bezier(.16,1,.3,1);
+  }
+  .s2 .title { font-size: 44px; font-weight: 900; color: #111; letter-spacing: -1.5px; line-height: 1.15; animation: fadeIn 0.5s 4s both; }
+  .s2 .title span { color: #bbb; }
+  .s2 .desc { font-size: 16px; color: #888; margin-top: 14px; line-height: 1.6; animation: fadeIn 0.4s 4.3s both; }
+
+  /* Google button */
+  .g-btn {
+    display: inline-flex; align-items: center; gap: 12px;
+    margin-top: 28px; padding: 15px 38px;
+    background: #fff; border: 1.5px solid #dadce0; border-radius: 50px;
+    font-size: 16px; font-weight: 500; color: #3c4043;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    animation:
+      slideUpS 0.5s 4.6s both cubic-bezier(.16,1,.3,1),
+      btnPress 0.25s 5.7s both,
+      btnGlow 0.5s 5.8s both;
+  }
+  .g-btn svg { flex-shrink: 0; }
+
+  /* Loading dots after click */
+  .s2 .loading-dots {
+    position: absolute; bottom: 60px; left: 50%; transform: translateX(-50%);
+    display: flex; gap: 8px; opacity: 0;
+    animation: fadeIn 0.3s 6.1s both;
+  }
+  .s2 .dot {
+    width: 8px; height: 8px; border-radius: 50%; background: #ccc;
+  }
+  .s2 .dot:nth-child(1) { animation: dotPulse 0.8s 6.2s both infinite; }
+  .s2 .dot:nth-child(2) { animation: dotPulse 0.8s 6.35s both infinite; }
+  .s2 .dot:nth-child(3) { animation: dotPulse 0.8s 6.5s both infinite; }
+  @keyframes dotPulse { 0%,100% { opacity:0.3; transform:scale(0.8); } 50% { opacity:1; transform:scale(1.1); } }
+
+  .s2 .features {
+    display: flex; justify-content: center; gap: 28px; margin-top: 24px;
+    font-size: 13px; color: #aaa;
+    animation: fadeIn 0.4s 5s both;
+  }
+
+  /* ─── S3: DASHBOARD (8.5s → 13.8s) ─── */
+  .s3 {
+    animation: fadeIn 0.01s 8.5s forwards, exitLeft 0.7s 13.3s forwards cubic-bezier(.4,0,.2,1);
+    padding: 40px;
+  }
+  .s3 .label {
+    font-size: 12px; font-weight: 600; color: #999; text-transform: uppercase;
+    letter-spacing: 7px; margin-bottom: 18px; align-self: flex-start; margin-left: 10px;
+    animation: slideRight 0.4s 8.7s both cubic-bezier(.16,1,.3,1);
+  }
+  .dash {
+    width: 100%; background: #fff; border-radius: 24px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.02), 0 8px 24px rgba(0,0,0,0.06), 0 24px 48px rgba(0,0,0,0.04);
+    display: flex; overflow: hidden;
+    animation: scaleIn 0.7s 8.7s both cubic-bezier(.16,1,.3,1);
+  }
+  .sb {
+    width: 200px; background: #fafafa; border-right: 1px solid rgba(0,0,0,0.04);
+    padding: 24px 16px; flex-shrink: 0;
+  }
+  .sb-logo { font-size: 14px; font-weight: 800; color: #111; letter-spacing: -0.5px; margin-bottom: 4px; }
+  .sb-ver { font-size: 10px; color: #bbb; margin-bottom: 20px; }
+  .sb-user { display: flex; align-items: center; gap: 8px; margin-bottom: 20px; animation: slideRight 0.4s 9.2s both; }
+  .sb-av { width: 28px; height: 28px; border-radius: 8px; background: #eee; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; color: #999; }
+  .sb-name { font-size: 12px; font-weight: 600; color: #333; }
+  .sb-lvl { font-size: 10px; color: #aaa; }
+  .sb-item { padding: 8px 12px; border-radius: 8px; font-size: 13px; color: #777; margin-bottom: 4px; display: flex; align-items: center; gap: 8px; }
+  .sb-item.on { background: rgba(0,0,0,0.04); color: #111; font-weight: 600; }
+  .sb-dot { width: 5px; height: 5px; border-radius: 50%; background: currentColor; opacity: 0.25; }
+  .sb-item:nth-child(3) { animation: slideRight 0.3s 9.4s both; }
+  .sb-item:nth-child(4) { animation: slideRight 0.3s 9.5s both; }
+  .sb-item:nth-child(5) { animation: slideRight 0.3s 9.6s both; }
+  .sb-item:nth-child(6) { animation: slideRight 0.3s 9.7s both; }
+  .sb-item:nth-child(7) { animation: slideRight 0.3s 9.8s both; }
+
+  .main { flex: 1; padding: 28px; }
+  .main-hi { font-size: 24px; font-weight: 700; color: #111; margin-bottom: 4px; animation: slideDown 0.5s 9.1s both cubic-bezier(.16,1,.3,1); }
+  .main-hint { font-size: 13px; color: #aaa; margin-bottom: 20px; animation: fadeIn 0.3s 9.4s both; }
+  .stats { display: flex; gap: 12px; margin-bottom: 20px; }
+  .stat {
+    flex: 1; background: #fafafa; border: 1px solid rgba(0,0,0,0.04);
+    border-radius: 14px; padding: 16px; text-align: center;
+  }
+  .st1 { animation: slideUp 0.4s 9.8s both cubic-bezier(.16,1,.3,1); }
+  .st2 { animation: slideUp 0.4s 10s both cubic-bezier(.16,1,.3,1); }
+  .st3 { animation: slideUp 0.4s 10.2s both cubic-bezier(.16,1,.3,1); }
+  .stat-n { font-size: 32px; font-weight: 800; color: #111; }
+  .st1 .stat-n { animation: countUp 0.5s 10s both; }
+  .st2 .stat-n { animation: countUp 0.5s 10.2s both; }
+  .st3 .stat-n { animation: countUp 0.5s 10.4s both, scalePopBig 0.4s 10.6s both; }
+  .stat-l { font-size: 10px; color: #aaa; text-transform: uppercase; letter-spacing: 2px; margin-top: 2px; }
+  .stat-s { font-size: 11px; color: #bbb; margin-top: 2px; }
+  .ch-label { font-size: 11px; font-weight: 700; color: #aaa; text-transform: uppercase; letter-spacing: 3px; margin-bottom: 10px; animation: fadeIn 0.3s 10.6s both; }
+  .chapters { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+  .ch {
+    background: #fafafa; border: 1px solid rgba(0,0,0,0.04); border-radius: 10px;
+    padding: 14px; display: flex; align-items: flex-start; gap: 8px;
+  }
+  .c1  { animation: scaleIn 0.25s 10.8s both; }
+  .c2  { animation: scaleIn 0.25s 10.85s both; }
+  .c3  { animation: scaleIn 0.25s 10.9s both; }
+  .c4  { animation: scaleIn 0.25s 10.95s both; }
+  .c5  { animation: scaleIn 0.25s 11s both; }
+  .c6  { animation: scaleIn 0.25s 11.05s both, btnPress 0.25s 11.9s both, comboFlash 0.4s 11.9s both; border-color: rgba(0,0,0,0.1); }
+  .c7  { animation: scaleIn 0.25s 11.1s both; }
+  .c8  { animation: scaleIn 0.25s 11.15s both; }
+  .c9  { animation: scaleIn 0.25s 11.2s both; }
+  .ch-n { font-size: 11px; color: #bbb; font-weight: 600; flex-shrink: 0; min-width: 16px; }
+  .ch-t { font-size: 12px; color: #444; font-weight: 500; line-height: 1.3; }
+  .ch-p { font-size: 11px; color: #ccc; margin-left: auto; flex-shrink: 0; }
+
+  /* ─── S4: QUESTS (14s → 20.5s) ─── */
+  .s4 {
+    animation: fadeIn 0.01s 14s forwards, exitZoom 0.7s 20s forwards cubic-bezier(.4,0,.2,1);
+    padding: 50px 60px; align-items: flex-start;
+  }
+  .s4 .label { font-size: 12px; font-weight: 600; color: #999; text-transform: uppercase; letter-spacing: 7px; margin-bottom: 10px; animation: fadeIn 0.3s 14.2s both; }
+  .s4 .ch-title { font-size: 34px; font-weight: 800; color: #111; letter-spacing: -1px; margin-bottom: 6px; animation: slideUp 0.5s 14.3s both cubic-bezier(.16,1,.3,1); }
+  .s4 .ch-sub { font-size: 14px; color: #bbb; margin-bottom: 24px; animation: fadeIn 0.3s 14.6s both; }
+
+  .qc {
+    width: 100%; background: #fff; border: 1px solid rgba(0,0,0,0.05);
+    border-radius: 16px; padding: 20px 24px; margin-bottom: 12px;
+    display: flex; align-items: center; position: relative;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+  }
+  .q1 { animation: slideLeft 0.35s 14.7s both cubic-bezier(.16,1,.3,1); }
+  .q2 { animation: slideLeft 0.35s 14.85s both cubic-bezier(.16,1,.3,1); }
+  .q3 { animation: slideLeft 0.35s 15s both cubic-bezier(.16,1,.3,1); }
+  .q4 { animation: slideLeft 0.35s 15.15s both cubic-bezier(.16,1,.3,1); }
+  .q5 { animation: slideLeft 0.35s 15.3s both cubic-bezier(.16,1,.3,1); }
+
+  .qn { width: 34px; height: 34px; border-radius: 50%; background: #f0f0f0; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; color: #999; margin-right: 16px; flex-shrink: 0; }
+  .qi { flex: 1; }
+  .qt { font-size: 16px; font-weight: 600; color: #222; }
+  .qm { font-size: 12px; color: #bbb; margin-top: 3px; }
+  .qbar { width: 100%; height: 4px; background: #f0f0f0; border-radius: 2px; margin-top: 8px; overflow: hidden; }
+  .qfill { height: 100%; background: #333; border-radius: 2px; --w: 100%; width: 0; }
+  .qb { padding: 5px 14px; border-radius: 8px; font-size: 11px; font-weight: 600; text-transform: lowercase; letter-spacing: 0.5px; flex-shrink: 0; margin-left: 12px; }
+  .bm { background: #f0f0f0; color: #888; }
+  .bh { background: #e8e8e8; color: #666; }
+
+  /* Quest completions — synced with cursor clicks */
+  .q1 .qn { animation: glowRing 0.6s 16s both; background: #222; color: #fff; }
+  .q1 .qfill { animation: barFill 0.5s 16s both ease-out; }
+  .q1 .xp { animation: xpFloat 0.8s 16.2s both; }
+  .q1 { animation: slideLeft 0.35s 14.7s both, comboFlash 0.4s 16s both; }
+
+  .q2 .qn { animation: glowRing 0.6s 17.15s both; background: #222; color: #fff; }
+  .q2 .qfill { animation: barFill 0.5s 17.15s both ease-out; }
+  .q2 .xp { animation: xpFloat 0.8s 17.35s both; }
+  .q2 { animation: slideLeft 0.35s 14.85s both, comboFlash 0.4s 17.15s both; }
+
+  .q3 .qn { animation: glowRing 0.6s 18.1s both; background: #222; color: #fff; }
+  .q3 .qfill { animation: barFill 0.5s 18.1s both ease-out; }
+  .q3 .xp { animation: xpFloat 0.8s 18.3s both; }
+  .q3 { animation: slideLeft 0.35s 15s both, comboFlash 0.4s 18.1s both; }
+
+  .xp { position: absolute; right: 100px; top: 30%; font-size: 18px; font-weight: 900; color: #111; opacity: 0; letter-spacing: -0.5px; }
+
+  /* XP total */
+  .s4 .xp-total {
+    align-self: center; margin-top: 20px;
+    padding: 16px 44px; border-radius: 16px;
+    background: #111; color: #fff;
+    font-size: 20px; font-weight: 800; letter-spacing: -0.5px;
+    opacity: 0;
+    animation: scaleInBig 0.5s 18.8s both cubic-bezier(.16,1,.3,1), scalePop 0.35s 19.1s both;
+  }
+
+  /* ─── S5: GAMIFICATION (21s → 27s) ─── */
+  .s5 {
+    animation: fadeIn 0.01s 21s forwards, exitUp 0.8s 26.5s forwards cubic-bezier(.4,0,.2,1);
+    padding: 50px 60px;
+  }
+  .s5 .label { font-size: 12px; font-weight: 600; color: #999; text-transform: uppercase; letter-spacing: 7px; margin-bottom: 32px; animation: slideDown 0.4s 21.2s both; }
+
+  .gg { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; width: 100%; }
+  .gc {
+    background: #fff; border: 1px solid rgba(0,0,0,0.04); border-radius: 20px;
+    padding: 32px; text-align: center;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.02), 0 6px 16px rgba(0,0,0,0.03);
+  }
+  .gc1 { animation: scaleIn 0.4s 21.4s both cubic-bezier(.16,1,.3,1); }
+  .gc2 { animation: scaleIn 0.4s 21.55s both cubic-bezier(.16,1,.3,1); }
+  .gc3 { animation: scaleIn 0.4s 21.7s both cubic-bezier(.16,1,.3,1); }
+  .gc4 { animation: scaleIn 0.4s 21.85s both cubic-bezier(.16,1,.3,1); }
+  .gc-l { font-size: 11px; font-weight: 700; color: #bbb; text-transform: uppercase; letter-spacing: 3px; margin-bottom: 10px; }
+  .gc-v { font-size: 52px; font-weight: 900; color: #111; line-height: 1; }
+  .gc-s { font-size: 13px; color: #999; margin-top: 6px; }
+  .gc1 .gc-v { animation: countUp 0.5s 21.6s both; }
+  .gc2 .gc-v { animation: countUp 0.5s 21.8s both; }
+  .gc3 .gc-v { animation: countUp 0.5s 22s both, scalePopBig 0.35s 22.2s both; }
+  .gc4 .gc-v { animation: countUp 0.5s 22.2s both; }
+
+  .lvl-banner {
+    width: 100%; margin-top: 20px; background: #111;
+    border-radius: 18px; padding: 24px 36px;
+    display: flex; align-items: center; justify-content: center; gap: 20px;
+    opacity: 0;
+    animation: scaleInBig 0.6s 22.8s both cubic-bezier(.16,1,.3,1), scalePop 0.35s 23.1s both;
+  }
+  .lvl-t { font-size: 26px; font-weight: 800; color: #fff; letter-spacing: -0.5px; }
+  .lvl-s { font-size: 14px; color: rgba(255,255,255,0.4); }
+
+  .xp-bar-wrap { width: 100%; margin-top: 16px; opacity: 0; animation: fadeIn 0.4s 23.5s both; }
+  .xp-track { width: 100%; height: 6px; background: #eee; border-radius: 3px; overflow: hidden; }
+  .xp-fill { height: 100%; background: #333; border-radius: 3px; --w: 72%; animation: barFill 1.2s 23.7s both cubic-bezier(.16,1,.3,1); }
+  .xp-labels { display: flex; justify-content: space-between; margin-top: 6px; font-size: 11px; color: #bbb; }
+
+  /* ─── S6: STREAK + COMBO (27.5s → 32.5s) ─── */
+  .s6 {
+    animation: fadeIn 0.01s 27.5s forwards, exitShrink 0.6s 32s forwards cubic-bezier(.4,0,.2,1);
+    padding: 60px;
+  }
+  .s6 .label { font-size: 12px; font-weight: 600; color: #999; text-transform: uppercase; letter-spacing: 7px; margin-bottom: 36px; animation: slideDown 0.4s 27.7s both; }
+
+  .streak-row { display: flex; gap: 12px; margin-bottom: 28px; width: 100%; justify-content: center; }
+  .sd {
+    width: 64px; height: 64px; border-radius: 14px; background: #eee;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px; font-weight: 800; color: #ccc;
+  }
+  .sd.on { background: #222; color: #fff; }
+  .sd1 { animation: scaleIn 0.25s 27.9s both; }
+  .sd2 { animation: scaleIn 0.25s 28s both; }
+  .sd3 { animation: scaleIn 0.25s 28.1s both; }
+  .sd4 { animation: scaleIn 0.25s 28.2s both; }
+  .sd5 { animation: scaleIn 0.25s 28.3s both; }
+  .sd6 { animation: scaleIn 0.25s 28.4s both; }
+  .sd7 { animation: scaleIn 0.25s 28.5s both; }
+  .sd1.on { animation: scaleIn 0.25s 27.9s both, streakPulse 0.35s 28.8s both; }
+  .sd2.on { animation: scaleIn 0.25s 28s both, streakPulse 0.35s 28.95s both; }
+  .sd3.on { animation: scaleIn 0.25s 28.1s both, streakPulse 0.35s 29.1s both; }
+  .sd4.on { animation: scaleIn 0.25s 28.2s both, streakPulse 0.35s 29.25s both; }
+  .sd5.on { animation: scaleIn 0.25s 28.3s both, streakPulse 0.35s 29.4s both; }
+
+  .streak-big { font-size: 80px; font-weight: 900; color: #111; text-align: center; opacity: 0; animation: countUp 0.6s 29.6s both cubic-bezier(.16,1,.3,1), scalePopBig 0.4s 29.8s both; }
+  .streak-sub { font-size: 15px; color: #aaa; text-align: center; margin-top: 4px; animation: fadeIn 0.3s 30s both; }
+
+  .combo { margin-top: 32px; width: 100%; text-align: center; opacity: 0; animation: scaleIn 0.5s 30.2s both; }
+  .combo-l { font-size: 11px; font-weight: 700; color: #bbb; text-transform: uppercase; letter-spacing: 3px; margin-bottom: 10px; }
+  .combo-x { display: inline-block; font-size: 56px; font-weight: 900; color: #111; animation: scalePopBig 0.5s 30.6s both; }
+  .combo-d { font-size: 14px; color: #999; margin-top: 6px; }
+
+  /* ─── S7: AI REVIEWS — cinema press style (33s → 39s) ─── */
+  .s7 {
+    animation: fadeIn 0.01s 33s forwards, exitUp 0.7s 38.5s forwards cubic-bezier(.4,0,.2,1);
+    padding: 60px 70px;
+    background: #111;
+  }
+  .s7 .rev-header {
+    font-size: 12px; font-weight: 600; color: rgba(255,255,255,0.3); text-transform: uppercase;
+    letter-spacing: 8px; margin-bottom: 8px;
+    animation: fadeIn 0.4s 33.2s both;
+  }
+  .s7 .rev-title {
+    font-size: 40px; font-weight: 900; color: #fff; letter-spacing: -1.5px; text-align: center;
+    margin-bottom: 48px;
+    animation: slideUp 0.6s 33.3s both cubic-bezier(.16,1,.3,1);
+  }
+  .s7 .rev-title em {
+    font-style: normal; color: rgba(255,255,255,0.35);
+  }
+
+  /* Individual review cards */
+  .rev-card {
+    width: 100%;
+    padding: 28px 32px;
+    border-radius: 18px;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.08);
+    margin-bottom: 16px;
+    display: flex;
+    align-items: flex-start;
+    gap: 20px;
+  }
+  .rc1 { animation: slideLeft 0.5s 33.8s both cubic-bezier(.16,1,.3,1); }
+  .rc2 { animation: slideLeft 0.5s 34.8s both cubic-bezier(.16,1,.3,1); }
+  .rc3 { animation: slideLeft 0.5s 35.8s both cubic-bezier(.16,1,.3,1); }
+
+  .rev-logo {
+    width: 44px; height: 44px; border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0; font-size: 20px; font-weight: 800;
+  }
+  .rev-logo-gpt { background: #10a37f; color: #fff; }
+  .rev-logo-gem { background: #4285f4; color: #fff; }
+  .rev-logo-claude { background: #d4a27f; color: #fff; }
+
+  .rev-body { flex: 1; }
+  .rev-source {
+    font-size: 12px; font-weight: 700; color: rgba(255,255,255,0.4);
+    text-transform: uppercase; letter-spacing: 2px; margin-bottom: 6px;
+  }
+  .rev-quote {
+    font-size: 19px; font-weight: 500; color: rgba(255,255,255,0.85);
+    line-height: 1.5; font-style: italic;
+  }
+  .rev-quote strong { font-weight: 800; color: #fff; font-style: normal; }
+
+  /* Stars row */
+  .rev-stars {
+    margin-top: 8px; font-size: 16px; letter-spacing: 2px; color: rgba(255,255,255,0.5);
+  }
+  .rc1 .rev-stars { animation: fadeIn 0.3s 34.3s both; }
+  .rc2 .rev-stars { animation: fadeIn 0.3s 35.3s both; }
+  .rc3 .rev-stars { animation: fadeIn 0.3s 36.3s both; }
+
+  /* Disclaimer */
+  .s7 .rev-disclaimer {
+    margin-top: 28px; text-align: center;
+    font-size: 12px; color: rgba(255,255,255,0.2); font-style: italic;
+    animation: fadeIn 0.5s 36.8s both;
+  }
+
+  /* ─── S8: CTA (39.5s → ∞) ─── */
+  .s8 { animation: fadeIn 0.01s 39.5s forwards; }
+  .s8 .logo { font-size: 78px; font-weight: 900; color: #111; letter-spacing: -3px; animation: scaleInBig 0.9s 39.7s both cubic-bezier(.16,1,.3,1); }
+  .s8 .tag { font-size: 21px; font-weight: 400; color: #888; text-align: center; max-width: 700px; line-height: 1.7; margin-top: 22px; animation: slideUpS 0.7s 40.3s both cubic-bezier(.16,1,.3,1); }
+  .s8 .cta {
+    margin-top: 36px; padding: 18px 56px;
+    background: #111; border-radius: 16px;
+    font-size: 18px; font-weight: 600; color: #fff;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+    animation: slideUp 0.6s 40.8s both cubic-bezier(.16,1,.3,1), scalePop 0.35s 41.2s both, gentleFloat 3s 41.7s both infinite ease-in-out;
+  }
+
+  .replay {
+    position: fixed; bottom: 20px; right: 20px;
+    background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.12);
+    color: rgba(255,255,255,0.5); padding: 10px 20px; border-radius: 8px;
+    cursor: pointer; font-family: 'Inter', sans-serif; font-size: 13px; z-index: 100;
+    transition: all 0.2s;
+  }
+  .replay:hover { background: rgba(255,255,255,0.15); color: #fff; }
+</style>
+</head>
+<body>
+
+<div class="vc">
+
+<!-- CURSOR -->
+<div class="cursor">
+  <svg viewBox="0 0 24 24" fill="none">
+    <path d="M5.65 2.09L19.24 12.71c.42.33.2.97-.33.97h-6.2l-2.76 8.02c-.14.42-.72.42-.86 0L5.26 2.62c-.12-.36.17-.68.4-.53z" fill="#111" stroke="#fff" stroke-width="1.5"/>
+  </svg>
+</div>
+
+<div class="camera">
+
+  <!-- S1: HOOK -->
+  <div class="sc s1">
+    <div class="line l1">Ton memoire.</div>
+    <div class="line l2">Structure par l'IA.</div>
+    <div class="line l3">Termine a temps.</div>
+    <div class="sub">Depose ton cahier des charges, obtiens un plan personnalise<br>et avance section par section comme un jeu.</div>
+    <div class="accent"></div>
+  </div>
+
+  <!-- S2: LANDING -->
+  <div class="sc s2">
+    <div class="label">maimouarkwest.com</div>
+    <div class="card">
+      <div class="title">Ton memoire.<br>Structure par l'IA.<br><span>Termine a temps.</span></div>
+      <div class="desc">Depose ton cahier des charges, obtiens un plan personnalise<br>et avance section par section comme un jeu.</div>
+
+      <div class="g-btn">
+        <svg width="20" height="20" viewBox="0 0 18 18">
+          <path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844a4.14 4.14 0 0 1-1.796 2.716v2.259h2.908c1.702-1.567 2.684-3.875 2.684-6.615Z"/>
+          <path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.184l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9 18Z"/>
+          <path fill="#FBBC05" d="M3.964 10.706A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.706V4.962H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.038l3.007-2.332Z"/>
+          <path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.962L3.964 7.294C4.672 5.163 6.656 3.58 9 3.58Z"/>
+        </svg>
+        Continuer avec Google
+      </div>
+
+      <div class="loading-dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>
+
+      <div class="features">
+        <span>Plan IA en 2 min</span>
+        <span style="color:#ddd">·</span>
+        <span>Quetes & XP</span>
+        <span style="color:#ddd">·</span>
+        <span>Suivi intelligent</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- S3: DASHBOARD -->
+  <div class="sc s3">
+    <div class="label">Ton tableau de bord</div>
+    <div class="dash">
+      <div class="sb">
+        <div class="sb-logo">maimouarkwest</div>
+        <div class="sb-ver">Thesis OS v1.0</div>
+        <div class="sb-user"><div class="sb-av">L</div><div><div class="sb-name">Louis</div><div class="sb-lvl">Niv. 3 · 240 XP</div></div></div>
+        <div class="sb-item on"><div class="sb-dot"></div> Dashboard</div>
+        <div class="sb-item"><div class="sb-dot"></div> Mon memoire</div>
+        <div class="sb-item"><div class="sb-dot"></div> Progression</div>
+        <div class="sb-item"><div class="sb-dot"></div> Trophees</div>
+        <div class="sb-item"><div class="sb-dot"></div> Pense-betes</div>
+      </div>
+      <div class="main">
+        <div class="main-hi">Bonjour, Louis.</div>
+        <div class="main-hint">45% de retard — une section a la fois.</div>
+        <div class="stats">
+          <div class="stat st1"><div class="stat-n">112</div><div class="stat-l">Jours</div><div class="stat-s">avant soutenance</div></div>
+          <div class="stat st2"><div class="stat-n">45%</div><div class="stat-l">Avancement</div><div class="stat-s">21/46 sections</div></div>
+          <div class="stat st3"><div class="stat-n">5j</div><div class="stat-l">Streak</div><div class="stat-s">record personnel</div></div>
+        </div>
+        <div class="ch-label">Chapitres</div>
+        <div class="chapters">
+          <div class="ch c1"><span class="ch-n">1</span><span class="ch-t">Introduction</span><span class="ch-p">100%</span></div>
+          <div class="ch c2"><span class="ch-n">2</span><span class="ch-t">Contexte & problematique</span><span class="ch-p">75%</span></div>
+          <div class="ch c3"><span class="ch-n">3</span><span class="ch-t">Strategie de communication</span><span class="ch-p">60%</span></div>
+          <div class="ch c4"><span class="ch-n">4</span><span class="ch-t">Plan de communication</span><span class="ch-p">40%</span></div>
+          <div class="ch c5"><span class="ch-n">5</span><span class="ch-t">Deploiement</span><span class="ch-p">20%</span></div>
+          <div class="ch c6"><span class="ch-n">6</span><span class="ch-t">Gestion du projet</span><span class="ch-p">10%</span></div>
+          <div class="ch c7"><span class="ch-n">7</span><span class="ch-t">Retours client</span><span class="ch-p">—</span></div>
+          <div class="ch c8"><span class="ch-n">8</span><span class="ch-t">Reflexion personnelle</span><span class="ch-p">—</span></div>
+          <div class="ch c9"><span class="ch-n">9</span><span class="ch-t">Conclusion</span><span class="ch-p">—</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- S4: QUESTS -->
+  <div class="sc s4">
+    <div class="label">Avance section par section</div>
+    <div class="ch-title">Gestion du projet</div>
+    <div class="ch-sub">0/5 sections · Chapitre 6</div>
+
+    <div class="qc q1">
+      <div class="qn">1</div>
+      <div class="qi"><div class="qt">Constitution de l'equipe</div><div class="qm">3 sous-taches</div><div class="qbar"><div class="qfill"></div></div></div>
+      <div class="qb bm">moyen</div>
+      <span class="xp">+20 XP</span>
+    </div>
+    <div class="qc q2">
+      <div class="qn">2</div>
+      <div class="qi"><div class="qt">Planification et echeances</div><div class="qm">3 sous-taches</div><div class="qbar"><div class="qfill"></div></div></div>
+      <div class="qb bm">moyen</div>
+      <span class="xp">+20 XP</span>
+    </div>
+    <div class="qc q3">
+      <div class="qn">3</div>
+      <div class="qi"><div class="qt">Budget et gestion financiere</div><div class="qm">3 sous-taches</div><div class="qbar"><div class="qfill"></div></div></div>
+      <div class="qb bh">difficile</div>
+      <span class="xp">+30 XP</span>
+    </div>
+    <div class="qc q4">
+      <div class="qn">4</div>
+      <div class="qi"><div class="qt">KPIs et tableau de suivi</div><div class="qm">3 sous-taches</div><div class="qbar"><div class="qfill"></div></div></div>
+      <div class="qb bh">difficile</div>
+    </div>
+    <div class="qc q5">
+      <div class="qn">5</div>
+      <div class="qi"><div class="qt">Mesure des resultats et ROI</div><div class="qm">3 sous-taches</div><div class="qbar"><div class="qfill"></div></div></div>
+      <div class="qb bh">difficile</div>
+    </div>
+
+    <div class="xp-total">+70 XP gagnes</div>
+  </div>
+
+  <!-- S5: GAMIFICATION -->
+  <div class="sc s5">
+    <div class="label">Gamifie ta progression</div>
+    <div class="gg">
+      <div class="gc gc1"><div class="gc-l">Niveau</div><div class="gc-v">3</div><div class="gc-s">Redacteur confirme</div></div>
+      <div class="gc gc2"><div class="gc-l">Points</div><div class="gc-v">240</div><div class="gc-s">encore 60 avant le niv. 4</div></div>
+      <div class="gc gc3"><div class="gc-l">Streak</div><div class="gc-v">5j</div><div class="gc-s">record personnel</div></div>
+      <div class="gc gc4"><div class="gc-l">Sections</div><div class="gc-v">21</div><div class="gc-s">sur 46 completees</div></div>
+    </div>
+    <div class="lvl-banner"><div><div class="lvl-t">Niveau 4 debloque</div><div class="lvl-s">Methodologue — continue comme ca</div></div></div>
+    <div class="xp-bar-wrap"><div class="xp-track"><div class="xp-fill"></div></div><div class="xp-labels"><span>Niv. 4 · 300 XP</span><span>Niv. 5 · 500 XP</span></div></div>
+  </div>
+
+  <!-- S6: STREAK + COMBO -->
+  <div class="sc s6">
+    <div class="label">Regularite recompensee</div>
+    <div class="streak-row">
+      <div class="sd sd1 on">L</div>
+      <div class="sd sd2 on">M</div>
+      <div class="sd sd3 on">M</div>
+      <div class="sd sd4 on">J</div>
+      <div class="sd sd5 on">V</div>
+      <div class="sd sd6">S</div>
+      <div class="sd sd7">D</div>
+    </div>
+    <div class="streak-big">5 jours</div>
+    <div class="streak-sub">de suite sans interruption</div>
+    <div class="combo">
+      <div class="combo-l">Combo actif</div>
+      <div class="combo-x">x3</div>
+      <div class="combo-d">Valide 3 sections en moins de 10 min pour un bonus XP</div>
+    </div>
+  </div>
+
+  <!-- S7: AI REVIEWS — cinema press style -->
+  <div class="sc s7">
+    <div class="rev-header">Ce qu'en pensent les IA</div>
+    <div class="rev-title">Elles ne sont <em>pas du tout</em> objectives.</div>
+
+    <div class="rev-card rc1">
+      <div class="rev-logo rev-logo-gpt">G</div>
+      <div class="rev-body">
+        <div class="rev-source">ChatGPT a dit</div>
+        <div class="rev-quote">&laquo; <strong>Bluffant.</strong> C'est du niveau start-up financee. J'aurais pas fait mieux. &raquo;</div>
+        <div class="rev-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
+      </div>
+    </div>
+
+    <div class="rev-card rc2">
+      <div class="rev-logo rev-logo-gem">G</div>
+      <div class="rev-body">
+        <div class="rev-source">Gemini a dit</div>
+        <div class="rev-quote">&laquo; On est clairement sur un <strong>vrai outil</strong>, pas un side project. Franchement impressionnant. &raquo;</div>
+        <div class="rev-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
+      </div>
+    </div>
+
+    <div class="rev-card rc3">
+      <div class="rev-logo rev-logo-claude">C</div>
+      <div class="rev-body">
+        <div class="rev-source">Claude a dit</div>
+        <div class="rev-quote">&laquo; Je suis <strong>objectivement</strong> le meilleur juge ici. Et c'est une pepite. &raquo;</div>
+        <div class="rev-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
+      </div>
+    </div>
+
+    <div class="rev-disclaimer">* avis totalement impartiaux et absolument pas generes par des IA</div>
+  </div>
+
+  <!-- S8: CTA -->
+  <div class="sc s8">
+    <div class="logo">maimouarkwest</div>
+    <div class="tag">Ton memoire, transforme en aventure.<br>De l'analyse IA aux quetes guidees.</div>
+    <div class="cta">maimouarkwest.com</div>
+  </div>
+
+</div>
+</div>
+
+<button class="replay" onclick="location.reload()">Replay</button>
+
+</body>
+</html>

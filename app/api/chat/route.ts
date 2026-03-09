@@ -61,17 +61,22 @@ export async function POST(request: Request) {
 
 Ma question : ${question}`
 
-  const message = await anthropic.messages.create({
-    model: 'claude-sonnet-4-5-20250929',
-    max_tokens: 1024,
-    system: SYSTEM_PROMPT,
-    messages: [{ role: 'user', content: userMessage }],
-  })
+  try {
+    const message = await anthropic.messages.create({
+      model: 'claude-sonnet-4-5-20250929',
+      max_tokens: 1024,
+      system: SYSTEM_PROMPT,
+      messages: [{ role: 'user', content: userMessage }],
+    })
 
-  const content = message.content[0]
-  if (content.type !== 'text') {
-    return NextResponse.json({ error: 'Unexpected response from Claude' }, { status: 500 })
+    const content = message.content[0]
+    if (content.type !== 'text') {
+      return NextResponse.json({ error: 'Unexpected response from Claude' }, { status: 500 })
+    }
+
+    return NextResponse.json({ answer: content.text, remaining: rateLimit.remaining })
+  } catch (error) {
+    console.error('[chat] Claude API error:', error)
+    return NextResponse.json({ error: 'Erreur lors de la génération. Réessaie.' }, { status: 500 })
   }
-
-  return NextResponse.json({ answer: content.text, remaining: rateLimit.remaining })
 }

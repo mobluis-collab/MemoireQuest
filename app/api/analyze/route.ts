@@ -175,6 +175,6 @@ export async function POST(request: Request) {
     return NextResponse.json(result);
   } catch (error) {
     console.error("[API] Error:", (error as Error).message);
-    return NextResponse.json({ error: (error as Error).message }, { status: 500 });
+    return NextResponse.json({ error: "Une erreur est survenue lors de l'analyse. Réessaie." }, { status: 500 });
   }
 }
