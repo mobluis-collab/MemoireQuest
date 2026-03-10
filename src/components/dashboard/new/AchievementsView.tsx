@@ -96,6 +96,18 @@ function TrophyIcon({ id, size = 24, color }: { id: string; size?: number; color
   }
 }
 
+/* ─── Blue accent helpers for unlocked trophies ────────── */
+
+function blueBg(opacity: number, isDark: boolean): string {
+  return isDark
+    ? `rgba(56, 139, 255, ${opacity})`
+    : `rgba(37, 99, 205, ${opacity})`
+}
+
+function blueTw(opacity: number): string {
+  return `rgba(56, 139, 255, ${opacity})`
+}
+
 /* ─── Trophy Card ───────────────────────────────────────── */
 
 function TrophyCard({
@@ -138,18 +150,18 @@ function TrophyCard({
         transition: 'all 0.3s cubic-bezier(.4,0,.2,1)',
         cursor: 'default',
         ...(isSummit ? { maxWidth: 220 } : {}),
-        // Background & border
+        // Background & border — unlocked uses blue accent
         background: isHovered
-          ? (u ? bg(0.10, isDark) : bg(0.07, isDark))
-          : (u ? bg(0.08, isDark) : bg(0.05, isDark)),
+          ? (u ? blueBg(0.12, isDark) : bg(0.07, isDark))
+          : (u ? blueBg(0.08, isDark) : bg(0.05, isDark)),
         border: `1px solid ${isHovered
-          ? (u ? bg(0.35, isDark) : bg(0.20, isDark))
+          ? (u ? blueBg(0.40, isDark) : bg(0.20, isDark))
           : (u
-            ? bg(0.30, isDark)
+            ? blueBg(0.25, isDark)
             : bg(0.15, isDark))
         }`,
         transform: isHovered ? 'translateY(-3px)' : 'translateY(0)',
-        boxShadow: isHovered && u ? `0 4px 30px ${bg(0.08, isDark)}` : 'none',
+        boxShadow: isHovered && u ? `0 4px 30px ${blueBg(0.15, isDark)}` : 'none',
       }}
     >
       {/* Icon container with hexagon background */}
@@ -165,8 +177,8 @@ function TrophyCard({
         <svg viewBox="0 0 48 48" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%' }}>
           <polygon
             points="24,3 44,14 44,34 24,45 4,34 4,14"
-            fill={u ? bg(0.08, isDark) : bg(0.08, isDark)}
-            stroke={u ? bg(0.25, isDark) : bg(0.25, isDark)}
+            fill={u ? blueBg(0.10, isDark) : bg(0.08, isDark)}
+            stroke={u ? blueBg(0.30, isDark) : bg(0.25, isDark)}
             strokeWidth="0.8"
           />
         </svg>
@@ -176,7 +188,7 @@ function TrophyCard({
           <TrophyIcon
             id={achievement.id}
             size={iconSize}
-            color={u ? tw(0.90, textIntensity, isDark) : tw(0.70, textIntensity, isDark)}
+            color={u ? blueTw(0.90) : tw(0.70, textIntensity, isDark)}
           />
         </div>
 
@@ -199,7 +211,7 @@ function TrophyCard({
         fontSize: 12,
         fontWeight: 600,
         letterSpacing: '-0.1px',
-        color: u ? tw(0.90, textIntensity, isDark) : tw(0.60, textIntensity, isDark),
+        color: u ? blueTw(0.95) : tw(0.60, textIntensity, isDark),
         lineHeight: '1.3',
       }}>
         {achievement.title}
@@ -208,7 +220,7 @@ function TrophyCard({
       {/* Description */}
       <div style={{
         fontSize: 11,
-        color: u ? tw(0.70, textIntensity, isDark) : tw(0.45, textIntensity, isDark),
+        color: u ? blueTw(0.60) : tw(0.45, textIntensity, isDark),
         lineHeight: '1.4',
       }}>
         {achievement.description}
@@ -248,7 +260,7 @@ function TrophyCard({
       {u && (
         <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginTop: 2 }}>
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none"
-            stroke={tw(0.90, textIntensity, isDark)} strokeWidth="2"
+            stroke={blueTw(0.90)} strokeWidth="2"
             strokeLinecap="round" strokeLinejoin="round">
             <polyline points="20 6 9 17 4 12"/>
           </svg>
@@ -257,7 +269,7 @@ function TrophyCard({
             fontWeight: 600,
             letterSpacing: '0.6px',
             textTransform: 'uppercase',
-            color: tw(0.90, textIntensity, isDark),
+            color: blueTw(0.90),
           }}>
             d{'\u00e9'}bloqu{'\u00e9'}
           </span>

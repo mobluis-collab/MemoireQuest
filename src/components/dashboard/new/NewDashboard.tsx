@@ -632,8 +632,8 @@ const NAV: Array<{ icon: string; label: string; view: ActiveView }> = [
   { icon: '⊞', label: 'Dashboard',     view: 'dashboard'     },
   { icon: '◎', label: 'Mon mémoire',   view: 'memoire'       },
   { icon: '◈', label: 'Progression',   view: 'progression'   },
-  { icon: '◇', label: 'Trophées',      view: 'achievements'  },
   { icon: '▤', label: 'Pense-bêtes',   view: 'notes'         },
+  { icon: '◇', label: 'Trophées',      view: 'achievements'  },
 ]
 
 /* ─── MAIN COMPONENT ──────────────────────────────────────────── */
@@ -660,7 +660,7 @@ export default function NewDashboard({
   onReanalyze,
 }: NewDashboardProps) {
   const [activeView, setActiveView] = useState<ActiveView>('dashboard')
-  const [showIntensity, setShowIntensity] = useState(false)
+  // showIntensity removed — slider is now always visible in sidebar bottom
   const [selectedCh, setSelectedCh] = useState<ChapterData | null>(null)
   const [celebratingChapter, setCelebratingChapter] = useState<string | null>(null)
   const [isTransitioning, setIsTransitioning] = useState(false)
@@ -711,6 +711,48 @@ export default function NewDashboard({
     }, 50)
   }, [activeView])
 
+  /* ── Scroll between tabs ── */
+  const scrollCooldownRef = useRef(false)
+  const mainRef = useRef<HTMLElement>(null)
+
+  useEffect(() => {
+    const main = mainRef.current
+    if (!main) return
+
+    const handleWheel = (e: WheelEvent) => {
+      if (scrollCooldownRef.current) return
+      if (focusMode) return
+
+      const { scrollTop, scrollHeight, clientHeight } = main
+      const atBottom = scrollTop + clientHeight >= scrollHeight - 10
+      const atTop = scrollTop <= 10
+
+      const currentIdx = NAV.findIndex(n => n.view === activeView)
+      if (currentIdx === -1) return
+
+      if (e.deltaY > 30 && atBottom && currentIdx < NAV.length - 1) {
+        scrollCooldownRef.current = true
+        handleViewChange(NAV[currentIdx + 1].view)
+        setTimeout(() => {
+          if (mainRef.current) mainRef.current.scrollTop = 0
+          scrollCooldownRef.current = false
+        }, 400)
+      } else if (e.deltaY < -30 && atTop && currentIdx > 0) {
+        scrollCooldownRef.current = true
+        handleViewChange(NAV[currentIdx - 1].view)
+        setTimeout(() => {
+          if (mainRef.current) {
+            mainRef.current.scrollTop = mainRef.current.scrollHeight
+          }
+          scrollCooldownRef.current = false
+        }, 400)
+      }
+    }
+
+    main.addEventListener('wheel', handleWheel, { passive: true })
+    return () => main.removeEventListener('wheel', handleWheel)
+  }, [activeView, handleViewChange, focusMode])
+
   /* ── Keyboard shortcuts ── */
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -730,10 +772,10 @@ export default function NewDashboard({
           handleViewChange('progression')
           break
         case '4':
-          handleViewChange('achievements')
+          handleViewChange('notes')
           break
         case '5':
-          handleViewChange('notes')
+          handleViewChange('achievements')
           break
         case '[':
           setSidebarCollapsed(prev => !prev)
@@ -1134,38 +1176,15 @@ export default function NewDashboard({
               </button>
             )
           })}
-          {/* Intensité toggle — hidden on mobile */}
-          {!isMobile && <>
-          <button
-            onClick={() => setShowIntensity(!showIntensity)}
-            style={{
-              width: '100%', display: 'flex', alignItems: 'center', gap: showCollapsed ? 0 : 9,
-              justifyContent: showCollapsed ? 'center' : 'flex-start',
-              padding: showCollapsed ? '8px 0' : '8px 11px 8px 13px',
-              borderRadius: 9, border: 'none', cursor: 'pointer',
-              background: showIntensity ? bg(0.06, isDark) : 'transparent',
-              color: showIntensity ? tw(0.90, textIntensity, isDark) : tw(0.45, textIntensity, isDark),
-              fontSize: 13, fontWeight: showIntensity ? 600 : 400,
-              textAlign: 'left' as const,
-              transition: 'all 0.3s cubic-bezier(.4,0,.2,1)',
-              marginBottom: 1,
-              borderLeft: showCollapsed ? 'none' : showIntensity ? `2px solid ${bg(0.12, isDark)}` : '2px solid transparent',
-            }}
-          >
-            <span style={{ fontSize: 15, flexShrink: 0, width: 20, textAlign: 'center', color: showIntensity ? tw(0.60, textIntensity, isDark) : tw(0.25, textIntensity, isDark), transition: 'color 0.3s cubic-bezier(.4,0,.2,1)' }}>{'\u25D0'}</span>
-            {!showCollapsed && <span>Intensit{'\u00E9'}</span>}
-          </button>
+        </nav>
 
-          {/* Slider accordion */}
-          {!showCollapsed && (
-          <div style={{
-            maxHeight: showIntensity ? '80px' : '0px',
-            overflow: 'hidden',
-            transition: 'max-height 0.3s cubic-bezier(.4,0,.2,1)',
-          }}>
+        {/* Re-upload + sign out — hidden on mobile */}
+        {!isMobile && <div style={{ padding: '8px 7px', borderTop: '1px solid var(--mq-card-hover)', display: 'flex', flexDirection: 'column', gap: 1 }}>
+          {/* Intensity slider — always open, above Mode sombre */}
+          {!sidebarCollapsed && (
             <div style={{ padding: '6px 13px 10px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-                <span style={{ fontSize: 10, color: tw(0.35, textIntensity, isDark) }}>Texte</span>
+                <span style={{ fontSize: 10, color: tw(0.35, textIntensity, isDark) }}>{'\u25D0'} Intensit{'\u00E9'}</span>
                 <span style={{ fontSize: 10, color: tw(0.50, textIntensity, isDark), fontWeight: 600 }}>{Math.round(textIntensity * 100)}%</span>
               </div>
               <style>{`
@@ -1208,13 +1227,21 @@ export default function NewDashboard({
                 className="mq-intensity-slider"
               />
             </div>
-          </div>
           )}
-          </>}
-        </nav>
-
-        {/* Re-upload + sign out — hidden on mobile */}
-        {!isMobile && <div style={{ padding: '8px 7px', borderTop: '1px solid var(--mq-card-hover)', display: 'flex', flexDirection: 'column', gap: 1 }}>
+          {sidebarCollapsed && (
+            <button
+              onClick={() => setSidebarCollapsed(false)}
+              style={{
+                width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                padding: '8px 0', borderRadius: 9, border: 'none', cursor: 'pointer',
+                background: 'transparent', color: tw(0.25, textIntensity, isDark), fontSize: 15,
+                transition: 'color 0.3s cubic-bezier(.4,0,.2,1)',
+              }}
+              title="Intensité"
+            >
+              {'\u25D0'}
+            </button>
+          )}
           {!sidebarCollapsed && plan && (
             <>
               <input
@@ -1294,7 +1321,7 @@ export default function NewDashboard({
       )}
 
       {/* ── MAIN ── */}
-      <main className="mq-dashboard-scroll" style={{
+      <main ref={mainRef} className="mq-dashboard-scroll" style={{
         flex: 1, height: '100vh', overflow: 'auto',
         padding: isMobile ? '16px 12px 80px' : isTablet ? '20px 20px 20px' : '24px 36px 20px',
         position: 'relative', zIndex: 1,

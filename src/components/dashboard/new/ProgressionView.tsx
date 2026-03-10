@@ -315,8 +315,10 @@ export default function ProgressionView({ chapters, totalPoints, streak, startDa
 
     const onKey = (e: KeyboardEvent) => {
       if (e.code === 'Space' || e.code === 'ArrowUp') {
-        const tag = document.activeElement?.tagName
+        const el = document.activeElement
+        const tag = el?.tagName
         if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return
+        if (el instanceof HTMLElement && el.isContentEditable) return
         e.preventDefault()
         handleJump()
       }
@@ -423,8 +425,10 @@ export default function ProgressionView({ chapters, totalPoints, streak, startDa
     if (!waitingToStart) return
     const onKey = (e: KeyboardEvent) => {
       if (e.code === 'Space' || e.code === 'ArrowUp') {
-        const tag = document.activeElement?.tagName
+        const el = document.activeElement
+        const tag = el?.tagName
         if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return
+        if (el instanceof HTMLElement && el.isContentEditable) return
         e.preventDefault()
         setWaitingToStart(false)
       }
