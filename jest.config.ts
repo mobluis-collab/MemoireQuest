@@ -11,14 +11,15 @@ const config: Config.InitialOptions = {
     ],
   },
   moduleNameMapper: {
-    "^@/(.*)$": "<rootDir>/app/$1",
+    "^@/(.*)$": "<rootDir>/src/$1",
   },
   testPathIgnorePatterns: ["/node_modules/", "/.next/"],
   collectCoverageFrom: [
-    "app/lib/**/*.ts",
-    "app/context/**/*.tsx",
-    "app/hooks/**/*.ts",
-    "!app/**/*.d.ts",
+    "src/lib/**/*.ts",
+    "src/context/**/*.tsx",
+    "src/hooks/**/*.ts",
+    "app/api/**/*.ts",
+    "!src/**/*.d.ts",
   ],
 };
 
